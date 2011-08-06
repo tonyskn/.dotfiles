@@ -1,0 +1,11 @@
+   - Bootstrap.sh
+
+[Vim]
+   - Configure CTags + Tagbar
+   - CommandT
+   - Figure out line bubbling
+   - Enhance window shortcuts
+   - Fix JSLint
+
+[Zsh]
+   - Oh-My-Zsh
