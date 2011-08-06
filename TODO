@@ -1,9 +1,8 @@
-   - Bootstrap.sh
+   - Bootstrap.sh / Rakefile ?
 
 [Vim]
-   - Configure CTags + Tagbar
-   - CommandT
-   - Fix JSLint
+   - Configure CTags + Tagbar for JS
+   - CommandT ?
 
 [Zsh]
    - Oh-My-Zsh

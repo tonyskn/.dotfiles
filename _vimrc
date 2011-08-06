@@ -1,4 +1,4 @@
-   set nocompatible
+set nocompatible
 let mapleader = ","
 
 " load pathogen
@@ -22,7 +22,7 @@ set tabstop=3
 set shiftwidth=3
 set autoindent
 set listchars=tab:▸\ ,eol:¬
-noremap <Leader>s :set list!<CR>
+noremap <silent><Leader>s :set list!<CR>
 
 " allow backspacing over everything in insert mode
 set backspace=indent,eol,start
@@ -39,7 +39,7 @@ set hlsearch
 set incsearch
 set ignorecase
 set smartcase
-noremap <Leader><space> :noh<CR>
+noremap <silent><Leader><space> :noh<CR>
 
 " window shortcuts
 map <Leader>= <C-w>=
@@ -54,8 +54,8 @@ set fileencoding=utf-8
 set wildmode=list:longest,list:full
 set wildignore+=*.o,*.obj,.git,*.rbc,*.class,.svn,vendor/gems/*
 
-" insert fugitive info in statusline
-set statusline=%f%m\ %{fugitive#statusline()}\ %y\ [POS=%l,%v]\ %=[\ %{strftime(\"%H:%M:%S\")}\ ]
+" customize statuline
+set statusline=%f%m\ %{fugitive#statusline()}\ %y\ %{SyntasticStatuslineFlag()}%=[POS=%l,%v][\ %{strftime(\"%H:%M:%S\")}\ ]
 
 " highlight statusline when in INSERT mode
 set laststatus=2
@@ -79,7 +79,12 @@ let g:NERDTreeWinSize=45
 noremap <Leader>n :NERDTreeToggle<CR>
 
 " ZoomWin configuration
-map <Leader><Leader> :ZoomWin<CR>
+map <silent><Leader><Leader> :ZoomWin<CR>
+
+" Syntastic configuration
+let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
+let g:syntastic_enable_signs=1
+let g:syntastic_auto_loc_list=2
 
 " Opens an edit command with the path of the currently edited file filled in
 map <Leader>e :e <C-R>=expand("%:p:h") . "/" <CR>
