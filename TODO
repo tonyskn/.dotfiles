@@ -3,7 +3,6 @@
 [Vim]
    - Configure CTags + Tagbar
    - CommandT
-   - Enhance window shortcuts
    - Fix JSLint
 
 [Zsh]

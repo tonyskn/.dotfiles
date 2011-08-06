@@ -1,4 +1,4 @@
-set nocompatible
+   set nocompatible
 let mapleader = ","
 
 " load pathogen
@@ -41,8 +41,10 @@ set ignorecase
 set smartcase
 noremap <Leader><space> :noh<CR>
 
-" window shortcuts (TODO)
+" window shortcuts
 map <Leader>= <C-w>=
+map <Leader>l <C-w>L
+map <Leader>p <C-w>J
 
 " default file encoding
 set encoding=utf-8
