@@ -6,6 +6,7 @@ if has("gui_macvim")
      macmenu Window.Toggle\ Full\ Screen\ Mode key=<D-CR>
 endif
 
+" no beep
 set visualbell
 
 " Start without the toolbar
@@ -13,4 +14,7 @@ set guioptions-=T
 
 " Default gui color scheme
 color solarized
+
+" NERDTree extras
+source ~/.vim/nerdtree-extras.vim
 

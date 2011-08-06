@@ -28,11 +28,11 @@ noremap <Leader>l :set list!<CR>
 set backspace=indent,eol,start
 
 " Bubble single lines
-nmap <M-Up> [e
-nmap <M-Down> ]e
+"nmap <M-Up> [e
+"nmap <M-Down> ]e
 " Bubble multiple lines
-vmap <M-Up> [egv
-vmap <M-Down> ]egv
+"vmap <M-Up> [egv
+"vmap <M-Down> ]egv
 
 " search
 set hlsearch
@@ -40,6 +40,9 @@ set incsearch
 set ignorecase
 set smartcase
 noremap <Leader><space> :noh<CR>
+
+" window shortcuts (TODO)
+map <Leader>= <C-w>=
 
 " default file encoding
 set encoding=utf-8
@@ -58,11 +61,11 @@ hi StatusLine ctermfg=darkgreen
 hi StatusLineNC cterm=none 
 function! InsertStatuslineColor(mode)
 if a:mode == 'i'
-   hi StatusLine term=reverse ctermfg=darkred
+hi StatusLine term=reverse ctermfg=darkred
 elseif a:mode == 'r'
-   hi StatusLine term=reverse ctermfg=darkmagenta
+hi StatusLine term=reverse ctermfg=darkmagenta
 else
-   hi StatusLine term=reverse ctermfg=darkblue
+hi StatusLine term=reverse ctermfg=darkblue
 endif
 endfunction
 
