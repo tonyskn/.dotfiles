@@ -34,7 +34,7 @@ set backspace=indent,eol,start
 "vmap <M-Up> [egv
 "vmap <M-Down> ]egv
 
-" search
+" configure incremental search
 set hlsearch
 set incsearch
 set ignorecase
@@ -82,7 +82,7 @@ map <Leader><Leader> :ZoomWin<CR>
 " Opens an edit command with the path of the currently edited file filled in
 map <Leader>e :e <C-R>=expand("%:p:h") . "/" <CR>
 " Opens a tab edit command with the path of the currently edited file filled in
-map <Leader>te :tabe <C-R>=expand("%:p:h") . "/" <CR>
+map <Leader>te :vsplit <C-R>=expand("%:p:h") . "/" <CR>
 
 " add json syntax highlighting
 au BufNewFile,BufRead *.json set ft=javascript
@@ -96,7 +96,7 @@ au FileType python set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=79
 " make uses real tabs
 au FileType make set noexpandtab
 
-" Directories for swp files
+" directories for swp files
 set backupdir=~/.vim/backup
 set directory=~/.vim/backup
 
