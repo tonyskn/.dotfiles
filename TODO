@@ -3,7 +3,6 @@
 [Vim]
    - Configure CTags + Tagbar
    - CommandT
-   - Figure out line bubbling
    - Enhance window shortcuts
    - Fix JSLint
 

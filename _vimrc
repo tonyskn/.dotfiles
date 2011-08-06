@@ -22,17 +22,17 @@ set tabstop=3
 set shiftwidth=3
 set autoindent
 set listchars=tab:▸\ ,eol:¬
-noremap <Leader>l :set list!<CR>
+noremap <Leader>s :set list!<CR>
 
 " allow backspacing over everything in insert mode
 set backspace=indent,eol,start
 
-" Bubble single lines
-"nmap <M-Up> [e
-"nmap <M-Down> ]e
-" Bubble multiple lines
-"vmap <M-Up> [egv
-"vmap <M-Down> ]egv
+" bubble single lines
+nmap <C-Left> [e
+nmap <C-Right> ]e
+" bubble multiple lines
+vmap <C-Left> [egv
+vmap <C-Right> ]egv
 
 " configure incremental search
 set hlsearch
