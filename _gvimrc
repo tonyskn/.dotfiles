@@ -11,6 +11,11 @@ set visualbell
 
 " Start without the toolbar
 set guioptions-=T
+" remove all scrollbars
+set guioptions-=R
+set guioptions-=r
+set guioptions-=L
+set guioptions-=l
 
 " Default gui color scheme
 color solarized
