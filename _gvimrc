@@ -19,7 +19,3 @@ set guioptions-=l
 
 " Default gui color scheme
 color solarized
-
-" NERDTree extras
-source ~/.vim/nerdtree-extras.vim
-
