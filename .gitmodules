@@ -7,9 +7,6 @@
 [submodule "_vim/bundle/fugitive"]
 	path = _vim/bundle/fugitive
 	url = git://github.com/tpope/vim-fugitive.git
-[submodule "_vim/bundle/nerdtree"]
-	path = _vim/bundle/nerdtree
-	url = git://github.com/wycats/nerdtree.git
 [submodule "_vim/bundle/surround"]
 	path = _vim/bundle/surround
 	url = git://github.com/tpope/vim-surround.git
@@ -43,3 +40,9 @@
 [submodule "_oh-my-zsh"]
 	path = _oh-my-zsh
 	url = git://github.com/robbyrussell/oh-my-zsh.git
+[submodule "_vim/bundle/L9"]
+	path = _vim/bundle/L9
+	url = git://github.com/vim-scripts/L9.git
+[submodule "_vim/bundle/FuzzyFinder"]
+	path = _vim/bundle/FuzzyFinder
+	url = git://github.com/vim-scripts/FuzzyFinder.git

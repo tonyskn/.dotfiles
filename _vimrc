@@ -109,9 +109,10 @@ endfunction
 au InsertEnter * call InsertStatuslineColor(v:insertmode)
 au InsertLeave * hi StatusLine term=reverse ctermfg=darkgreen
 
-" map NERDTree to ,n
-let g:NERDTreeWinSize=45
-noremap <Leader>n :NERDTreeToggle<CR>
+" configure FuzzyFinder mappings
+map <silent><Leader>nf :FufFileWithCurrentBufferDir<CR>
+map <silent><Leader>nd :FufDir<CR>
+map <silent><Leader>nt :FufCoverageFile<CR>
 
 " ZoomWin configuration
 map <silent><Leader><Leader> :ZoomWin<CR>
