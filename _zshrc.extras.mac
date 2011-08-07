@@ -1,0 +1,15 @@
+#
+# mac configuration
+#
+
+source `brew --prefix autojump`/etc/autojump.zsh
+
+# source /Users/tonyskn/.node_libraries/.npm/nvm/0.1.0/package/nvm.sh
+
+export PATH=/usr/local/share/npm/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/usr/X11/bin
+export NODE_PATH=/usr/local/lib/node_modules
+
+alias mvim=mvim 2&>1 > /dev/null
+export HOMEBREW_EDITOR=mvim
+
+alias chrome-ipad='/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --user-agent="Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.10" 2>/dev/null 1>/dev/null &'

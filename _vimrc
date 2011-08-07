@@ -44,6 +44,9 @@ map <Leader>e :e <C-R>=expand("%:p:h") . "/" <CR>
 " opens a vsplit edit command with the path of the currently edited file filled in
 map <Leader>te :vsplit <C-R>=expand("%:p:h") . "/" <CR>
 
+" _zsh* files are Zsh scripts
+au BufNewFile,BufRead _zsh* set ft=zsh
+
 " JSON files are Javascript
 au BufNewFile,BufRead *.json set ft=javascript
 

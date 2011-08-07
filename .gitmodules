@@ -40,3 +40,6 @@
 [submodule "_vim/bundle/syntastic"]
 	path = _vim/bundle/syntastic
 	url = git://github.com/scrooloose/syntastic.git
+[submodule "_oh-my-zsh"]
+	path = _oh-my-zsh
+	url = git://github.com/robbyrussell/oh-my-zsh.git
