@@ -7,6 +7,9 @@ set lazyredraw
 " allow to have hidden buffers not written
 set hidden
 
+" time to wait after ESC (default causes annoying delay)
+set timeoutlen=250
+
 " enable syntax highlighting
 syntax on
 set number
