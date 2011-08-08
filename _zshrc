@@ -23,6 +23,9 @@ else
    plugins=(git)
 fi
 
+# Disable oh-my-zsh auto-updates
+export DISABLE_AUTO_UPDATE=true
+
 source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
