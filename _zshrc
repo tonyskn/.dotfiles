@@ -34,6 +34,9 @@ alias ll='ls -lh'
 alias deps="rm -rf node_modules && npm install"
 alias mci='mvn clean install -Dmaven.test.skip=true -T2'
 
+export M2_DEBUG="-Xms512m -Xmx768m -XX:PermSize=256m -XX:MaxPermSize=256m -Dmaven.test.skip=true -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
+export M2_DEBUG_ALT="-Xms512m -Xmx768m -XX:PermSize=256m -XX:MaxPermSize=256m -Dmaven.test.skip=true -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=4000"
+
 if [ "`uname`" = "Darwin" ]
 then
    source $HOME/.zshrc.extras.mac

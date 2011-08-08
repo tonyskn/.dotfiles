@@ -1,6 +1,9 @@
 set nocompatible
 let mapleader = ","
 
+" activate support for 256-color terminals
+set t_Co=256
+
 " don't redraw while executing macros
 set lazyredraw
 
@@ -100,25 +103,21 @@ set statusline=%f%m\ %{fugitive#statusline()}\ %y\ %{SyntasticStatuslineFlag()}%
 
 " highlight statusline when in INSERT mode
 set laststatus=2
-hi StatusLine ctermfg=darkgreen
+hi StatusLine ctermfg=darkgrey
 hi StatusLineNC cterm=none 
 function! InsertStatuslineColor(mode)
    if a:mode == 'i'
       hi StatusLine term=reverse ctermfg=darkred
-   elseif a:mode == 'r'
-      hi StatusLine term=reverse ctermfg=darkmagenta
-   else
-      hi StatusLine term=reverse ctermfg=darkblue
    endif
 endfunction
 
 au InsertEnter * call InsertStatuslineColor(v:insertmode)
-au InsertLeave * hi StatusLine term=reverse ctermfg=darkgreen
+au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
 
 " configure FuzzyFinder mappings
-map <silent><Leader>nf :FufFileWithCurrentBufferDir<CR>
-map <silent><Leader>nd :FufDir<CR>
-map <silent><Leader>nt :FufCoverageFile<CR>
+noremap <silent><Leader>nf :FufFileWithCurrentBufferDir<CR>
+noremap <silent><Leader>nd :FufDir<CR>
+noremap <silent><Leader>nt :FufCoverageFile<CR>
 
 " ZoomWin configuration
 map <silent><Leader><Leader> :ZoomWin<CR>
