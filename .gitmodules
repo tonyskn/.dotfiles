@@ -31,9 +31,6 @@
 [submodule "_vim/bundle/supertab"]
 	path = _vim/bundle/supertab
 	url = git://github.com/ervandew/supertab.git
-[submodule "_vim/bundle/unimpaired"]
-	path = _vim/bundle/unimpaired
-	url = git://github.com/tpope/vim-unimpaired.git
 [submodule "_vim/bundle/syntastic"]
 	path = _vim/bundle/syntastic
 	url = git://github.com/scrooloose/syntastic.git

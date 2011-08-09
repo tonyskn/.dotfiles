@@ -1,5 +1,6 @@
 set nocompatible
 let mapleader = ","
+
 " remap crazy CTRL-]
 nmap <Leader>$ <C-]>
 
@@ -96,12 +97,13 @@ call pathogen#helptags()
 " default colorscheme
 colorscheme molokai
 
-" bubble single lines
-nmap <C-Left> [e
-nmap <C-Right> ]e
-" bubble multiple lines
-vmap <C-Left> [egv
-vmap <C-Right> ]egv
+" mappings for bubblings ( shameless steal from Unimpaired.vim )
+" normal mode
+nmap <silent><C-Left> :<C-U>exe 'norm m`'<Bar>exe 'move--'.v:count1<CR>`` 
+nmap <silent><C-Right> :<C-U>exe 'norm m`'<Bar>exe 'move+'.v:count1<CR>``
+" visual mode
+vmap <silent><C-Left> :<C-U>exe 'norm m`'<Bar>exe '''<,''>move--'.v:count1<CR>``gv
+vmap <silent><C-Right> :<C-U>exe 'norm m`'<Bar>exe '''<,''>move''>+'.v:count1<CR>``gv
 
 " customize statuline
 set statusline=%f%m\ %{fugitive#statusline()}\ %y\ %{SyntasticStatuslineFlag()}%=[POS=%l,%v][\ %{strftime(\"%H:%M:%S\")}\ ]
