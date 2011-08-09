@@ -1,5 +1,7 @@
 set nocompatible
 let mapleader = ","
+" remap crazy CTRL-]
+nmap <Leader>$ <C-]>
 
 " activate support for 256-color terminals
 set t_Co=256
@@ -9,9 +11,6 @@ set lazyredraw
 
 " allow to have hidden buffers not written
 set hidden
-
-" time to wait after ESC (default causes annoying delay)
-set timeoutlen=250
 
 " enable syntax highlighting
 syntax on
@@ -44,6 +43,12 @@ noremap <silent><Leader><space> :noh<CR>
 map <Leader>= <C-w>=
 map <Leader>l <C-w>L
 map <Leader>p <C-w>J
+
+" mappings for navigating the location list
+map <Leader>J :lfirst<CR>
+map <Leader>j :lnext<CR>
+map <Leader>K :llast<CR>
+map <Leader>k :lprevious<CR>
 
 " opens an edit command with the path of the currently edited file filled in
 map <Leader>e :e <C-R>=expand("%:p:h") . "/" <CR>
