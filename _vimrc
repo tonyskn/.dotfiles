@@ -3,6 +3,7 @@ let mapleader = ","
 
 " remap crazy CTRL-]
 nmap <Leader>$ <C-]>
+imap <Leader>$ <C-]>
 
 " activate support for 256-color terminals
 set t_Co=256
@@ -55,6 +56,9 @@ map <Leader>k :lprevious<CR>
 map <Leader>e :e <C-R>=expand("%:p:h") . "/" <CR>
 " opens a vsplit edit command with the path of the currently edited file filled in
 map <Leader>te :vsplit <C-R>=expand("%:p:h") . "/" <CR>
+
+" CTags
+map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
 
 " _zsh* files are Zsh scripts
 au BufNewFile,BufRead _zsh* set ft=zsh
@@ -122,9 +126,13 @@ au InsertEnter * call InsertStatuslineColor(v:insertmode)
 au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
 
 " configure FuzzyFinder mappings
+let g:fuf_modesDisable=[]
 noremap <silent><Leader>nf :FufFileWithCurrentBufferDir<CR>
 noremap <silent><Leader>nd :FufDir<CR>
 noremap <silent><Leader>nt :FufCoverageFile<CR>
+noremap <silent><Leader>nb :FufBuffer<CR>
+noremap <silent><Leader>ne :FufMruFile<CR>
+noremap <silent><Leader>nc :FufMruCmd<CR>
 
 " ZoomWin configuration
 map <silent><Leader><Leader> :ZoomWin<CR>
