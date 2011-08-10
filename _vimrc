@@ -1,3 +1,8 @@
+
+"""""""""""""""""""""""""""""
+"""""" GENERAL SETTINGS """""
+"""""""""""""""""""""""""""""
+
 set nocompatible
 let mapleader = ","
 
@@ -60,6 +65,26 @@ map <Leader>te :vsplit <C-R>=expand("%:p:h") . "/" <CR>
 " CTags
 map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
 
+" mappings for line bubbling ( shameless steal from Unimpaired.vim )
+" normal mode
+nmap <silent><C-Left> :<C-U>exe 'norm m`'<Bar>exe 'move--'.v:count1<CR>`` 
+nmap <silent><C-Right> :<C-U>exe 'norm m`'<Bar>exe 'move+'.v:count1<CR>``
+" visual mode
+vmap <silent><C-Left> :<C-U>exe 'norm m`'<Bar>exe '''<,''>move--'.v:count1<CR>``gv
+vmap <silent><C-Right> :<C-U>exe 'norm m`'<Bar>exe '''<,''>move''>+'.v:count1<CR>``gv
+
+" default file encoding
+set encoding=utf-8
+set fileencoding=utf-8
+
+" directories for swp files
+set backupdir=~/.vim/backup
+set directory=~/.vim/backup
+
+""""""""""""""""""""""""""""""""""""
+""""" FILETYPE SPECIFIC RULES """"""
+""""""""""""""""""""""""""""""""""""
+
 " _zsh* files are Zsh scripts
 au BufNewFile,BufRead _zsh* set ft=zsh
 
@@ -81,13 +106,9 @@ au FileType xml set equalprg=xmllint\ --format\ -
 " make uses real tabs
 au FileType make set noexpandtab
 
-" default file encoding
-set encoding=utf-8
-set fileencoding=utf-8
-
-" directories for swp files
-set backupdir=~/.vim/backup
-set directory=~/.vim/backup
+""""""""""""""""""""""""""""""""""""""""""""""""""
+""""" LOAD PLUGINS AND APPLY CUSTOMIZATIONS """"""
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 " load pathogen
 source ~/.vim/bundle/pathogen/autoload/pathogen.vim
@@ -100,14 +121,6 @@ call pathogen#helptags()
 
 " default colorscheme
 colorscheme molokai
-
-" mappings for bubblings ( shameless steal from Unimpaired.vim )
-" normal mode
-nmap <silent><C-Left> :<C-U>exe 'norm m`'<Bar>exe 'move--'.v:count1<CR>`` 
-nmap <silent><C-Right> :<C-U>exe 'norm m`'<Bar>exe 'move+'.v:count1<CR>``
-" visual mode
-vmap <silent><C-Left> :<C-U>exe 'norm m`'<Bar>exe '''<,''>move--'.v:count1<CR>``gv
-vmap <silent><C-Right> :<C-U>exe 'norm m`'<Bar>exe '''<,''>move''>+'.v:count1<CR>``gv
 
 " customize statuline
 set statusline=%f%m\ %{fugitive#statusline()}\ %y\ %{SyntasticStatuslineFlag()}%=[POS=%l,%v][\ %{strftime(\"%H:%M:%S\")}\ ]
@@ -125,6 +138,10 @@ endfunction
 au InsertEnter * call InsertStatuslineColor(v:insertmode)
 au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
 
+" custom mappings for Surround in insert mode
+imap <Leader>s <Plug>Isurround
+imap <Leader>S <Plug>ISurround
+
 " configure FuzzyFinder mappings
 let g:fuf_modesDisable=[]
 noremap <silent><Leader>nf :FufFileWithCurrentBufferDir<CR>
@@ -133,6 +150,7 @@ noremap <silent><Leader>nt :FufCoverageFile<CR>
 noremap <silent><Leader>nb :FufBuffer<CR>
 noremap <silent><Leader>ne :FufMruFile<CR>
 noremap <silent><Leader>nc :FufMruCmd<CR>
+noremap <silent><Leader>ng :FufLine<CR>
 
 " ZoomWin configuration
 map <silent><Leader><Leader> :ZoomWin<CR>
