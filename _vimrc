@@ -133,6 +133,9 @@ endfunction
 au InsertEnter * call InsertStatuslineColor(v:insertmode)
 au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
 
+" set supertab completion scheme
+let g:SuperTabDefaultCompletionType = "context"
+
 " custom mappings for Surround in insert mode
 imap <Leader>s <Plug>Isurround
 imap <Leader>S <Plug>ISurround
