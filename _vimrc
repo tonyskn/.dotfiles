@@ -57,11 +57,6 @@ map <Leader>j :lnext<CR>
 map <Leader>K :llast<CR>
 map <Leader>k :lprevious<CR>
 
-" opens an edit command with the path of the currently edited file filled in
-map <Leader>e :e <C-R>=expand("%:p:h") . "/" <CR>
-" opens a vsplit edit command with the path of the currently edited file filled in
-map <Leader>te :vsplit <C-R>=expand("%:p:h") . "/" <CR>
-
 " CTags
 map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
 
