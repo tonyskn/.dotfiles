@@ -81,7 +81,7 @@ set directory=~/.vim/backup
 """"""""""""""""""""""""""""""""""""
 
 " _zsh* files are Zsh scripts
-au BufNewFile,BufRead _zsh* set ft=zsh
+au BufNewFile,BufRead *zsh* set ft=zsh
 
 " JSON files are Javascript
 au BufNewFile,BufRead *.json set ft=javascript
@@ -115,7 +115,8 @@ call pathogen#infect()
 call pathogen#helptags()
 
 " default colorscheme
-colorscheme molokai
+set background=dark
+colorscheme solarized
 
 " customize statuline
 set statusline=%f%m\ %{fugitive#statusline()}\ %y\ %{SyntasticStatuslineFlag()}%=[POS=%l,%v][\ %{strftime(\"%H:%M:%S\")}\ ]
