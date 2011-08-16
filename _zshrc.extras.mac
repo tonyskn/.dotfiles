@@ -8,7 +8,6 @@ source `brew --prefix autojump`/etc/autojump.zsh
 
 export PATH=/usr/local/bin:/usr/local/sbin:$PATH
 export NODE_PATH=/usr/local/lib/node_modules
-export PATH="$HOME/.rbenv/shims:$HOME/.rbenv/bin:$PATH"
 
 export VIM_COLORSCHEME=solarized
 
