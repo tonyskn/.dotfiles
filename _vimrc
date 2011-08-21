@@ -6,9 +6,19 @@
 set nocompatible
 let mapleader = ","
 
+" show command keystrokes in down/right corner
+set showcmd
+
 " remap crazy CTRL-]
 nmap <Leader>$ <C-]>
 imap <Leader>$ <C-]>
+
+" remap ESC in insert mode
+imap jj <C-[>
+
+" default file encoding
+set encoding=utf-8
+set fileencoding=utf-8
 
 " activate support for 256-color terminals
 set t_Co=256
@@ -67,10 +77,6 @@ nmap <silent><C-Right> :<C-U>exe 'norm m`'<Bar>exe 'move+'.v:count1<CR>``
 " visual mode
 vmap <silent><C-Left> :<C-U>exe 'norm m`'<Bar>exe '''<,''>move--'.v:count1<CR>``gv
 vmap <silent><C-Right> :<C-U>exe 'norm m`'<Bar>exe '''<,''>move''>+'.v:count1<CR>``gv
-
-" default file encoding
-set encoding=utf-8
-set fileencoding=utf-8
 
 " directories for swp files
 set backupdir=~/.vim/backup
