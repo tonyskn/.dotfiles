@@ -2,7 +2,7 @@
 # mac configuration
 #
 
-source `brew --prefix autojump`/etc/autojump.zsh
+source /usr/local/Cellar/autojump/15/etc/autojump.zsh
 
 # source /Users/tonyskn/.node_libraries/.npm/nvm/0.1.0/package/nvm.sh
 
