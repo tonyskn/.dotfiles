@@ -1,5 +1,5 @@
 " langage specific prefixes
-let s:prefix = {'javascript': '\/\/ ', 'java': '\/\/ ', 'vim': '\" ', 'ruby': '# '}
+let s:prefix = {'javascript': '\/\/ ', 'java': '\/\/ ', 'vim': '\" ', 'ruby': '# ', 'haskell': '-- '}
 
 function s:do()
    if has_key(s:prefix, b:current_syntax)

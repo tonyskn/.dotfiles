@@ -7,3 +7,4 @@ au FileType perl map <Leader>r :!perl % <CR>
 au FileType lua map <Leader>r :!lua % <CR>
 au FileType sh map <Leader>r :!sh % <CR>
 au FileType vim map <Leader>r :source % <CR>
+au FileType haskell map <Leader>r :!ghc --make % && ./%:t:r <CR>
