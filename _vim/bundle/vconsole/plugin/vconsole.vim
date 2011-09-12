@@ -1,4 +1,5 @@
 au FileType javascript map <Leader>r :!node % <CR>
+au FileType coffee map <Leader>r :! coffee % <CR>
 au FileType ruby map <Leader>r :!ruby % <CR>
 au FileType scala map <Leader>r :!scala % <CR>
 au FileType php map <Leader>r :!php % <CR>

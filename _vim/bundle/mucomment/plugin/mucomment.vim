@@ -1,9 +1,9 @@
 " langage specific prefixes
-let s:prefix = {'javascript': '\/\/ ', 'java': '\/\/ ', 'vim': '\" ', 'ruby': '# ', 'haskell': '-- '}
+let s:prefix = {'coffee': '#', 'javascript': '\/\/', 'java': '\/\/', 'vim': '\"', 'ruby': '#', 'haskell': '--', 'jproperties': '#'}
 
 function s:do()
    if has_key(s:prefix, b:current_syntax)
-      exe 's/^/'.s:prefix[b:current_syntax].'/'
+      exe 's/^/'.s:prefix[b:current_syntax].' /'
       exe 'noh'
       silent! call repeat#set("\<Plug>MuCommentDo",v:count)
    endif
@@ -12,7 +12,7 @@ noremap <silent><Plug>MuCommentDo :call <SID>do()<CR>
 
 function s:undo()
    if has_key(s:prefix, b:current_syntax)
-      exe 'silent!s/^'.s:prefix[b:current_syntax].'//'
+      exe 'silent!s/^'.s:prefix[b:current_syntax].'\ *//'
       exe 'noh'
       silent! call repeat#set("\<Plug>MuCommentUndo",v:count)
    endif
