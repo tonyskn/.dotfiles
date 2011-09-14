@@ -31,6 +31,7 @@ source $ZSH/oh-my-zsh.sh
 # Customize to your needs...
 alias ggpull="git pull --rebase origin $(current_branch)"
 alias gitweb="git config --get remote.origin.url | sed -e 's/^.*github\.com./https:\/\/github.com\//' | sed -e 's/\.git$//' | xargs python -m webbrowser -t > /dev/null"
+alias ggl="git log --decorate --oneline --graph --all -20"
 
 alias printxml='xmllint --format -'
 alias printjson='python -m json.tool'
