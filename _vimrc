@@ -103,6 +103,8 @@ au FileType markdown set softtabstop=4 tabstop=4 shiftwidth=4
 
 " use xmllint to format xml
 au FileType xml set equalprg=xmllint\ --format\ -
+" use python json.tool to format JSON
+au BufNewFile,BufRead *.json set equalprg=python\ -m\ json.tool
 
 " make uses real tabs
 au FileType make set noexpandtab
