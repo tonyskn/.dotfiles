@@ -67,6 +67,9 @@ map <Leader>j :lnext<CR>
 map <Leader>K :llast<CR>
 map <Leader>k :lprevious<CR>
 
+" Sudo write
+map <silent><Leader>w :w !sudo tee %<CR>
+
 " CTags
 map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
 
