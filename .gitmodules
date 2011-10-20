@@ -40,3 +40,6 @@
 [submodule "_vim/bundle/FuzzyFinder"]
 	path = _vim/bundle/FuzzyFinder
 	url = git://github.com/vim-scripts/FuzzyFinder.git
+[submodule "_vim/bundle/mucomment.vim"]
+	path = _vim/bundle/mucomment.vim
+	url = git@github.com:tonyskn/mucomment.vim.git
