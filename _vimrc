@@ -159,7 +159,7 @@ imap <Leader>S <Plug>ISurround
 " configure extra mappings for fugitive's Gdiff view
 noremap <silent><Leader>d ]c
 noremap <silent><Leader>D [c
-noremap <silent><Leader><Leader>d <C-w>h:w<CR>:q<CR><C-w>k
+noremap <silent><Leader>q <C-w>h:w<CR>:q<CR><C-w>k
 
 " configure FuzzyFinder mappings
 let g:fuf_modesDisable=[]
