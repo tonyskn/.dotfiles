@@ -1,45 +1,60 @@
 [submodule "_vim/bundle/pathogen"]
 	path = _vim/bundle/pathogen
 	url = git://github.com/tpope/vim-pathogen.git
+   ignore = untracked
 [submodule "_vim/bundle/molokai"]
 	path = _vim/bundle/molokai
 	url = git://github.com/mrtazz/molokai.vim.git
+   ignore = untracked
 [submodule "_vim/bundle/fugitive"]
 	path = _vim/bundle/fugitive
 	url = git://github.com/tpope/vim-fugitive.git
+   ignore = untracked
 [submodule "_vim/bundle/surround"]
 	path = _vim/bundle/surround
 	url = git://github.com/tpope/vim-surround.git
+   ignore = untracked
 [submodule "_vim/bundle/repeat"]
 	path = _vim/bundle/repeat
 	url = git://github.com/tpope/vim-repeat.git
+   ignore = untracked
 [submodule "_vim/bundle/ack"]
 	path = _vim/bundle/ack
 	url = git://github.com/vim-scripts/ack.vim.git
+   ignore = untracked
 [submodule "_vim/bundle/javascript"]
 	path = _vim/bundle/javascript
 	url = git://github.com/pangloss/vim-javascript.git
+   ignore = untracked
 [submodule "_vim/bundle/zoomwin"]
 	path = _vim/bundle/zoomwin
 	url = git://github.com/vim-scripts/ZoomWin.git
+   ignore = untracked
 [submodule "_vim/bundle/solarized"]
 	path = _vim/bundle/solarized
 	url = git://github.com/altercation/vim-colors-solarized.git
+   ignore = untracked
 [submodule "_vim/bundle/supertab"]
 	path = _vim/bundle/supertab
 	url = git://github.com/ervandew/supertab.git
+   ignore = untracked
 [submodule "_vim/bundle/syntastic"]
 	path = _vim/bundle/syntastic
 	url = git://github.com/scrooloose/syntastic.git
+   ignore = untracked
 [submodule "_oh-my-zsh"]
 	path = _oh-my-zsh
 	url = git://github.com/robbyrussell/oh-my-zsh.git
+   ignore = untracked
 [submodule "_vim/bundle/L9"]
 	path = _vim/bundle/L9
 	url = git://github.com/vim-scripts/L9.git
+   ignore = untracked
 [submodule "_vim/bundle/FuzzyFinder"]
 	path = _vim/bundle/FuzzyFinder
 	url = git://github.com/vim-scripts/FuzzyFinder.git
+   ignore = untracked
 [submodule "_vim/bundle/mucomment.vim"]
 	path = _vim/bundle/mucomment.vim
 	url = git@github.com:tonyskn/mucomment.vim.git
+   ignore = untracked
