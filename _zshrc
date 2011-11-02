@@ -18,9 +18,9 @@ export ZSH_THEME="arrow"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 if [ $(uname) = "Darwin" ]
 then
-   plugins=(git brew)
+   plugins=(git npm brew)
 else
-   plugins=(git)
+   plugins=(git npm)
 fi
 
 # Disable oh-my-zsh auto-updates
