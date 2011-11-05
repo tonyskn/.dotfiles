@@ -5,7 +5,6 @@
 source /etc/profile.d/autojump.zsh
 
 # Customize to your needs...
-export VIM_COLORSCHEME=solarized
 export M2_REBEL="-Xms512m -Xmx768m -Dmaven.test.skip=true -noverify -javaagent:/home/tsokhon/idea/jrebel.jar"
 export M2_HOME=/home/tsokhon/apps/apache-maven-3.0.1
 export PATH=$M2_HOME/bin:$PATH

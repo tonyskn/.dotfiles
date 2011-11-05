@@ -9,7 +9,6 @@ source /usr/local/Cellar/autojump/15/etc/autojump.zsh
 export PATH=/usr/local/bin:/usr/local/sbin:$PATH
 export NODE_PATH=/usr/local/lib/node_modules
 
-export VIM_COLORSCHEME=summerfruit256
 alias mvim=mvim 2&>1 > /dev/null
 export HOMEBREW_EDITOR=vim
 

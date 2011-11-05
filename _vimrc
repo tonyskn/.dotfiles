@@ -122,12 +122,8 @@ call pathogen#infect()
 call pathogen#helptags()
 
 " default colorscheme
-if $VIM_COLORSCHEME != ""
-   set background=dark
-   colorscheme $VIM_COLORSCHEME
-else
-   colorscheme molokai
-endif
+set background=dark
+colorscheme solarized
 
 " customize statuline
 set statusline=%f%m\ %{fugitive#statusline()}\ %y\ %{SyntasticStatuslineFlag()}%=[POS=%l,%v][\ %{strftime(\"%H:%M:%S\")}\ ]
