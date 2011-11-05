@@ -14,4 +14,5 @@ export JAVA_HOME=$JDK_HOME
 export INSTALL4J_HOME=/home/tsokhon/apps/install4j5
 
 # Alias
+alias tmux="TERM=screen-256color-bce tmux"
 alias minecraft='java -Xmx1024M -Xms512M -cp ~/minecraft.jar net.minecraft.LauncherFrame'

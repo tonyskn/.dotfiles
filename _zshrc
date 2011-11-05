@@ -39,7 +39,6 @@ alias ll='ls -lh'
 
 alias deps="rm -rf node_modules && npm install"
 alias bi="bundle install --path=vendor/bundle"
-alias tmux="TERM=screen-256color-bce tmux"
 
 alias mci='mvn clean install -Dmaven.test.skip=true -T2'
 export M2_DEBUG="-Xms512m -Xmx768m -XX:PermSize=256m -XX:MaxPermSize=256m -Dmaven.test.skip=true -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
