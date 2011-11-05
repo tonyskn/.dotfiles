@@ -1,4 +1,5 @@
 _vim/.netrwhist*
+_vim/view/*
 *.swp
 Session.vim
 **/Session.vim
