@@ -11,10 +11,6 @@ set showcmd
 
 " remap crazy CTRL-]
 nmap <Leader>$ <C-]>
-imap <Leader>$ <C-]>
-
-" remap ESC in insert mode
-imap jj <C-[>
 
 " default file encoding
 set encoding=utf-8
@@ -153,8 +149,8 @@ au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
 let g:SuperTabDefaultCompletionType = "context"
 
 " custom mappings for Surround in insert mode
-imap <Leader>s <Plug>Isurround
-imap <Leader>S <Plug>ISurround
+imap @ <Plug>Isurround
+imap @@ <Plug>ISurround
 
 " configure extra mappings for fugitive's Gdiff view
 noremap <silent><Leader>d ]c
