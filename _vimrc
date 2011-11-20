@@ -58,8 +58,25 @@ set ignorecase
 set smartcase
 noremap <silent><Leader><space> :noh<CR>
 
+"""""""""""""""""""""""""
+""""" STATAUS LINE """"""
+"""""""""""""""""""""""""
+
+" customize statuline
+set statusline=%f%m\ %{fugitive#statusline()}\ [%{&ft}]\ %{SyntasticStatuslineFlag()}%=[%{&ff}/%{strlen(&fenc)?&fenc:&enc}]%=[POS=%l,%v]
+ 
+" display statusline on every window
+set laststatus=2
+" highlight statusline of active window
+hi StatusLine ctermfg=darkgrey
+hi StatusLineNC cterm=none 
+
+" colorify statusline when in insert mode
+au InsertEnter * hi StatusLine term=reverse ctermfg=darkred
+au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
+
 """""""""""""""""""""
-"""""" MAPPINGS """""
+""""" MAPPINGS """"""
 """""""""""""""""""""
 
 " Fix some annoying defaults
@@ -145,22 +162,6 @@ call pathogen#helptags()
 " default colorscheme
 set background=dark
 colorscheme solarized
-
-" customize statuline
-set statusline=%f%m\ %{fugitive#statusline()}\ %y\ %{SyntasticStatuslineFlag()}%=[POS=%l,%v][\ %{strftime(\"%H:%M:%S\")}\ ]
-
-" highlight statusline when in INSERT mode
-set laststatus=2
-hi StatusLine ctermfg=darkgrey
-hi StatusLineNC cterm=none 
-function! InsertStatuslineColor(mode)
-   if a:mode == 'i'
-      hi StatusLine term=reverse ctermfg=darkred
-   endif
-endfunction
-
-au InsertEnter * call InsertStatuslineColor(v:insertmode)
-au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
 
 " set supertab completion scheme
 set completeopt=longest,menuone,preview
