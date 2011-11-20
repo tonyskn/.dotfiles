@@ -7,26 +7,15 @@ set nocompatible
 let mapleader = ","
 let maplocalleader = ","
 
+" directories for swp files
+set backupdir=~/.vim/backup
+set directory=~/.vim/backup
+
 " disable error bell
 set noeb vb t_vb=
 
-" Fix some annoying defaults
-nnoremap * *<c-o>
-nnoremap K <nop>
-nnoremap <CR> O<ESC>
-" Heresy
-inoremap <c-a> <esc>I
-inoremap <c-e> <esc>A
-
-" Space to toggle folds
-nnoremap <Space> za
-vnoremap <Space> za
-
 " show command keystrokes in down/right corner
 set showcmd
-
-" remap crazy CTRL-]
-nmap <Leader>$ <C-]>
 
 " default file encoding
 set encoding=utf-8
@@ -68,9 +57,28 @@ set incsearch
 set ignorecase
 set smartcase
 noremap <silent><Leader><space> :noh<CR>
+
+"""""""""""""""""""""
+"""""" MAPPINGS """""
+"""""""""""""""""""""
+
+" Fix some annoying defaults
+nnoremap * *<c-o>
+nnoremap K <nop>
+nnoremap <CR> O<ESC>
+nmap <Leader>$ <C-]>
+
 " Keep the search matches in the middle of the window
 nnoremap n nzzzv
 nnoremap N Nzzzv
+
+" Emacs style Home/End
+inoremap <c-a> <esc>I
+inoremap <c-e> <esc>A
+
+" Space to toggle folds
+nnoremap <Space> za
+vnoremap <Space> za
 
 " window shortcuts
 map <Leader>= <C-w>=
@@ -83,23 +91,16 @@ map <Leader>j :lnext<CR>
 map <Leader>K :llast<CR>
 map <Leader>k :lprevious<CR>
 
+" configure extra mappings for fugitive's Gdiff view
+noremap <silent><Leader>d ]c
+noremap <silent><Leader>D [c
+noremap <silent><Leader>q <C-w>h:w<CR>:q<CR><C-w>k
+
 " Sudo write
 cmap w!! w !sudo tee % > /dev/null <CR>
 
 " CTags
 map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
-
-" mappings for line bubbling ( shameless steal from Unimpaired.vim )
-" normal mode
-nmap <silent><C-Left> :<C-U>exe 'norm m`'<Bar>exe 'move--'.v:count1<CR>`` 
-nmap <silent><C-Right> :<C-U>exe 'norm m`'<Bar>exe 'move+'.v:count1<CR>``
-" visual mode
-vmap <silent><C-Left> :<C-U>exe 'norm m`'<Bar>exe '''<,''>move--'.v:count1<CR>``gv
-vmap <silent><C-Right> :<C-U>exe 'norm m`'<Bar>exe '''<,''>move''>+'.v:count1<CR>``gv
-
-" directories for swp files
-set backupdir=~/.vim/backup
-set directory=~/.vim/backup
 
 """"""""""""""""""""""""""""""""""""
 """"" FILETYPE SPECIFIC RULES """"""
@@ -165,11 +166,6 @@ au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
 set completeopt=longest,menuone,preview
 let g:SuperTabDefaultCompletionType = "<c-n>"
 let g:SuperTabLongestHighlight = 1
-
-" configure extra mappings for fugitive's Gdiff view
-noremap <silent><Leader>d ]c
-noremap <silent><Leader>D [c
-noremap <silent><Leader>q <C-w>h:w<CR>:q<CR><C-w>k
 
 " configure FuzzyFinder mappings
 let g:fuf_modesDisable=[]
