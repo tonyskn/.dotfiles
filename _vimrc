@@ -5,6 +5,22 @@
 
 set nocompatible
 let mapleader = ","
+let maplocalleader = ","
+
+" disable error bell
+set noeb vb t_vb=
+
+" Fix some annoying defaults
+nnoremap * *<c-o>
+nnoremap K <nop>
+nnoremap <CR> O<ESC>
+" Heresy
+inoremap <c-a> <esc>I
+inoremap <c-e> <esc>A
+
+" Space to toggle folds
+nnoremap <Space> za
+vnoremap <Space> za
 
 " show command keystrokes in down/right corner
 set showcmd
@@ -29,13 +45,14 @@ set hidden
 syntax on
 set number
 set ruler
+set cursorline
 
 " indentation and tabs
 set expandtab
 set tabstop=3
 set shiftwidth=3
 set autoindent
-set listchars=tab:▸\ ,eol:¬
+set listchars=tab:▸\ ,eol:¬,extends:❯,precedes:❮
 noremap <silent><Leader>s :set list!<CR>
 
 " tab completion
@@ -51,6 +68,9 @@ set incsearch
 set ignorecase
 set smartcase
 noremap <silent><Leader><space> :noh<CR>
+" Keep the search matches in the middle of the window
+nnoremap n nzzzv
+nnoremap N Nzzzv
 
 " window shortcuts
 map <Leader>= <C-w>=
@@ -64,7 +84,7 @@ map <Leader>K :llast<CR>
 map <Leader>k :lprevious<CR>
 
 " Sudo write
-map <silent><Leader>w :w !sudo tee %<CR>
+cmap w!! w !sudo tee % > /dev/null <CR>
 
 " CTags
 map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
@@ -142,11 +162,9 @@ au InsertEnter * call InsertStatuslineColor(v:insertmode)
 au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
 
 " set supertab completion scheme
-let g:SuperTabDefaultCompletionType = "context"
-
-" custom mappings for Surround in insert mode
-imap @ <Plug>Isurround
-imap @@ <Plug>ISurround
+set completeopt=longest,menuone,preview
+let g:SuperTabDefaultCompletionType = "<c-n>"
+let g:SuperTabLongestHighlight = 1
 
 " configure extra mappings for fugitive's Gdiff view
 noremap <silent><Leader>d ]c
@@ -162,6 +180,8 @@ noremap <silent><Leader>nb :FufBuffer<CR>
 noremap <silent><Leader>ne :FufMruFile<CR>
 noremap <silent><Leader>nc :FufMruCmd<CR>
 noremap <silent><Leader>ng :FufLine<CR>
+" open the latest search in :Fufline
+noremap <silent><leader>/ :execute ':FufLine ' . substitute(substitute(substitute(@/, "\\\\<", "", ""), "\\\\>", "", ""), "\\\\v", "", "")<CR>
 
 " ZoomWin configuration
 map <silent><Leader><Leader> :ZoomWin<CR>
