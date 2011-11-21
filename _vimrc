@@ -1,7 +1,5 @@
 
-"""""""""""""""""""""""""""""
-"""""" GENERAL SETTINGS """""
-"""""""""""""""""""""""""""""
+" General Settings {{{
 
 set nocompatible
 let mapleader = ","
@@ -58,9 +56,9 @@ set ignorecase
 set smartcase
 noremap <silent><Leader><space> :noh<CR>
 
-"""""""""""""""""""""""""
-""""" STATAUS LINE """"""
-"""""""""""""""""""""""""
+" }}}
+
+" Status Line {{{
 
 " customize statuline
 set statusline=%f%m\ %{fugitive#statusline()}\ [%{&ft}]\ %{SyntasticStatuslineFlag()}%=[%{&ff}/%{strlen(&fenc)?&fenc:&enc}]%=[POS=%l,%v]
@@ -75,9 +73,9 @@ hi StatusLineNC cterm=none
 au InsertEnter * hi StatusLine term=reverse ctermfg=darkred
 au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
 
-"""""""""""""""""""""
-""""" MAPPINGS """"""
-"""""""""""""""""""""
+" }}}
+
+" Mappings {{{
 
 " Fix some annoying defaults
 nnoremap * *<c-o>
@@ -119,9 +117,9 @@ cmap w!! w !sudo tee % > /dev/null <CR>
 " CTags
 map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
 
-""""""""""""""""""""""""""""""""""""
-""""" FILETYPE SPECIFIC RULES """"""
-""""""""""""""""""""""""""""""""""""
+" }}} 
+
+" Filetype Specific Rules {{{
 
 " _zsh* files are Zsh scripts
 au BufNewFile,BufRead *zsh* set ft=zsh
@@ -146,9 +144,9 @@ au BufNewFile,BufRead *.json set equalprg=python\ -m\ json.tool
 " make uses real tabs
 au FileType make set noexpandtab
 
-""""""""""""""""""""""""""""""""""""""""""""""""""
-""""" LOAD PLUGINS AND APPLY CUSTOMIZATIONS """"""
-""""""""""""""""""""""""""""""""""""""""""""""""""
+" }}}
+
+" Load plugins / Apply customizations {{{
 
 " load pathogen
 source ~/.vim/bundle/pathogen/autoload/pathogen.vim
@@ -188,3 +186,5 @@ let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
 let g:syntastic_enable_signs=1
 " errors split closes when no errors left
 let g:syntastic_auto_loc_list=2
+
+" }}}
