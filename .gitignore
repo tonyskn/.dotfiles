@@ -1,5 +1,9 @@
 _vim/.netrwhist*
 _vim/view/*
 *.swp
+_xmonad/*.hi
+_xmonad/*.o
+_xmonad/*.errors
+_xmonad/*-*
 Session.vim
 **/Session.vim

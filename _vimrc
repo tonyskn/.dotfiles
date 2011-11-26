@@ -133,6 +133,9 @@ au BufRead,BufNewFile {Gemfile,Rakefile,Vagrantfile,Thorfile,config.ru} set ft=r
 " make Python follow PEP8 ( http://www.python.org/dev/peps/pep-0008/ )
 au FileType python set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=79
 
+" ghc uses 4-space tabs
+au FileType haskell set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=79
+
 " use 4-space tabs in markdown
 au FileType markdown set softtabstop=4 tabstop=4 shiftwidth=4
 
@@ -160,6 +163,7 @@ call pathogen#helptags()
 " default colorscheme
 set background=dark
 colorscheme solarized
+hi Normal ctermbg=none
 
 " set supertab completion scheme
 set completeopt=longest,menuone,preview
