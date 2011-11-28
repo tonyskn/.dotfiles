@@ -27,7 +27,7 @@ myLayout = onWorkspace "3:idea" nobordersLayout
         delta = 3/100  
         nobordersLayout = noBorders $ Full  
         gridLayout = spacing 8 $ Grid
-        chatLayout = withIM (20/100) (Role "contact_list") gridLayout
+        chatLayout = withIM (20/100) (Role "buddy_list") gridLayout
 
 -- Assigns applications to workspaces
 -- XMonad FAQ below explains how that works
@@ -37,7 +37,7 @@ myManageHook = composeAll (
     , className =? "Thunderbird" --> doShift "1:main"
     -- , className =? "Gnome-terminal" --> doShift "2:term"
     , className =? "java-lang-Thread" --> doShift "3:idea"
-    , className =? "Empathy" --> doShift "4:chat" ])
+    , className =? "Pidgin" --> doShift "4:chat" ])
 
 startup :: X()
 startup = do
