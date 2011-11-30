@@ -11,6 +11,8 @@ import XMonad.Layout.Spacing
 import XMonad.Layout.IM
 import XMonad.Layout.Grid
 import XMonad.Util.EZConfig
+import XMonad.Prompt
+import XMonad.Prompt.Shell
 import System.IO
 
 -- Define workspaces as (workspaceId, [className]) tuples where
@@ -22,6 +24,7 @@ workspaces' = [ ("1:main", ["Google-chrome", "Thunderbird"])
               , ("2:term", [])
               , ("3:idea", ["java-lang-Thread"])
               , ("4:chat", ["Pidgin"])
+              , ("5:whatever", [])
               ]
 
 layoutHook' = onWorkspace "3:idea" nobordersLayout
@@ -51,6 +54,11 @@ logHook' xmobar = do
             , ppLayout = const "" -- disables layout display on xmobar
             }
 
+-- launch gnome-terminal without menu-bar
+-- in Ubuntu, you may need to run this is order to make it work
+-- apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
+terminal' = "gnome-terminal --hide-menubar"
+
 startupHook' = mapM_ spawnOnce $
     [ "gnome-settings-daemon"
     , "thunar --daemon"
@@ -58,6 +66,14 @@ startupHook' = mapM_ spawnOnce $
     , "~/.dropbox-dist/dropboxd"
     , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
     ]
+
+xpc = defaultXPConfig { bgColor  = "black"
+                      , fgColor  = "yellow"
+                      , font = "xft:Bitstream Vera Sans Mono:size=9:bold:antialias=true"
+                      , promptBorderWidth = 0
+                      , position = Bottom
+                      , height   = 16
+                      , historySize = 256 }
 
 main = do
    xmobar <- spawnPipe "/usr/bin/xmobar ~/.xmonad/.xmobarrc"
@@ -70,14 +86,11 @@ main = do
         , normalBorderColor  = "#586e75" -- solarized base01
         , focusedBorderColor = "#cb4b16" -- solarized orange
         , borderWidth = 2
+        , terminal = terminal'
         , modMask = mod4Mask
         , focusFollowsMouse = False
         } `additionalKeys`
-            -- launch gnome-terminal without menu-bar
-            -- in Ubuntu, you may need to run this is order to make it work
-            -- apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
-            [ ((mod4Mask .|. shiftMask, xK_Return), spawn "gnome-terminal --hide-menubar")
-            , ((mod4Mask, xK_p), spawn "exe=`dmenu_run -b -nb black -nf yellow -sf yellow` && eval \"exec $exe\"")
+            [ ((mod4Mask, xK_p), shellPrompt xpc)
             , ((mod4Mask, xK_f), spawn "thunar")
             , ((mod4Mask, xK_b), sendMessage ToggleStruts)
             ]
