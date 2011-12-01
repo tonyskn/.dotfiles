@@ -3,6 +3,8 @@ import XMonad.Config.Azerty
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ICCCMFocus
+import XMonad.Hooks.UrgencyHook
+-- import XMonad.Hooks.EwmhDesktops
 import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.SpawnOnce
 import XMonad.Layout.PerWorkspace
@@ -23,7 +25,7 @@ import System.IO
 workspaces' = [ ("1:main", ["Google-chrome", "Thunderbird"])
               , ("2:term", [])
               , ("3:idea", ["java-lang-Thread"])
-              , ("4:chat", ["Pidgin"])
+              , ("4:chat", ["Gajim.py"])
               , ("5:whatever", [])
               ]
 
@@ -37,7 +39,7 @@ layoutHook' = onWorkspace "3:idea" nobordersLayout
         delta = 3/100
         nobordersLayout = noBorders $ Full
         gridLayout = spacing 8 $ Grid
-        chatLayout = withIM (20/100) (Role "buddy_list") gridLayout
+        chatLayout = withIM (20/100) (Role "roster") gridLayout
 
 manageHook' = foldl1 (<+>) $ do
     (id, xCNames) <- workspaces'
@@ -47,10 +49,12 @@ manageHook' = foldl1 (<+>) $ do
 logHook' xmobar = do
     dynamicLogWithPP xmobarPP'
     takeTopFocus -- fixes glitches in JAVA GUI apps
+--     ewmhDesktopsLogHook
     where
         xmobarPP' = xmobarPP
             { ppOutput = hPutStrLn xmobar
             , ppTitle = xmobarColor "green" "" . shorten 50  -- sends current window title to xmobar
+            , ppUrgent = xmobarColor "yellow" "red" . xmobarStrip
             , ppLayout = const "" -- disables layout display on xmobar
             }
 
@@ -77,7 +81,7 @@ xpc = defaultXPConfig { bgColor  = "black"
 
 main = do
    xmobar <- spawnPipe "/usr/bin/xmobar ~/.xmonad/.xmobarrc"
-   xmonad $ azertyConfig
+   xmonad $ withUrgencyHook NoUrgencyHook $ azertyConfig
         { workspaces = map fst workspaces'
         , manageHook = manageDocks <+> manageHook' <+> manageHook azertyConfig
         , startupHook = startupHook'
@@ -93,7 +97,8 @@ main = do
             [ ((mod4Mask, xK_p), shellPrompt xpc)
             , ((mod4Mask, xK_f), spawn "thunar")
             , ((mod4Mask, xK_b), sendMessage ToggleStruts)
+            , ((mod4Mask, xK_BackSpace), focusUrgent)
             ]
           `additionalMouseBindings`
             -- disable floating windows on mouse left-click
-            [ ((mod4Mask, button1), \_ -> return ()) ]
+            [ ((mod4Mask, button1), const $ return ()) ]
