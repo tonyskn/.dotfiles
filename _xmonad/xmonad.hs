@@ -63,6 +63,8 @@ logHook' xmobar = do
 -- apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
 terminal' = "gnome-terminal --hide-menubar"
 
+-- On Ubuntu, you need to deactivate nautilus triggers:
+-- Remove /usr/share/applications/nautilus*.desktop
 startupHook' = mapM_ spawnOnce $
     [ "gnome-settings-daemon"
     , "thunar --daemon"
