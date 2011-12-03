@@ -81,7 +81,8 @@ au InsertLeave * hi StatusLine term=reverse ctermfg=darkgrey
 nnoremap * *<c-o>
 nnoremap K <nop>
 nnoremap <CR> O<ESC>
-nmap <Leader>$ <C-]>
+nmap <C-$> <C-]>
+imap <C-$> <C-]>
 
 " Keep the search matches in the middle of the window
 nnoremap n nzzzv
