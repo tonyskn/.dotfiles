@@ -68,7 +68,7 @@ terminal' = "gnome-terminal --hide-menubar"
 startupHook' = mapM_ spawnOnce $
     [ "gnome-settings-daemon"
     , "thunar --daemon"
-    , "davmail"
+    , "~/apps/davmail/davmail.sh"
     , "~/.dropbox-dist/dropboxd"
     , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
     ]
@@ -86,6 +86,7 @@ main = do
    xmonad $ withUrgencyHook NoUrgencyHook $ azertyConfig
         { workspaces = map fst workspaces'
         , manageHook = manageDocks <+> manageHook' <+> manageHook azertyConfig
+--         , handleEventHook = fullscreenEventHook
         , startupHook = startupHook'
         , logHook = logHook' xmobar
         , layoutHook = avoidStruts $ layoutHook'
