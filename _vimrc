@@ -173,6 +173,7 @@ let g:SuperTabLongestHighlight = 1
 
 " configure FuzzyFinder mappings
 let g:fuf_modesDisable=[]
+noremap <silent><Leader>nn :FufRenewCache<CR>
 noremap <silent><Leader>nf :FufFileWithCurrentBufferDir<CR>
 noremap <silent><Leader>nd :FufDir<CR>
 noremap <silent><Leader>nt :FufCoverageFile<CR>
