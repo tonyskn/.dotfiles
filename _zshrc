@@ -29,6 +29,10 @@ export DISABLE_AUTO_UPDATE=true
 source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
+function current_branch() {
+  ref=$(git symbolic-ref HEAD 2> /dev/null) || return
+  echo ${ref#refs/heads/}
+}
 alias ggpull="git pull --rebase origin $(current_branch)"
 alias gitweb="git config --get remote.origin.url | sed -e 's/^.*github\.com./https:\/\/github.com\//' | sed -e 's/\.git$//' | xargs python -m webbrowser -t > /dev/null"
 alias ggl="git log --decorate --oneline --graph --all -20"
