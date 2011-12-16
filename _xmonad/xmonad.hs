@@ -24,7 +24,7 @@ import System.IO
 -- [http://www.haskell.org/haskellwiki/Xmonad/Frequently_asked_questions#I_need_to_find_the_class_title_or_some_other_X_property_of_my_program]
 workspaces' = [ ("1:main", ["Google-chrome", "Thunderbird"])
               , ("2:term", [])
-              , ("3:idea", ["java-lang-Thread"])
+              , ("3:idea", ["jetbrains-idea"])
               , ("4:chat", ["Gajim.py"])
               , ("5:whatever", [])
               ]
