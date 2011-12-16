@@ -58,3 +58,7 @@
 	path = _vim/bundle/mucomment.vim
 	url = git@github.com:tonyskn/mucomment.vim.git
    ignore = untracked
+[submodule "_xmonad/pymodoro"]
+	path = _xmonad/pymodoro
+	url = https://github.com/dattanchu/pymodoro.git
+   ignore = untracked

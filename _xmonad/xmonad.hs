@@ -96,11 +96,13 @@ main = do
         , terminal = terminal'
         , modMask = mod4Mask
         , focusFollowsMouse = False
-        } `additionalKeys`
-            [ ((mod4Mask, xK_p), shellPrompt xpc)
-            , ((mod4Mask, xK_f), spawn "thunar")
-            , ((mod4Mask, xK_b), sendMessage ToggleStruts)
-            , ((mod4Mask, xK_BackSpace), focusUrgent)
+        } `additionalKeysP`
+            [ ("M-p", shellPrompt xpc)
+            , ("M-f", spawn "thunar")
+            , ("M-b", sendMessage ToggleStruts)
+            , ("M-<Backspace>", focusUrgent)
+            , ("M-n", spawn "touch ~/.pomodoro_session")
+            , ("M-S-n", spawn "rm ~/.pomodoro_session")
             ]
           `additionalMouseBindings`
             -- disable floating windows on mouse left-click
