@@ -62,3 +62,7 @@
 	path = _xmonad/pymodoro
 	url = https://github.com/dattanchu/pymodoro.git
    ignore = untracked
+[submodule "_vim/bundle/slime"]
+	path = _vim/bundle/slime
+	url = git@github.com:tonyskn/vim-slime.git
+   ignore = untracked

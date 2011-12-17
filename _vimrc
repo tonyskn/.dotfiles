@@ -171,6 +171,9 @@ set completeopt=longest,menuone,preview
 let g:SuperTabDefaultCompletionType = "<c-n>"
 let g:SuperTabLongestHighlight = 1
 
+" set slime to work in tmux mode
+let g:slime_target = "tmux"
+
 " configure FuzzyFinder mappings
 let g:fuf_modesDisable=[]
 noremap <silent><Leader>nn :FufRenewCache<CR>
