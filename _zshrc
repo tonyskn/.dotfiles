@@ -26,6 +26,9 @@ fi
 # Disable oh-my-zsh auto-updates
 export DISABLE_AUTO_UPDATE=true
 
+# Prevent oh-my-zsh from auto-updating window titles
+export DISABLE_AUTO_TITLE=true
+
 source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
