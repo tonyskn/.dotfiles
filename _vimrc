@@ -122,6 +122,9 @@ map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
 
 " Filetype Specific Rules {{{
 
+" fold vim files around {{{ ... }}}
+au FileType vim setlocal foldmethod=marker
+
 " _zsh* files are Zsh scripts
 au BufNewFile,BufRead *zsh* set ft=zsh
 
@@ -145,8 +148,8 @@ au FileType xml set equalprg=xmllint\ --format\ -
 " use python json.tool to format JSON
 au BufNewFile,BufRead *.json set equalprg=python\ -m\ json.tool
 
-" make uses real tabs
-au FileType make set noexpandtab
+" some filetypes need real tabs
+au FileType {make,gitconfig} set noexpandtab
 
 " }}}
 
