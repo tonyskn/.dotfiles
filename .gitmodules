@@ -56,7 +56,7 @@
 	ignore = untracked
 [submodule "_vim/bundle/mucomment.vim"]
 	path = _vim/bundle/mucomment.vim
-	url = git@github.com:tonyskn/mucomment.vim.git
+	url = git://github.com/tonyskn/mucomment.vim.git
 	ignore = untracked
 [submodule "_xmonad/pymodoro"]
 	path = _xmonad/pymodoro
@@ -64,5 +64,5 @@
 	ignore = untracked
 [submodule "_vim/bundle/slime"]
 	path = _vim/bundle/slime
-	url = git@github.com:tonyskn/vim-slime.git
+	url = git://github.com/jpalardy/vim-slime.git
 	ignore = untracked
