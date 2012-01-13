@@ -66,3 +66,6 @@
 	path = _vim/bundle/slime
 	url = git://github.com/jpalardy/vim-slime.git
 	ignore = untracked
+[submodule "_vim/bundle/powerline"]
+	path = _vim/bundle/powerline
+	url = https://github.com/Lokaltog/vim-powerline.git
