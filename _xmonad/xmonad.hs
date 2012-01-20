@@ -26,7 +26,7 @@ workspaces' = [ ("1:main", ["Google-chrome", "Thunderbird"])
               , ("2:term", [])
               , ("3:idea", ["jetbrains-idea"])
               , ("4:chat", ["Gajim.py"])
-              , ("5:whatever", [])
+              , ("5:scratch", ["Firefox"])
               ]
 
 layoutHook' = onWorkspace "3:idea" nobordersLayout
@@ -68,7 +68,6 @@ terminal' = "gnome-terminal --hide-menubar"
 startupHook' = mapM_ spawnOnce $
     [ "gnome-settings-daemon"
     , "thunar --daemon"
-    , "~/apps/davmail/davmail.sh"
     , "~/.dropbox-dist/dropboxd"
     , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
     ]
