@@ -32,20 +32,16 @@ export DISABLE_AUTO_TITLE=true
 source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
-function current_branch() {
-  ref=$(git symbolic-ref HEAD 2> /dev/null) || return
-  echo ${ref#refs/heads/}
-}
-alias ggpull="git pull --rebase origin $(current_branch)"
-alias gitweb="git config --get remote.origin.url | sed -e 's/^.*github\.com./https:\/\/github.com\//' | sed -e 's/\.git$//' | xargs python -m webbrowser -t > /dev/null"
-alias ggl="git log --decorate --oneline --graph --all -20"
+alias ggpull='git pull --rebase origin $(current_branch)'
+alias gitweb='git config --get remote.origin.url | sed -e "s/^.*github\.com./https:\/\/github.com\//" | sed -e "s/\.git$//" | xargs python -m webbrowser -t > /dev/null'
+alias ggl='git log --decorate --oneline --graph --all -20'
 
 alias printxml='xmllint --format -'
 alias printjson='python -m json.tool'
 alias ll='ls -lh'
 
-alias deps="rm -rf node_modules && npm install"
-alias bi="bundle install --path=vendor/bundle"
+alias deps='rm -rf node_modules && npm install'
+alias bi='bundle install --path=vendor/bundle'
 
 alias mci='mvn clean install -Dmaven.test.skip=true -T2'
 export M2_MEM="-Xms512m -Xmx768m -XX:PermSize=256m -XX:MaxPermSize=256m"
