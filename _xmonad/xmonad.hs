@@ -31,7 +31,7 @@ workspaces' = [ ("1:main", ["Google-chrome", "Thunderbird"])
 
 layoutHook' = onWorkspace "3:idea" nobordersLayout
             $ onWorkspace "4:chat" chatLayout
-            $ Mirror tiled1 ||| nobordersLayout
+            $ Mirror tiled1 ||| tiled1 ||| nobordersLayout
     where
         tiled1 = spacing 5 $ Tall nmaster1 delta ratio
         nmaster1 = 1
