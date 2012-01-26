@@ -102,6 +102,7 @@ main = do
             , ("M-<Backspace>", focusUrgent)
             , ("M-n", spawn "touch ~/.pomodoro_session")
             , ("M-S-n", spawn "rm ~/.pomodoro_session")
+            , ("M-s", spawn "gnome-screenshot -i")
             ]
           `additionalMouseBindings`
             -- disable floating windows on mouse left-click
