@@ -1,14 +1,14 @@
- Config { font = "xft:Bitstream Vera Sans Mono:size=9:bold:antialias=true"  
+ Config { font = "xft:Mensch:size=9:bold:antialias=true"  
      , bgColor = "#000000"  
      , fgColor = "grey"  
      , position = Static { xpos = 0 , ypos = 0, width = 3360, height = 16 }  
-     , commands = [ Run Cpu ["-L","3","-H","50","--normal","green","--high","red"] 10  
-             , Run Network "eth0" ["-L","0","-H","70","--normal","green","--high","red"] 10   
+     , commands = [ Run Cpu ["-L","3","-H","50","--normal","#ee9a00","--high","red"] 10  
+             , Run Network "eth0" ["-L","0","-H","70","--normal","#ee9a00","--high","red"] 10   
              , Run Memory ["-t","Mem: <usedratio>%"] 10  
              , Run Date "%a %b %_d %H:%M" "date" 10  
              , Run CommandReader "~/.xmonad/pymodoro/pymodoro.py" "pomodoro"
              , Run StdinReader ]  
      , sepChar = "%"  
      , alignSep = "}{"  
-     , template = " %StdinReader%}{<fc=grey>%cpu%</fc> <fc=grey>~ %memory% ~ %eth0%</fc> ~ <fc=#ee9a00>%date%</fc> ~ <fc=grey>%pomodoro%</fc>"  
+     , template = " %StdinReader%}{<fc=grey>%cpu%</fc> <fc=grey>~ %memory% ~ %eth0%</fc> ~ <fc=#ee9a00>%date%</fc> ~ <fc=grey>%pomodoro%</fc> "  
      }  

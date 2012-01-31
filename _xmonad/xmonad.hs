@@ -74,9 +74,9 @@ startupHook' = mapM_ spawnOnce $
 
 xpc = defaultXPConfig { bgColor  = "black"
                       , fgColor  = "yellow"
-                      , font = "xft:Bitstream Vera Sans Mono:size=9:bold:antialias=true"
+                      , font = "xft:Mensch:size=9:bold:antialias=true"
                       , promptBorderWidth = 0
-                      , position = Bottom
+                      , position = Top
                       , height   = 16
                       , historySize = 256 }
 
