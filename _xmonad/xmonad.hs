@@ -27,6 +27,7 @@ workspaces' = [ ("1:main", ["Google-chrome", "Thunderbird"])
               , ("3:idea", ["jetbrains-idea"])
               , ("4:chat", ["Gajim.py"])
               , ("5:scratch", ["Firefox"])
+              , ("6:vm", ["VirtualBox"])
               ]
 
 layoutHook' = onWorkspace "3:idea" nobordersLayout
@@ -102,6 +103,7 @@ main = do
             , ("M-<Backspace>", focusUrgent)
             , ("M-n", spawn "touch ~/.pomodoro_session")
             , ("M-S-n", spawn "rm ~/.pomodoro_session")
+            , ("M-,", spawn "gnome-control-center")
             , ("M-s", spawn "gnome-screenshot -i")
             ]
           `additionalMouseBindings`
