@@ -26,8 +26,9 @@ workspaces' = [ ("1:main", ["Google-chrome", "Thunderbird"])
               , ("2:term", [])
               , ("3:idea", ["jetbrains-idea"])
               , ("4:chat", ["Gajim.py"])
-              , ("5:scratch", ["Firefox"])
+              , ("5:misc", [])
               , ("6:vm", ["VirtualBox"])
+              , ("7:scratch", ["Firefox"])
               ]
 
 layoutHook' = onWorkspace "3:idea" nobordersLayout
@@ -68,6 +69,7 @@ terminal' = "gnome-terminal --hide-menubar"
 -- Remove /usr/share/applications/nautilus*.desktop
 startupHook' = mapM_ spawnOnce $
     [ "gnome-settings-daemon"
+    , "unclutter"
     , "thunar --daemon"
     , "~/.dropbox-dist/dropboxd"
     , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
