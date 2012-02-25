@@ -14,7 +14,7 @@ desc "fetch changes"
 task :fetch do
    puts "Fetching changes..."
    system %Q{git pull origin master}
-   system %Q{git submodule update --init}
+   system %Q{git submodule update --init --recursive}
 end
 
 desc "create links into _* files in user's home directory"
