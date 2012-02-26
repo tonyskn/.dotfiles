@@ -156,7 +156,7 @@ colorscheme solarized
 hi Normal ctermbg=none
 
 " set powerline plugin to use fancy symbols
-let g:Powerline_symbols = 'unicode'
+let g:Powerline_symbols = 'fancy'
 
 " set supertab completion scheme
 set completeopt=longest,menuone,preview
