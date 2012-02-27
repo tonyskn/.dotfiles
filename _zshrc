@@ -33,10 +33,7 @@ source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
 
-# open command's output in vim
-function v() {
-   $@ | vim -R -
-}
+v() { vim =($@) }
 
 nautilus() { command nautilus --no-desktop > /dev/null 2&>1 "$@" &!  }
 
