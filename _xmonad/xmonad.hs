@@ -70,7 +70,6 @@ terminal' = "gnome-terminal --hide-menubar"
 startupHook' = mapM_ spawnOnce $
     [ "gnome-settings-daemon"
     , "unclutter"
-    , "thunar --daemon"
     , "~/.dropbox-dist/dropboxd"
     , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
     ]
@@ -100,7 +99,7 @@ main = do
         , focusFollowsMouse = False
         } `additionalKeysP`
             [ ("M-p", shellPrompt xpc)
-            , ("M-f", spawn "thunar")
+            , ("M-f", spawn "nautilus --no-desktop")
             , ("M-b", sendMessage ToggleStruts)
             , ("M-<Backspace>", focusUrgent)
             , ("M-n", spawn "touch ~/.pomodoro_session")

@@ -38,6 +38,8 @@ function v() {
    $@ | vim -R -
 }
 
+nautilus() { command nautilus --no-desktop > /dev/null 2&>1 "$@" &!  }
+
 alias ggpull='git pull --rebase origin $(current_branch)'
 alias gitweb='git config --get remote.origin.url | sed -e "s/^.*github\.com./https:\/\/github.com\//" | sed -e "s/\.git$//" | xargs python -m webbrowser -t > /dev/null'
 alias ggl='git log --decorate --oneline --graph --all -20'
