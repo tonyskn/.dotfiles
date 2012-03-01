@@ -22,7 +22,7 @@ import System.IO
 --
 -- XMonad FAQ below explains how that works
 -- [http://www.haskell.org/haskellwiki/Xmonad/Frequently_asked_questions#I_need_to_find_the_class_title_or_some_other_X_property_of_my_program]
-workspaces' = [ ("1:main", ["Google-chrome", "Thunderbird"])
+workspaces' = [ ("1:main", ["Google-chrome", "Hotot"])
               , ("2:term", [])
               , ("3:idea", ["jetbrains-idea"])
               , ("4:chat", ["Gajim.py"])
@@ -33,11 +33,11 @@ workspaces' = [ ("1:main", ["Google-chrome", "Thunderbird"])
 
 layoutHook' = onWorkspace "3:idea" nobordersLayout
             $ onWorkspace "4:chat" chatLayout
-            $ Mirror tiled1 ||| tiled1 ||| nobordersLayout
+            $ tiled1 ||| nobordersLayout
     where
         tiled1 = spacing 5 $ Tall nmaster1 delta ratio
         nmaster1 = 1
-        ratio = 1/2
+        ratio = 6/8
         delta = 3/100
         nobordersLayout = noBorders $ Full
         gridLayout = spacing 8 $ Grid
