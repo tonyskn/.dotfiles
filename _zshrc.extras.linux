@@ -1,11 +1,7 @@
 #
 # Linux extra configuration
 #
-
-source /etc/profile.d/autojump.zsh
-
 # Customize to your needs...
-export M2_REBEL="-Xms512m -Xmx768m -Dmaven.test.skip=true -noverify -javaagent:/home/tsokhon/idea/jrebel.jar"
 export M2_HOME=/home/tsokhon/apps/apache-maven-3.0.1
 export PATH=$M2_HOME/bin:$PATH
 export JDK_HOME=/usr/lib/jvm/java-6-sun
@@ -13,6 +9,4 @@ export JAVA_HOME=$JDK_HOME
 export INSTALL4J_HOME=/home/tsokhon/apps/install4j5
 
 # Alias
-alias tmux="TERM=screen-256color-bce tmux"
-alias thunar="thunar > /dev/null 2>&1"
 alias minecraft='java -Xmx1024M -Xms512M -cp ~/minecraft.jar net.minecraft.LauncherFrame'

@@ -9,33 +9,29 @@ export ZSH_THEME="arrow"
 # export CASE_SENSITIVE="true"
 
 # Comment this out to disable weekly auto-update checks
-# export DISABLE_AUTO_UPDATE="true"
+export DISABLE_AUTO_UPDATE="true"
+
+# Prevent oh-my-zsh from auto-updating window titles
+export DISABLE_AUTO_TITLE=true
 
 # Uncomment following line if you want to disable colors in ls
 # export DISABLE_LS_COLORS="true"
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Example format: plugins=(rails git textmate ruby lighthouse)
-if [ $(uname) = "Darwin" ]
-then
-   plugins=(git npm brew)
-else
-   plugins=(git npm)
-fi
-
-# Disable oh-my-zsh auto-updates
-export DISABLE_AUTO_UPDATE=true
-
-# Prevent oh-my-zsh from auto-updating window titles
-export DISABLE_AUTO_TITLE=true
+plugins=(git autojump npm)
 
 source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
 
-v() { vim =($@) }
+export EDITOR=vim
+export SHELL=zsh
 
+v() { vim =($@) }
 nautilus() { command nautilus --no-desktop > /dev/null 2&>1 "$@" &!  }
+
+alias tmux="TERM=screen-256color-bce tmux"
 
 alias ggpull='git pull --rebase origin $(current_branch)'
 alias gitweb='git config --get remote.origin.url | sed -e "s/^.*github\.com./https:\/\/github.com\//" | sed -e "s/\.git$//" | xargs python -m webbrowser -t > /dev/null'
@@ -50,15 +46,12 @@ alias bi='bundle install --path=vendor/bundle'
 
 alias mci='mvn clean install -Dmaven.test.skip=true -T2'
 export M2_MEM="-Xms512m -Xmx768m -XX:PermSize=256m -XX:MaxPermSize=256m"
-export M2_DEBUG="-Xms512m -Xmx768m -XX:PermSize=256m -XX:MaxPermSize=256m -Dmaven.test.skip=true -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
-export M2_DEBUG_ALT="-Xms512m -Xmx768m -XX:PermSize=256m -XX:MaxPermSize=256m -Dmaven.test.skip=true -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=4000"
+export M2_DEBUG="$M2_MEM -Dmaven.test.skip=true -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
+export M2_DEBUG_ALT="${M2_DEBUG/8000/4000}"
+
+export IPAD_AGENT="Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.10"
 
 export PATH=$HOME/.rbenv/shims:$HOME/.rbenv/bin:$PATH
 
-
-if [ "`uname`" = "Darwin" ]
-then
-   source $HOME/.zshrc.extras.mac
-else
-   source $HOME/.zshrc.extras.linux
-fi
+# TODO:- Load one extra file per environment
+source $HOME/.zshrc.extras.linux
