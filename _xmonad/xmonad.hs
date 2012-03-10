@@ -1,21 +1,34 @@
 import XMonad
 import XMonad.Config.Azerty
-import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.DynamicLog
-import XMonad.Hooks.ICCCMFocus
-import XMonad.Hooks.UrgencyHook
 -- import XMonad.Hooks.EwmhDesktops
-import XMonad.Util.Run(spawnPipe)
-import XMonad.Util.SpawnOnce
-import XMonad.Layout.PerWorkspace
-import XMonad.Layout.NoBorders(noBorders)
-import XMonad.Layout.Spacing
-import XMonad.Layout.IM
+import XMonad.Hooks.ICCCMFocus
+import XMonad.Hooks.ManageDocks
+import XMonad.Hooks.UrgencyHook
 import XMonad.Layout.Grid
-import XMonad.Util.EZConfig
+import XMonad.Layout.IM
+import XMonad.Layout.NoBorders(noBorders)
+import XMonad.Layout.PerWorkspace
+import XMonad.Layout.Spacing
 import XMonad.Prompt
 import XMonad.Prompt.Shell
-import System.IO
+import XMonad.Util.EZConfig
+import XMonad.Util.Run(spawnPipe)
+import XMonad.Util.SpawnOnce
+
+import Control.Monad(liftM)
+import System.Environment(getEnvironment)
+import System.IO(hPutStrLn)
+
+-- XMonad execution mode
+data Mode = DEFAULT | LAPTOP
+-- Try guessing `Mode` from environment variable `XMONAD_MODE`
+-- Defaults to `DEFAULT`
+mode :: X Mode
+mode = liftIO $ guessFrom =<< getEnvironment
+    where
+        guessFrom = return . maybe DEFAULT read . lookup "XMONAD_MODE"
+        read s = if s == "laptop" then LAPTOP else DEFAULT
 
 -- Define workspaces as (workspaceId, [className]) tuples where
 -- [className] contains Xsession classNames of the apps bound to workspaceId
@@ -24,10 +37,10 @@ import System.IO
 -- [http://www.haskell.org/haskellwiki/Xmonad/Frequently_asked_questions#I_need_to_find_the_class_title_or_some_other_X_property_of_my_program]
 workspaces' = [ ("1:main", ["Google-chrome", "Hotot"])
               , ("2:term", [])
-              , ("3:idea", ["jetbrains-idea"])
+              , ("3:ide", ["jetbrains-idea"])
               , ("4:chat", ["Gajim.py"])
               , ("5:misc", [])
-              , ("6:vm", ["VirtualBox"])
+              , ("6:misc", ["VirtualBox"])
               , ("7:scratch", ["Firefox"])
               ]
 
@@ -37,7 +50,7 @@ layoutHook' = onWorkspace "3:idea" nobordersLayout
     where
         tiled1 = spacing 5 $ Tall nmaster1 delta ratio
         nmaster1 = 1
-        ratio = 6/8
+        ratio = 17/24
         delta = 3/100
         nobordersLayout = noBorders $ Full
         gridLayout = spacing 8 $ Grid
@@ -55,7 +68,7 @@ logHook' xmobar = do
     where
         xmobarPP' = xmobarPP
             { ppOutput = hPutStrLn xmobar
-            , ppTitle = xmobarColor "green" "" . shorten 50  -- sends current window title to xmobar
+            , ppTitle = xmobarColor "green" ""
             , ppUrgent = xmobarColor "yellow" "red" . xmobarStrip
             , ppLayout = const "" -- disables layout display on xmobar
             }
@@ -67,28 +80,30 @@ terminal' = "gnome-terminal --hide-menubar"
 
 -- On Ubuntu, you need to deactivate nautilus triggers:
 -- Remove /usr/share/applications/nautilus*.desktop
-startupHook' = mapM_ spawnOnce $
-    [ "gnome-settings-daemon"
-    , "unclutter"
-    , "~/.dropbox-dist/dropboxd"
-    , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
-    ]
+startupHook' LAPTOP = mapM_ spawnOnce [ "nm-applet", "unclutter", "dropboxd" ]
+                        >> spawn "~/.xmonad/xmobar/monitors.sh"
+startupHook' DEFAULT = mapM_ spawnOnce
+                        [ "gnome-settings-daemon"
+                        , "unclutter"
+                        , "~/.dropbox-dist/dropboxd"
+                        , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
+                        ]
 
 xpc = defaultXPConfig { bgColor  = "black"
                       , fgColor  = "yellow"
-                      , font = "xft:Mensch:size=9:bold:antialias=true"
+                      , font = "xft:Mensch:size=10:bold:antialias=true"
                       , promptBorderWidth = 0
                       , position = Top
-                      , height   = 16
+                      , height   = 25
                       , historySize = 256 }
 
 main = do
-   xmobar <- spawnPipe "/usr/bin/xmobar ~/.xmonad/.xmobarrc"
+   xmobar <- spawnPipe "xmobar ~/.xmonad/xmobar/xmobarrc.hs"
    xmonad $ withUrgencyHook NoUrgencyHook $ azertyConfig
         { workspaces = map fst workspaces'
         , manageHook = manageDocks <+> manageHook' <+> manageHook azertyConfig
 --         , handleEventHook = fullscreenEventHook
-        , startupHook = startupHook'
+        , startupHook = startupHook' =<< mode
         , logHook = logHook' xmobar
         , layoutHook = avoidStruts $ layoutHook'
         , normalBorderColor  = "#586e75" -- solarized base01
@@ -99,12 +114,14 @@ main = do
         , focusFollowsMouse = False
         } `additionalKeysP`
             [ ("M-p", shellPrompt xpc)
+            , ("M-S-q", spawn "pkill 'gnome-session|xmonad'")
             , ("M-f", spawn "nautilus --no-desktop")
-            , ("M-b", sendMessage ToggleStruts)
+            , ("M-S-b", sendMessage (ToggleStrut D))
+            , ("M-b", sendMessage $ ToggleStruts)
             , ("M-<Backspace>", focusUrgent)
             , ("M-n", spawn "touch ~/.pomodoro_session")
             , ("M-S-n", spawn "rm ~/.pomodoro_session")
-            , ("M-,", spawn "gnome-control-center")
+            , ("M-S-,", spawn "gnome-control-center")
             , ("M-s", spawn "gnome-screenshot -i")
             ]
           `additionalMouseBindings`
