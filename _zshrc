@@ -11,31 +11,29 @@ export ZSH_THEME="arrow"
 # Comment this out to disable weekly auto-update checks
 export DISABLE_AUTO_UPDATE="true"
 
-# Prevent oh-my-zsh from auto-updating window titles
-export DISABLE_AUTO_TITLE=true
-
 # Uncomment following line if you want to disable colors in ls
 # export DISABLE_LS_COLORS="true"
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git autojump npm)
+plugins=(archlinux git autojump npm)
 
 source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
 
-export EDITOR=vim
-export SHELL=zsh
+# Prevent oh-my-zsh from auto-updating window titles
+export DISABLE_AUTO_TITLE=true
 
 v() { vim =($@) }
 nautilus() { command nautilus --no-desktop > /dev/null 2&>1 "$@" &!  }
 
 alias tmux="TERM=screen-256color-bce tmux"
+alias minecraft='java -Xmx1024M -Xms512M -cp ~/minecraft.jar net.minecraft.LauncherFrame'
 
 alias ggpull='git pull --rebase origin $(current_branch)'
-alias gitweb='git config --get remote.origin.url | sed -e "s/^.*github\.com./https:\/\/github.com\//" | sed -e "s/\.git$//" | xargs python -m webbrowser -t > /dev/null'
 alias ggl='git log --decorate --oneline --graph --all -20'
+alias gitweb='git config --get remote.origin.url | sed -e "s/^.*github\.com./https:\/\/github.com\//" | sed -e "s/\.git$//" | xargs python -m webbrowser -t > /dev/null'
 
 alias printxml='xmllint --format -'
 alias printjson='python -m json.tool'
@@ -51,7 +49,10 @@ export M2_DEBUG_ALT="${M2_DEBUG/8000/4000}"
 
 export IPAD_AGENT="Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.10"
 
-export PATH=$HOME/.rbenv/shims:$HOME/.rbenv/bin:$PATH
+alias vpnconnect='sudo openconnect -q -b --pid-file /var/run/vpnc/pid --script ~/.dotfiles/vpnc-script -u tsokhon --no-cert-check 92.103.100.180 2>&1 > /dev/null'
+alias vpndisconnect='sudo kill -15 $(< /var/run/vpnc/pid )'
 
-# TODO:- Load one extra file per environment
-source $HOME/.zshrc.extras.linux
+export EDITOR=vim
+export SHELL=zsh
+
+source $HOME/.zshrc.extras
