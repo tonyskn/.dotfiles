@@ -1,7 +1,6 @@
 import XMonad
 import XMonad.Config.Azerty
 import XMonad.Hooks.DynamicLog
--- import XMonad.Hooks.EwmhDesktops
 import XMonad.Hooks.ICCCMFocus
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
@@ -13,17 +12,14 @@ import XMonad.Layout.Spacing
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Util.EZConfig
-import XMonad.Util.Run(spawnPipe)
 import XMonad.Util.SpawnOnce
 
-import Control.Monad(liftM)
-import System.Environment(getEnvironment)
-import System.IO(hPutStrLn)
+import Control.Monad ((<=<))
+import System.Environment (getEnvironment)
 
 -- XMonad execution mode
 data Mode = DEFAULT | LAPTOP
 -- Try guessing `Mode` from environment variable `XMONAD_MODE`
--- Defaults to `DEFAULT`
 mode :: X Mode
 mode = liftIO $ guessFrom =<< getEnvironment
     where
@@ -31,20 +27,17 @@ mode = liftIO $ guessFrom =<< getEnvironment
         read s = if s == "laptop" then LAPTOP else DEFAULT
 
 -- Define workspaces as (workspaceId, [className]) tuples where
--- [className] contains Xsession classNames of the apps bound to workspaceId
---
--- XMonad FAQ below explains how that works
--- [http://www.haskell.org/haskellwiki/Xmonad/Frequently_asked_questions#I_need_to_find_the_class_title_or_some_other_X_property_of_my_program]
+-- [className] contains the X WM_CLASS propertes of the windows
+-- bound to workspaceId.
 workspaces' = [ ("1:main", ["Google-chrome", "Hotot"])
               , ("2:term", [])
-              , ("3:ide", ["jetbrains-idea"])
+              , ("3:ide" , ["jetbrains-idea"])
               , ("4:chat", ["Gajim.py"])
               , ("5:misc", [])
               , ("6:misc", ["VirtualBox"])
-              , ("7:scratch", ["Firefox"])
-              ]
+              , ("7:scratch", ["Firefox"]) ]
 
-layoutHook' = onWorkspace "3:idea" nobordersLayout
+layoutHook' = onWorkspace "3:ide" nobordersLayout
             $ onWorkspace "4:chat" chatLayout
             $ tiled1 ||| nobordersLayout
     where
@@ -53,77 +46,58 @@ layoutHook' = onWorkspace "3:idea" nobordersLayout
         ratio = 17/24
         delta = 3/100
         nobordersLayout = noBorders $ Full
-        gridLayout = spacing 8 $ Grid
-        chatLayout = withIM (20/100) (Role "roster") gridLayout
+        chatLayout = withIM (20/100) (Role "roster") (spacing 8 Grid)
 
-manageHook' = foldl1 (<+>) $ do
-    (id, xCNames) <- workspaces'
-    xCName <- xCNames
-    return (className =? xCName --> doShift id)
-
-logHook' xmobar = do
-    dynamicLogWithPP xmobarPP'
-    takeTopFocus -- fixes glitches in JAVA GUI apps
---     ewmhDesktopsLogHook
-    where
-        xmobarPP' = xmobarPP
-            { ppOutput = hPutStrLn xmobar
-            , ppTitle = xmobarColor "green" ""
-            , ppUrgent = xmobarColor "yellow" "red" . xmobarStrip
-            , ppLayout = const "" -- disables layout display on xmobar
-            }
-
--- launch gnome-terminal without menu-bar
--- in Ubuntu, you may need to run this is order to make it work
--- apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
+-- [ubuntu] apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
 terminal' = "gnome-terminal --hide-menubar"
 
--- On Ubuntu, you need to deactivate nautilus triggers:
--- Remove /usr/share/applications/nautilus*.desktop
 startupHook' LAPTOP = mapM_ spawnOnce [ "nm-applet", "unclutter", "dropboxd" ]
                         >> spawn "~/.xmonad/xmobar/monitors.sh"
 startupHook' DEFAULT = mapM_ spawnOnce
-                        [ "gnome-settings-daemon"
-                        , "unclutter"
+                        [ "gnome-settings-daemon", "unclutter"
                         , "~/.dropbox-dist/dropboxd"
-                        , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
-                        ]
+                        , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png" ]
 
-xpc = defaultXPConfig { bgColor  = "black"
-                      , fgColor  = "yellow"
+xpConfig' = defaultXPConfig { bgColor  = "black", fgColor  = "yellow"
                       , font = "xft:Mensch:size=10:bold:antialias=true"
-                      , promptBorderWidth = 0
-                      , position = Top
-                      , height   = 25
-                      , historySize = 256 }
+                      , position = Top, promptBorderWidth = 0
+                      , height = 25, historySize = 256 }
 
-main = do
-   xmobar <- spawnPipe "xmobar ~/.xmonad/xmobar/xmobarrc.hs"
-   xmonad $ withUrgencyHook NoUrgencyHook $ azertyConfig
+xmobar' = statusBar xmobar pp toggleStrutsKey
+    where
+        xmobar = "xmobar ~/.xmonad/xmobar/xmobarrc.hs"
+        pp = xmobarPP
+           { ppTitle = xmobarColor "green" ""
+            , ppLayout = const ""
+            , ppUrgent = xmobarColor "yellow" "red" . xmobarStrip }
+        toggleStrutsKey = const (mod4Mask, xK_b)
+
+main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         { workspaces = map fst workspaces'
-        , manageHook = manageDocks <+> manageHook' <+> manageHook azertyConfig
---         , handleEventHook = fullscreenEventHook
         , startupHook = startupHook' =<< mode
-        , logHook = logHook' xmobar
-        , layoutHook = avoidStruts $ layoutHook'
+        , logHook = takeTopFocus -- fixes glitches in Java GUI apps
         , normalBorderColor  = "#586e75" -- solarized base01
         , focusedBorderColor = "#cb4b16" -- solarized orange
         , borderWidth = 2
         , terminal = terminal'
         , modMask = mod4Mask
         , focusFollowsMouse = False
-        } `additionalKeysP`
-            [ ("M-p", shellPrompt xpc)
+        , layoutHook = layoutHook'
+        , manageHook = manageHook' }
+        `additionalKeysP`
+            [ ("M-p"  , shellPrompt xpConfig')
             , ("M-S-q", spawn "pkill 'gnome-session|xmonad'")
-            , ("M-f", spawn "nautilus --no-desktop")
+            , ("M-f"  , spawn "nautilus --no-desktop")
             , ("M-S-b", sendMessage (ToggleStrut D))
-            , ("M-b", sendMessage $ ToggleStruts)
             , ("M-<Backspace>", focusUrgent)
-            , ("M-n", spawn "touch ~/.pomodoro_session")
+            , ("M-n"  , spawn "touch ~/.pomodoro_session")
             , ("M-S-n", spawn "rm ~/.pomodoro_session")
             , ("M-S-,", spawn "gnome-control-center")
-            , ("M-s", spawn "gnome-screenshot -i")
-            ]
-          `additionalMouseBindings`
+            , ("M-s"  , spawn "gnome-screenshot -i") ]
+        `additionalMouseBindings`
             -- disable floating windows on mouse left-click
             [ ((mod4Mask, button1), const $ return ()) ]
+    where manageHook' = foldl1 (<+>) $ do
+            (id, xCNames) <- workspaces'
+            xCName <- xCNames
+            return (className =? xCName --> doShift id)
