@@ -21,19 +21,25 @@ plugins=(archlinux git autojump npm)
 source $ZSH/oh-my-zsh.sh
 
 # Customize to your needs...
+export EDITOR=vim
+export SHELL=zsh
+export BROWSER=google-chrome
 
 # Prevent oh-my-zsh from auto-updating window titles
 export DISABLE_AUTO_TITLE=true
 
 v() { vim =($@) }
-nautilus() { command nautilus --no-desktop > /dev/null 2&>1 "$@" &!  }
+nautilus() { command nautilus --no-desktop > /dev/null 2&>1 "$@" &! }
 
 alias tmux="TERM=screen-256color-bce tmux"
 alias minecraft='java -Xmx1024M -Xms512M -cp ~/minecraft.jar net.minecraft.LauncherFrame'
 
 alias ggpull='git pull --rebase origin $(current_branch)'
 alias ggl='git log --decorate --oneline --graph --all -20'
-alias gitweb='git config --get remote.origin.url | sed -e "s/^.*github\.com./https:\/\/github.com\//" | sed -e "s/\.git$//" | xargs python -m webbrowser -t > /dev/null'
+gitweb() {
+   branch=$(current_branch) || return
+   $BROWSER $(sed -e "s#^.*github\.com.#https://github.com/#" -e "s#\.git#/tree/$(current_branch)#" <(git config --get remote.origin.url 2> /dev/null))
+}
 
 alias printxml='xmllint --format -'
 alias printjson='python -m json.tool'
@@ -51,8 +57,5 @@ export IPAD_AGENT="Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleW
 
 alias vpnconnect='sudo openconnect -q -b --pid-file /var/run/vpnc/pid --script ~/.dotfiles/vpnc-script -u tsokhon --no-cert-check 92.103.100.180 2>&1 > /dev/null'
 alias vpndisconnect='sudo kill -15 $(< /var/run/vpnc/pid )'
-
-export EDITOR=vim
-export SHELL=zsh
 
 source $HOME/.zshrc.extras
