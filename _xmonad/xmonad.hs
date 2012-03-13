@@ -22,9 +22,8 @@ data Mode = DEFAULT | LAPTOP
 -- Try guessing `Mode` from environment variable `XMONAD_MODE`
 mode :: X Mode
 mode = liftIO $ guessFrom =<< getEnvironment
-    where
-        guessFrom = return . maybe DEFAULT read . lookup "XMONAD_MODE"
-        read s = if s == "laptop" then LAPTOP else DEFAULT
+    where guessFrom = return . maybe DEFAULT read . lookup "XMONAD_MODE"
+          read s = if s == "laptop" then LAPTOP else DEFAULT
 
 -- Define workspaces as (workspaceId, [className]) tuples where
 -- [className] contains the X WM_CLASS propertes of the windows
@@ -40,23 +39,23 @@ workspaces' = [ ("1:main", ["Google-chrome", "Hotot"])
 layoutHook' = onWorkspace "3:ide" nobordersLayout
             $ onWorkspace "4:chat" chatLayout
             $ tiled1 ||| nobordersLayout
-    where
-        tiled1 = spacing 5 $ Tall nmaster1 delta ratio
-        nmaster1 = 1
-        ratio = 17/24
-        delta = 3/100
-        nobordersLayout = noBorders $ Full
-        chatLayout = withIM (20/100) (Role "roster") (spacing 8 Grid)
+    where tiled1 = spacing 5 $ Tall nmaster1 delta ratio
+          nmaster1 = 1
+          ratio = 17/24
+          delta = 3/100
+          nobordersLayout = noBorders $ Full
+          chatLayout = withIM (20/100) (Role "roster") (spacing 8 Grid)
 
 -- [ubuntu] apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
 terminal' = "gnome-terminal --hide-menubar"
 
-startupHook' LAPTOP = mapM_ spawnOnce [ "nm-applet", "unclutter", "dropboxd" ]
-                        >> spawn "~/.xmonad/xmobar/monitors.sh"
-startupHook' DEFAULT = mapM_ spawnOnce
-                        [ "gnome-settings-daemon", "unclutter"
-                        , "~/.dropbox-dist/dropboxd"
-                        , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png" ]
+startupHook' mode = case mode of
+    LAPTOP -> mapM_ spawnOnce [ "nm-applet", unclutter, "dropboxd" ]
+               >> spawn "~/.xmonad/xmobar/monitors.sh"
+    DEFAULT -> mapM_ spawnOnce
+               [ "gnome-settings-daemon", unclutter , "~/.dropbox-dist/dropboxd"
+                , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png" ]
+    where unclutter = "unclutter -idle 1 -reset"
 
 xpConfig' = defaultXPConfig { bgColor  = "black", fgColor  = "yellow"
                       , font = "xft:Mensch:size=10:bold:antialias=true"
