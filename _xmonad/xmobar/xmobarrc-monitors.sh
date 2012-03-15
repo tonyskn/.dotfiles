@@ -9,9 +9,10 @@ while (true) do
    BLUE_AUDIO=$( (pactl list | grep a2dp > /dev/null && echo $ON) || echo $OFF )
 
    FAN_SPEED=$(grep -m1 level < /proc/acpi/ibm/fan | awk '{print $2}')
-   BATT_DRAIN=$(echo "scale=2; $( grep 'VOLTAGE_NOW\|CURRENT_NOW' /sys/class/power_supply/BAT0/uevent | cut -f2 -d= | paste -s -d'*' ) / 10^12 " | bc)
+   BATT_DRAIN=$(echo "scale=2; $(< /sys/devices/platform/smapi/BAT0/power_now)/1000" | bc)
+   BATT_PERCENT=$(< /sys/devices/platform/smapi/BAT0/remaining_percent)
 
-   echo "vpn: $VPN ~ nvidia: $NVIDIA ~ bluez: $BLUE_AUDIO ~ fans: $FAN_SPEED ~ Bat: $BATT_DRAIN"
+   echo "vpn: $VPN ~ nvidia: $NVIDIA ~ bluez: $BLUE_AUDIO ~ fans: $FAN_SPEED ~ Bat: $BATT_DRAIN|$BATT_PERCENT%"
 
    sleep $FREQ
 done
