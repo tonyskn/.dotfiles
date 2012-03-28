@@ -28,6 +28,9 @@ export BROWSER=google-chrome
 # Prevent oh-my-zsh from auto-updating window titles
 export DISABLE_AUTO_TITLE=true
 
+# tmux keeps forgetting about $DISPLAY...
+export DISPLAY=${DISPLAY:-:0}
+
 v() { vim =($@) }
 nautilus() { command nautilus --no-desktop > /dev/null 2&>1 "$@" &! }
 
