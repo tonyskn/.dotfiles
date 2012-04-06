@@ -14,8 +14,10 @@ import XMonad.Prompt.Shell
 import XMonad.Util.EZConfig
 import XMonad.Util.SpawnOnce
 
-import Control.Monad ((<=<))
+import Control.Monad
 import System.Environment (getEnvironment)
+
+import qualified XMonad.StackSet as W
 
 -- XMonad execution mode
 data Mode = DEFAULT | LAPTOP
@@ -31,9 +33,9 @@ mode = liftIO $ guessFrom =<< getEnvironment
 workspaces' = [ ("1:main", ["Google-chrome", "Hotot"])
               , ("2:term", [])
               , ("3:ide" , ["jetbrains-idea"])
-              , ("4:chat", ["Gajim.py"])
-              , ("5:misc", [])
-              , ("6:misc", ["VirtualBox"])
+              , ("4:chat", ["Gajim", "Gajim.py"])
+              , ("5:misc", ["Spotify", "Vlc"])
+              , ("6:misc", ["Skype", "VirtualBox"])
               , ("7:scratch", ["Firefox"]) ]
 
 layoutHook' = onWorkspace "3:ide" nobordersLayout
@@ -82,6 +84,7 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         , modMask = mod4Mask
         , focusFollowsMouse = False
         , layoutHook = layoutHook'
+        , handleEventHook = docksEventHook
         , manageHook = manageHook' }
         `additionalKeysP`
             [ ("M-p"  , shellPrompt xpConfig')
@@ -99,4 +102,5 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
     where manageHook' = foldl1 (<+>) $ do
             (id, xCNames) <- workspaces'
             xCName <- xCNames
-            return (className =? xCName --> doShift id)
+            return (className =? xCName --> doShiftAndGo id)
+          doShiftAndGo = doF . liftM2 (.) W.greedyView W.shift
