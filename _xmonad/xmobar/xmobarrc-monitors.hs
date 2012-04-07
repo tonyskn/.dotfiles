@@ -2,7 +2,7 @@ Config {
      font = "xft:Mensch:size=9:bold:antialias=true"
    , bgColor = "black"
    , fgColor = "grey"
-   , position = Static { xpos = 0 , ypos = 874, width = 1600, height = 25 }  
+   , position = Bottom
    , commands =[ Run CpuFreq ["-t", "Freq:<cpu0>|<cpu1>|<cpu2>|<cpu3>", "-L", "0", "-H", "2", "-l", "green", "-n","lightblue", "-h", "red"] 50
                , Run Uptime [] 10
                , Run Wireless "wlan0" [] 10

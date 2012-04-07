@@ -1,3 +1,4 @@
+{-# OPTIONS -fno-warn-missing-signatures -fno-warn-name-shadowing #-}
 import XMonad
 import XMonad.Config.Azerty
 import XMonad.Hooks.DynamicLog
@@ -13,17 +14,18 @@ import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Util.EZConfig
 import XMonad.Util.SpawnOnce
+import XMonad.Custom.ToggleSpawn
+
+import qualified XMonad.StackSet as W
 
 import Control.Monad
 import System.Environment (getEnvironment)
-
-import qualified XMonad.StackSet as W
 
 -- XMonad execution mode
 data Mode = DEFAULT | LAPTOP
 -- Try guessing `Mode` from environment variable `XMONAD_MODE`
 mode :: X Mode
-mode = liftIO $ guessFrom =<< getEnvironment
+mode = io $ guessFrom =<< getEnvironment
     where guessFrom = return . maybe DEFAULT read . lookup "XMONAD_MODE"
           read s = if s == "laptop" then LAPTOP else DEFAULT
 
@@ -45,19 +47,22 @@ layoutHook' = onWorkspace "3:ide" nobordersLayout
           nmaster1 = 1
           ratio = 17/24
           delta = 3/100
-          nobordersLayout = noBorders $ Full
+          nobordersLayout = noBorders Full
           chatLayout = withIM (20/100) (Role "roster") (spacing 8 Grid)
 
 -- [ubuntu] apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
 terminal' = "gnome-terminal --hide-menubar"
 
-startupHook' mode = case mode of
-    LAPTOP -> mapM_ spawnOnce [ "nm-applet", unclutter, "dropboxd" ]
-               >> spawn "~/.xmonad/xmobar/monitors.sh"
-    DEFAULT -> mapM_ spawnOnce
-               [ "gnome-settings-daemon", unclutter , "~/.dropbox-dist/dropboxd"
-                , "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png" ]
-    where unclutter = "unclutter -idle 1 -reset"
+startupHook' = mapM_ spawnOnce . startupItems
+    where startupItems LAPTOP = [ unclutter, "nm-applet", "dropboxd" ]
+          startupItems DEFAULT = [ unclutter, "gnome-settings-daemon", "~/.dropbox-dist/dropboxd", background ]
+          unclutter = "unclutter -idle 1 -reset"
+          background = "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
+
+toggleMonitorBar DEFAULT = return ()
+toggleMonitorBar LAPTOP = do
+    toggleSpawn "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs"
+    replicateM_ 4 (sendMessage $ ToggleStrut D)
 
 xpConfig' = defaultXPConfig { bgColor  = "black", fgColor  = "yellow"
                       , font = "xft:Mensch:size=10:bold:antialias=true"
@@ -90,7 +95,7 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
             [ ("M-p"  , shellPrompt xpConfig')
             , ("M-S-q", spawn "pkill 'gnome-session|xmonad'")
             , ("M-f"  , spawn "nautilus --no-desktop")
-            , ("M-S-b", sendMessage (ToggleStrut D))
+            , ("M-S-b", toggleMonitorBar =<< mode)
             , ("M-<Backspace>", focusUrgent)
             , ("M-n"  , spawn "touch ~/.pomodoro_session")
             , ("M-S-n", spawn "rm ~/.pomodoro_session")

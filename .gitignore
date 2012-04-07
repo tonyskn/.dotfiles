@@ -2,9 +2,9 @@ _vim/.netrwhist*
 _vim/view/*
 *.swp
 _xmonad/history
-_xmonad/*.hi
-_xmonad/*.o
-_xmonad/*.errors
+*.hi
+*.o
+*.errors
 _xmonad/*-*
 Session.vim
 **/Session.vim
