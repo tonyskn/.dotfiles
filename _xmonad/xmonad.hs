@@ -24,11 +24,10 @@ import ToggleSpawn
 
 -- XMonad execution mode
 data Mode = DEFAULT | LAPTOP
--- Try guessing `Mode` from environment variable `XMONAD_MODE`
+-- if `XMONAD_LAPTOP_MODE` env variable exists, we're on my laptop ;)
 mode :: X Mode
 mode = io $ guessFrom =<< getEnvironment
-    where guessFrom = return . maybe DEFAULT read . lookup "XMONAD_MODE"
-          read s = if s == "laptop" then LAPTOP else DEFAULT
+    where guessFrom = return . maybe DEFAULT (const LAPTOP) . lookup "XMONAD_LAPTOP_MODE"
 
 -- Define workspaces as (workspaceId, [className]) tuples where
 -- [className] contains the X WM_CLASS propertes of the windows
