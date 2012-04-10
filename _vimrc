@@ -12,6 +12,10 @@ set laststatus=2
 set backupdir=~/.vim/backup
 set directory=~/.vim/backup
 
+" enable persistant undo
+set udf
+set undodir=~/.vim/vimundo
+
 " disable error bell
 set noeb vb t_vb=
 
@@ -61,22 +65,41 @@ noremap <silent><Leader><space> :noh<CR>
 
 " }}}
 
-" Mappings {{{
+" Adjust defaults {{{
 
-" Fix some annoying defaults
+" don't move cursor on "*"
 nnoremap * *<c-o>
+" disable displaying manual when hitting K
 nnoremap K <nop>
-nnoremap <CR> O<ESC>
-nmap <C-$> <C-]>
-imap <C-$> <C-]>
-
+" Reselect visual block after indent/outdent
+vnoremap < <gv
+vnoremap > >gv
+" Make Y behave like other capitals
+map Y y$
+" Improve up/down movement on wrapped lines
+nnoremap j gj
+nnoremap k gk
 " Keep the search matches in the middle of the window
 nnoremap n nzzzv
 nnoremap N Nzzzv
+" }}}
+
+" Mappings {{{
+
+" easy newline
+nnoremap <CR> O<ESC>
 
 " Emacs style Home/End
 inoremap <c-a> <esc>I
 inoremap <c-e> <esc>A
+
+" Better comand-line editing
+cnoremap <C-a> <Home>
+cnoremap <C-e> <End>
+
+" Line bubbling
+noremap <C-j> :m+<CR>
+noremap <C-k> :m-2<CR>
 
 " Space to toggle folds
 nnoremap <Space> za
