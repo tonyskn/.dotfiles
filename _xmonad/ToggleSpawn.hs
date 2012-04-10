@@ -1,7 +1,7 @@
 {-# OPTIONS -fno-warn-missing-signatures #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module XMonad.Custom.ToggleSpawn (
+module ToggleSpawn (
     toggleSpawn
     ) where
 

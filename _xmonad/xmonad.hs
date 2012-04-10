@@ -14,12 +14,13 @@ import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Util.EZConfig
 import XMonad.Util.SpawnOnce
-import XMonad.Custom.ToggleSpawn
 
 import qualified XMonad.StackSet as W
 
 import Control.Monad
 import System.Environment (getEnvironment)
+
+import ToggleSpawn
 
 -- XMonad execution mode
 data Mode = DEFAULT | LAPTOP
