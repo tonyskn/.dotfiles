@@ -16,7 +16,7 @@ import XMonad.Util.EZConfig
 import XMonad.Util.SpawnOnce
 
 import qualified XMonad.StackSet as W
-
+import XMonad.Actions.CycleWS
 import Control.Monad
 import System.Environment (getEnvironment)
 
@@ -96,6 +96,8 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
             , ("M-S-q", spawn "pkill 'gnome-session|xmonad'")
             , ("M-f"  , spawn "nautilus --no-desktop")
             , ("M-S-b", toggleMonitorBar =<< mode)
+            , ("M-<Left>", moveTo Prev NonEmptyWS)
+            , ("M-<Right>", moveTo Next NonEmptyWS)
             , ("M-<Backspace>", focusUrgent)
             , ("M-n"  , spawn "touch ~/.pomodoro_session")
             , ("M-S-n", spawn "rm ~/.pomodoro_session")
