@@ -1,5 +1,7 @@
 {-# OPTIONS -fno-warn-missing-signatures -fno-warn-name-shadowing #-}
 import XMonad
+import XMonad.Actions.CycleWS
+import XMonad.Actions.GridSelect
 import XMonad.Config.Azerty
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ICCCMFocus
@@ -16,7 +18,7 @@ import XMonad.Util.EZConfig
 import XMonad.Util.SpawnOnce
 
 import qualified XMonad.StackSet as W
-import XMonad.Actions.CycleWS
+
 import Control.Monad
 import System.Environment (getEnvironment)
 
@@ -37,7 +39,7 @@ workspaces' = [ ("1:main", ["Google-chrome", "Hotot"])
               , ("3:ide" , ["jetbrains-idea"])
               , ("4:chat", ["Gajim", "Gajim.py"])
               , ("5:misc", ["Spotify", "Vlc"])
-              , ("6:misc", ["Skype", "VirtualBox"])
+              , ("6:misc", ["Skype", "VirtualBox", "Transmission-gtk"])
               , ("7:scratch", ["Firefox"]) ]
 
 layoutHook' = onWorkspace "3:ide" nobordersLayout
@@ -50,28 +52,32 @@ layoutHook' = onWorkspace "3:ide" nobordersLayout
           nobordersLayout = noBorders Full
           chatLayout = withIM (20/100) (Role "roster") (spacing 8 Grid)
 
+-- status bars font
+font' = "xft:Mensch:size=9:bold:antialias=true"
+
 -- [ubuntu] apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
 terminal' = "gnome-terminal --hide-menubar"
 
-startupHook' = mapM_ spawnOnce . startupItems
-    where startupItems LAPTOP = [ unclutter, "nm-applet", "dropboxd" ]
-          startupItems DEFAULT = [ unclutter, "gnome-settings-daemon", "~/.dropbox-dist/dropboxd", background ]
-          unclutter = "unclutter -idle 1 -reset"
+startupHook' = mapM_ spawnOnce . (common++) . startupItems
+    where startupItems LAPTOP = [ "nm-applet", "dropboxd" ]
+          startupItems DEFAULT = [ "gnome-settings-daemon", "~/.dropbox-dist/dropboxd", background ]
+          common = ["unclutter -idle 1 -reset"]
           background = "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
 
 toggleMonitorBar DEFAULT = return ()
 toggleMonitorBar LAPTOP = do
-    toggleSpawn "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs"
+    toggleSpawn $ "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs -f " ++ font'
     replicateM_ 4 (sendMessage $ ToggleStrut D)
 
 xpConfig' = defaultXPConfig { bgColor  = "black", fgColor  = "yellow"
-                      , font = "xft:Mensch:size=10:bold:antialias=true"
-                      , position = Top, promptBorderWidth = 0
+                      , font = font', position = Top, promptBorderWidth = 0
                       , height = 25, historySize = 256 }
+
+gsConfig' = defaultGSConfig { gs_font=font', gs_cellwidth=400 }
 
 xmobar' = statusBar xmobar pp toggleStrutsKey
     where
-        xmobar = "xmobar ~/.xmonad/xmobar/xmobarrc.hs"
+        xmobar = "xmobar ~/.xmonad/xmobar/xmobarrc.hs -f " ++ font'
         pp = xmobarPP
            { ppTitle = xmobarColor "green" ""
             , ppLayout = const ""
@@ -93,6 +99,7 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         , manageHook = manageHook' }
         `additionalKeysP`
             [ ("M-p"  , shellPrompt xpConfig')
+            , ("M-<Tab>", goToSelected gsConfig')
             , ("M-S-q", spawn "pkill 'gnome-session|xmonad'")
             , ("M-f"  , spawn "nautilus --no-desktop")
             , ("M-S-b", toggleMonitorBar =<< mode)
@@ -107,7 +114,7 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
             -- disable floating windows on mouse left-click
             [ ((mod4Mask, button1), const $ return ()) ]
     where manageHook' = foldl1 (<+>) $ do
-            (id, xCNames) <- workspaces'
+            (label, xCNames) <- workspaces'
             xCName <- xCNames
-            return (className =? xCName --> doShiftAndGo id)
+            return (className =? xCName --> doShiftAndGo label)
           doShiftAndGo = doF . liftM2 (.) W.greedyView W.shift

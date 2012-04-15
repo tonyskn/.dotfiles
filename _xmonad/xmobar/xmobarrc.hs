@@ -1,6 +1,5 @@
  Config {
-       font = "xft:Mensch:size=9:bold:antialias=true"
-     , bgColor = "black"
+       bgColor = "black"
      , fgColor = "grey"
      , position = Top
      , commands = [ Run CommandReader "~/.xmonad/pymodoro/pymodoro.py" "pomodoro"
