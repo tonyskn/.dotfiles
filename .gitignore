@@ -5,6 +5,6 @@ _xmonad/history
 *.hi
 *.o
 *.errors
-_xmonad/*-*
+_xmonad/xmonad-*
 Session.vim
 **/Session.vim

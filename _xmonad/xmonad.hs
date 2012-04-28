@@ -15,6 +15,7 @@ import XMonad.Layout.Spacing
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Util.EZConfig
+import XMonad.Util.Replace
 import XMonad.Util.SpawnOnce
 
 import qualified XMonad.StackSet as W
@@ -25,11 +26,15 @@ import System.Environment (getEnvironment)
 import ToggleSpawn
 
 -- XMonad execution mode
-data Mode = DEFAULT | LAPTOP
+data Mode = DEFAULT | LAPTOP deriving (Eq)
+
 -- if `XMONAD_LAPTOP_MODE` env variable exists, we're on my laptop ;)
 mode :: X Mode
 mode = io $ guessFrom =<< getEnvironment
     where guessFrom = return . maybe DEFAULT (const LAPTOP) . lookup "XMONAD_LAPTOP_MODE"
+
+whenMode :: Mode -> X() -> X()
+whenMode m = whenX $ liftM (==m) mode
 
 -- Define workspaces as (workspaceId, [className]) tuples where
 -- [className] contains the X WM_CLASS propertes of the windows
@@ -58,17 +63,6 @@ font' = "xft:Mensch:size=9:bold:antialias=true"
 -- [ubuntu] apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
 terminal' = "gnome-terminal --hide-menubar"
 
-startupHook' = mapM_ spawnOnce . (common++) . startupItems
-    where startupItems LAPTOP = [ "nm-applet", "dropboxd" ]
-          startupItems DEFAULT = [ "gnome-settings-daemon", "~/.dropbox-dist/dropboxd", background ]
-          common = ["unclutter -idle 1 -reset"]
-          background = "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
-
-toggleMonitorBar DEFAULT = return ()
-toggleMonitorBar LAPTOP = do
-    toggleSpawn $ "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs -f " ++ font'
-    replicateM_ 4 (sendMessage $ ToggleStrut D)
-
 xpConfig' = defaultXPConfig { bgColor  = "black", fgColor  = "yellow"
                       , font = font', position = Top, promptBorderWidth = 0
                       , height = 25, historySize = 256 }
@@ -84,7 +78,21 @@ xmobar' = statusBar xmobar pp toggleStrutsKey
             , ppUrgent = xmobarColor "yellow" "red" . xmobarStrip }
         toggleStrutsKey = const (mod4Mask, xK_b)
 
-main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
+startupHook' = mapM_ spawnOnce . (common++) . startupItems
+    where startupItems LAPTOP = [ "nm-applet", "dropboxd" ]
+          startupItems DEFAULT = [ "gnome-settings-daemon", "~/.dropbox-dist/dropboxd", background ]
+          common = ["unclutter -idle 1 -reset"]
+          background = "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
+
+toggleMonitorBar = do
+    toggleSpawn $ "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs -f " ++ font'
+    replicateM_ 4 (sendMessage $ ToggleStrut D)
+
+restart' = restart "/home/tonyskn/.xmonad/replace-xmonad" True
+
+main = do
+    replace
+    xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         { workspaces = map fst workspaces'
         , startupHook = startupHook' =<< mode
         , logHook = takeTopFocus -- fixes glitches in Java GUI apps
@@ -98,18 +106,19 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         , handleEventHook = docksEventHook
         , manageHook = manageHook' }
         `additionalKeysP`
-            [ ("M-p"  , shellPrompt xpConfig')
+            [ ("M-p", shellPrompt xpConfig')
             , ("M-<Tab>", goToSelected gsConfig')
             , ("M-S-q", spawn "pkill 'gnome-session|xmonad'")
-            , ("M-f"  , spawn "nautilus --no-desktop")
-            , ("M-S-b", toggleMonitorBar =<< mode)
+            , ("M-f", spawn "nautilus --no-desktop ~/Downloads")
             , ("M-<Left>", moveTo Prev NonEmptyWS)
             , ("M-<Right>", moveTo Next NonEmptyWS)
             , ("M-<Backspace>", focusUrgent)
-            , ("M-n"  , spawn "touch ~/.pomodoro_session")
+            , ("M-n", spawn "touch ~/.pomodoro_session")
             , ("M-S-n", spawn "rm ~/.pomodoro_session")
             , ("M-S-,", spawn "gnome-control-center")
-            , ("M-s"  , spawn "gnome-screenshot -i") ]
+            , ("M-s"  , spawn "gnome-screenshot -i")
+            , ("M-S-o", whenMode LAPTOP restart')
+            , ("M-S-b", whenMode LAPTOP toggleMonitorBar) ]
         `additionalMouseBindings`
             -- disable floating windows on mouse left-click
             [ ((mod4Mask, button1), const $ return ()) ]
