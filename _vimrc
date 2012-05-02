@@ -74,6 +74,9 @@ nnoremap K <nop>
 " Reselect visual block after indent/outdent
 vnoremap < <gv
 vnoremap > >gv
+" Navigate to next diff after action
+nnoremap do do[c]c
+nnoremap dp dp[c]c
 " Make Y behave like other capitals
 map Y y$
 " Improve up/down movement on wrapped lines
