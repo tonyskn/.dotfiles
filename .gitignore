@@ -1,10 +1,11 @@
 _vim/.netrwhist*
 _vim/view/*
-*.swp
+Session.vim
+**/Session.vim
+_fonts/fonts.dir
 _xmonad/history
+_xmonad/xmonad-*
+*.swp
 *.hi
 *.o
 *.errors
-_xmonad/xmonad-*
-Session.vim
-**/Session.vim
