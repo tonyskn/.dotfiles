@@ -189,6 +189,10 @@ set completeopt=longest,menuone,preview
 let g:SuperTabDefaultCompletionType = "<c-n>"
 let g:SuperTabLongestHighlight = 1
 
+" easier Clam mappings
+nnoremap ! :Clam<space>
+vnoremap ! :ClamVisual<space>
+
 " set slime to work in tmux mode
 let g:slime_target = "tmux"
 
