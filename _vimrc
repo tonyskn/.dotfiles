@@ -209,6 +209,22 @@ noremap <silent><Leader>ng :FufLine<CR>
 " open the latest search in :Fufline
 noremap <silent><leader>/ :execute ':FufLine ' . substitute(substitute(substitute(@/, "\\\\<", "", ""), "\\\\>", "", ""), "\\\\v", "", "")<CR>
 
+" fix nasty vimux bug with ruby1.9
+ruby << EOF
+class Object
+  def flush; end unless Object.new.respond_to?(:flush)
+end
+EOF
+
+" configure vimux
+let VimuxHeight = "25"
+noremap <silent><Leader>rp :PromptVimTmuxCommand<CR>
+noremap <silent><Leader>rl :RunLastVimTmuxCommand<CR>
+noremap <silent><Leader>ri :InspectVimTmuxRunner<CR>
+noremap <silent><Leader>rx :CloseVimTmuxPanes<CR>
+noremap <silent><Leader>rc :InterruptVimTmuxRunner<CR>
+vnoremap <silent><Leader>rv "vy :call RunVimTmuxCommand(@v . "\n", 0)<CR>
+"
 " ZoomWin configuration
 map <silent><Leader><Leader> :ZoomWin<CR>
 

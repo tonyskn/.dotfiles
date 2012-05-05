@@ -62,10 +62,6 @@
 	path = _xmonad/pymodoro
 	url = https://github.com/dattanchu/pymodoro.git
 	ignore = untracked
-[submodule "_vim/bundle/slime"]
-	path = _vim/bundle/slime
-	url = git://github.com/jpalardy/vim-slime.git
-	ignore = untracked
 [submodule "_vim/bundle/powerline"]
 	path = _vim/bundle/powerline
 	url = https://github.com/Lokaltog/vim-powerline.git
@@ -81,3 +77,7 @@
 	path = _vim/bundle/clam
 	url = https://github.com/sjl/clam.vim
 	ignore = untracked
+[submodule "_vim/bundle/vimux"]
+	path = _vim/bundle/vimux
+	url = https://github.com/benmills/vimux
+	ignore = all
