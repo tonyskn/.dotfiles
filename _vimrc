@@ -221,7 +221,7 @@ let VimuxHeight = "25"
 noremap <silent><Leader>rp :PromptVimTmuxCommand<CR>
 noremap <silent><Leader>rl :RunLastVimTmuxCommand<CR>
 noremap <silent><Leader>ri :InspectVimTmuxRunner<CR>
-noremap <silent><Leader>rx :CloseVimTmuxPanes<CR>
+noremap <silent><Leader>rx :CloseVimTmuxRunner<CR>
 noremap <silent><Leader>rc :InterruptVimTmuxRunner<CR>
 vnoremap <silent><Leader>rv "vy :call RunVimTmuxCommand(@v . "\n", 0)<CR>
 "
