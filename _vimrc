@@ -74,6 +74,9 @@ nnoremap K <nop>
 " Reselect visual block after indent/outdent
 vnoremap < <gv
 vnoremap > >gv
+" When pasting, auto-adjust indent
+nnoremap p ]p
+nnoremap P ]P
 " Navigate to next diff after action
 nnoremap do do[c]c
 nnoremap dp dp[c]c
