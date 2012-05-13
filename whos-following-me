@@ -1,0 +1,17 @@
+#!/bin/zsh
+#vim:ft=zsh
+
+CACHE=~/.followers
+LAST_TIME=$( stat -c "%y" $CACHE | cut -d"." -f1 )
+TMP=$( mktemp )
+t followers | paste | sort > $TMP
+
+
+echo "Unfollowed me since $LAST_TIME"
+cat $CACHE $TMP $TMP | sort | uniq -u
+
+echo
+echo "New followers since $LAST_TIME"
+cat $CACHE $CACHE $TMP | sort | uniq -u
+
+mv -f $TMP $CACHE
