@@ -43,7 +43,7 @@ workspaces' = [ ("1:main", ["Google-chrome", "Hotot"])
               , ("2:term", [])
               , ("3:ide" , ["jetbrains-idea"])
               , ("4:chat", ["Gajim", "Gajim.py"])
-              , ("5:misc", ["Spotify", "Vlc"])
+              , ("5:misc", ["Spotify", "Vlc", "Bibble5"])
               , ("6:misc", ["Skype", "VirtualBox", "Transmission-gtk"])
               , ("7:scratch", ["Firefox"]) ]
 
