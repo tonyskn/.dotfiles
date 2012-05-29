@@ -38,6 +38,7 @@ alias tmux="TERM=screen-256color-bce tmux"
 alias minecraft='java -Xmx1024M -Xms512M -cp ~/minecraft.jar net.minecraft.LauncherFrame'
 
 alias ggpull='git pull --rebase origin $(current_branch)'
+alias ggpnp='git pull --rebase origin $(current_branch) && git push origin $(current_branch)'
 alias ggl='git log --decorate --oneline --graph --all -20'
 gitweb() {
    branch=$(current_branch) || return
