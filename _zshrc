@@ -34,6 +34,9 @@ export DISPLAY=${DISPLAY:-:0}
 v() { vim =($@) }
 nautilus() { command nautilus --no-desktop > /dev/null 2&>1 "$@" &! }
 
+alias xcopy='xclip -selection c'
+alias xpaste='xclip -o -selection c'
+
 alias tmux="TERM=screen-256color-bce tmux"
 alias minecraft='java -Xmx1024M -Xms512M -cp ~/minecraft.jar net.minecraft.LauncherFrame'
 
