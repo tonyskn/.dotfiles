@@ -88,7 +88,7 @@ toggleMonitorBar = do
     toggleSpawn $ "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs -f " ++ font'
     replicateM_ 4 (sendMessage $ ToggleStrut D)
 
-restart' = restart "/home/tonyskn/.xmonad/replace-xmonad" True
+restart' = restart "/usr/local/bin/replace-xmonad" True
 
 main = do
     replace
