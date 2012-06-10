@@ -107,9 +107,11 @@ cnoremap <C-e> <End>
 noremap <C-j> :m+<CR>
 noremap <C-k> :m-2<CR>
 
-" Space to toggle folds
+" More fold/unfold mappings
 nnoremap <Space> za
 vnoremap <Space> za
+nnoremap zJ zjzmza
+nnoremap zK zkzmza[z
 
 " window shortcuts
 map <Leader>= <C-w>=
