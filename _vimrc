@@ -104,8 +104,10 @@ cnoremap <C-a> <Home>
 cnoremap <C-e> <End>
 
 " Line bubbling
-noremap <C-j> :m+<CR>
-noremap <C-k> :m-2<CR>
+noremap <C-j> mz:m+<cr>`z
+noremap <C-k> mz:m-2<cr>`z
+vnoremap <C-j> :m'>+<cr>`<my`>mzgv`yo`z
+vnoremap <C-k> :m'<-2<cr>`>my`<mzgv`yo`z
 
 " More fold/unfold mappings
 nnoremap <Space> za
