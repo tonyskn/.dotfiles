@@ -1,0 +1,11 @@
+[core]
+   autocrlf = false
+   safecrlf = true
+   editor = vim
+[color]
+   ui = auto
+[push]
+   default = current
+[user]
+   name = tonyskn
+   email = tonyskn@gmail.com

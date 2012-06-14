@@ -78,11 +78,10 @@ xmobar' = statusBar xmobar pp toggleStrutsKey
             , ppUrgent = xmobarColor "yellow" "red" . xmobarStrip }
         toggleStrutsKey = const (mod4Mask, xK_b)
 
-startupHook' = mapM_ spawnOnce . (common++) . startupItems
-    where startupItems LAPTOP = [ "nm-applet", "dropboxd" ]
-          startupItems DEFAULT = [ "gnome-settings-daemon", "~/.dropbox-dist/dropboxd", background ]
-          common = ["unclutter -idle 1 -reset"]
-          background = "feh --bg-scale ~/.dotfiles/world-map-wallpaper.png"
+startupHook' = mapM_ spawnOnce . startupItems
+    where startupItems LAPTOP = "nm-applet" : common
+          startupItems DEFAULT = common
+          common = ["unclutter -idle 1 -reset", "dropboxd"]
 
 toggleMonitorBar = do
     toggleSpawn $ "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs -f " ++ font'
@@ -117,7 +116,7 @@ main = do
             , ("M-S-n", spawn "rm ~/.pomodoro_session")
             , ("M-S-,", spawn "gnome-control-center")
             , ("M-s"  , spawn "gnome-screenshot -i")
-            , ("M-S-o", whenMode LAPTOP restart')
+            , ("M-S-o", restart')
             , ("M-S-b", whenMode LAPTOP toggleMonitorBar) ]
         `additionalMouseBindings`
             -- disable floating windows on mouse left-click
