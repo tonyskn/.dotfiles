@@ -78,8 +78,8 @@ vnoremap > >gv
 nnoremap p ]p
 nnoremap P ]P
 " Navigate to next diff after action
-nnoremap do do[c]c
-nnoremap dp dp[c]c
+nmap do do]c
+nmap dp dp]c
 " Make Y behave like other capitals
 map Y y$
 " Improve up/down movement on wrapped lines
