@@ -52,7 +52,7 @@ alias printjson='python -m json.tool'
 alias ll='ls -lh'
 
 alias deps='rm -rf node_modules && npm install'
-alias bi='bundle install --path=vendor/bundle'
+alias bi='bundle install --path=vendor/bundle --binstubs'
 
 mvn() {
    PURPLE=$(echo -en "\033[35m")
