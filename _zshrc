@@ -79,6 +79,12 @@ export IPAD_AGENT="Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleW
 
 alias vpnconnect='sudo openconnect -q -b --pid-file /var/run/vpnc/pid --script vpnc-script -u tsokhon --no-cert-check 92.103.100.180 2>&1 > /dev/null'
 alias vpndisconnect='sudo kill -15 $(< /var/run/vpnc/pid )'
+socks() {
+  gsettings set org.gnome.system.proxy.socks host 'localhost'
+  gsettings set org.gnome.system.proxy.socks port ${@:-4320}
+  gsettings set org.gnome.system.proxy mode 'manual' 
+}
+alias unsocks="gsettings set org.gnome.system.proxy mode 'none'"
 
 alias minecraft='java -Xmx1024M -Xms512M -cp ~/minecraft.jar net.minecraft.LauncherFrame'
 
