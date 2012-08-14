@@ -1,0 +1,7 @@
+#! /bin/zsh
+. ~/.zshrc
+
+yaourt -Qe > packages
+(sudo tar zcf - $( lsetc )) > etc.tar.gz
+
+# vim:ft=zsh
