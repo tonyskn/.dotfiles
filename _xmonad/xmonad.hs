@@ -21,20 +21,21 @@ import XMonad.Util.SpawnOnce
 import qualified XMonad.StackSet as W
 
 import Control.Monad
+import Data.Monoid (Monoid)
 import System.Environment (getEnvironment)
 
 import ToggleSpawn
 
 -- XMonad execution mode
-data Mode = DEFAULT | LAPTOP deriving (Eq)
-
 -- if `XMONAD_LAPTOP_MODE` env variable exists, we're on my laptop ;)
-mode :: X Mode
-mode = io $ guessFrom =<< getEnvironment
-    where guessFrom = return . maybe DEFAULT (const LAPTOP) . lookup "XMONAD_LAPTOP_MODE"
+data Mode = DESKTOP | LAPTOP deriving (Eq)
 
-whenMode :: Mode -> X() -> X()
-whenMode m = whenX $ liftM (==m) mode
+(><>) :: (MonadIO m, Monoid a) => Mode -> m a -> m a
+m ><> action = liftM (m==) mode --> action
+    where mode = liftIO $ guessFrom =<< getEnvironment
+          guessFrom = return . maybe DESKTOP (const LAPTOP) . lookup "XMONAD_LAPTOP_MODE"
+
+infix 9 ><>
 
 -- Define workspaces as (workspaceId, [className]) tuples where
 -- [className] contains the X WM_CLASS propertes of the windows
@@ -45,7 +46,7 @@ workspaces' = [ ("1:main", ["Google-chrome", "Hotot"])
               , ("4:chat", ["Gajim", "Gajim.py"])
               , ("5:misc", ["Spotify", "Vlc", "Bibble5"])
               , ("6:misc", ["Skype", "VirtualBox", "Transmission-gtk"])
-              , ("7:scratch", ["Firefox"]) ]
+              , ("7:scratch", ["Firefox", "Firefox-bin"]) ]
 
 layoutHook' = onWorkspace "3:ide" nobordersLayout
             $ onWorkspace "4:chat" chatLayout
@@ -78,10 +79,11 @@ xmobar' = statusBar xmobar pp toggleStrutsKey
             , ppUrgent = xmobarColor "yellow" "red" . xmobarStrip }
         toggleStrutsKey = const (mod4Mask, xK_b)
 
-startupHook' = mapM_ spawnOnce . startupItems
-    where startupItems LAPTOP = "nm-applet" : common
-          startupItems DEFAULT = common
-          common = ["unclutter -idle 1 -reset", "dropboxd"]
+startupHook' = ( LAPTOP ><> spawnAll [nmApplet, unclutter] )
+           <+> ( DESKTOP ><> spawnAll [unclutter]          )
+           where spawnAll = mapM_ spawnOnce
+                 nmApplet = "pgrep nm-applet || nm-applet"
+                 unclutter = "unclutter -idle 1 -jitter 10 -root"
 
 toggleMonitorBar = do
     toggleSpawn $ "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs -f " ++ font'
@@ -93,7 +95,7 @@ main = do
     replace
     xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         { workspaces = map fst workspaces'
-        , startupHook = startupHook' =<< mode
+        , startupHook = startupHook'
         , logHook = takeTopFocus -- fixes glitches in Java GUI apps
         , normalBorderColor  = "#586e75" -- solarized base01
         , focusedBorderColor = "#cb4b16" -- solarized orange
@@ -117,12 +119,13 @@ main = do
             , ("M-S-,", spawn "gnome-control-center")
             , ("M-s"  , spawn "gnome-screenshot -i")
             , ("M-S-o", restart')
-            , ("M-S-b", whenMode LAPTOP toggleMonitorBar) ]
+            , ("M-S-b", LAPTOP ><> toggleMonitorBar) ]
         `additionalMouseBindings`
             -- disable floating windows on mouse left-click
             [ ((mod4Mask, button1), const $ return ()) ]
     where manageHook' = foldl1 (<+>) $ do
             (label, xCNames) <- workspaces'
             xCName <- xCNames
-            return (className =? xCName --> doShiftAndGo label)
+            return (className =? xCName --> shift label)
+          shift l = ( DESKTOP ><> doShift l ) <+> ( LAPTOP ><> doShiftAndGo l )
           doShiftAndGo = doF . liftM2 (.) W.greedyView W.shift
