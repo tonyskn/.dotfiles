@@ -81,3 +81,6 @@
 	path = _vim/bundle/vimux
 	url = https://github.com/benmills/vimux.git
 	ignore = untracked
+[submodule "_vim/bundle/markdown"]
+	path = _vim/bundle/markdown
+	url = https://github.com/tpope/vim-markdown.git
