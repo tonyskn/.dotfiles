@@ -94,9 +94,7 @@ alias lsetc='cat <( yaourt -Qeq | xargs yaourt -Ql | grep " /etc" | grep -v "/$"
 
 alias minecraft='java -Xmx1024M -Xms512M -cp ~/minecraft.jar net.minecraft.LauncherFrame'
 
-export JDK_HOME=/opt/java6
-export PATH=$JDK_HOME/bin:~/.gem/ruby/1.9.1/bin:~/.cabal/bin:$PATH
-export JAVA_HOME=$JDK_HOME
+export PATH=~/.gem/ruby/1.9.1/bin:~/.cabal/bin:$PATH
 export NODE_PATH=/usr/lib/node_modules
 
 source $HOME/.zshrc.extras
