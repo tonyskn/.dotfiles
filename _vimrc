@@ -197,11 +197,8 @@ let g:SuperTabDefaultCompletionType = "<c-n>"
 let g:SuperTabLongestHighlight = 1
 
 " easier Clam mappings
-nnoremap ! :Clam<space>
-vnoremap ! :ClamVisual<space>
-
-" set slime to work in tmux mode
-let g:slime_target = "tmux"
+nnoremap <leader>! :Clam<space>
+vnoremap <leader>! :ClamVisual<space>
 
 " configure FuzzyFinder mappings
 let g:fuf_modesDisable=[]
@@ -226,13 +223,14 @@ EOF
 " configure vimux
 let VimuxHeight = "25"
 noremap <silent><Leader>rp :PromptVimTmuxCommand<CR>
+noremap <silent>! :PromptVimTmuxCommand<CR>
 noremap <silent><Leader>rl :InterruptVimTmuxRunner<CR>:RunLastVimTmuxCommand<CR>
 noremap <silent><Leader>ri :InspectVimTmuxRunner<CR>
 noremap <silent><Leader>rx :CloseVimTmuxRunner<CR>
 noremap <silent><Leader>rc :InterruptVimTmuxRunner<CR>
 vnoremap <silent><Leader>rv "vy :call RunVimTmuxCommand(@v . "\n", 0)<CR>
 au! VimLeavePre * :CloseVimTmuxRunner
-"
+
 " ZoomWin configuration
 map <silent><Leader><Leader> :ZoomWin<CR>
 
