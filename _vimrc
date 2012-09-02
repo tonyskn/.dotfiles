@@ -127,8 +127,8 @@ map <Leader>K :llast<CR>
 map <Leader>k :lprevious<CR>
 
 " configure extra mappings for fugitive's Gdiff view
-noremap <silent><Leader>d ]c
-noremap <silent><Leader>D [c
+noremap <silent><Leader>d ]czz
+noremap <silent><Leader>D [czz
 noremap <silent><Leader>q <C-w>h:w<CR>:q<CR><C-w>k
 
 " Sudo write
