@@ -84,3 +84,9 @@
 [submodule "_vim/bundle/markdown"]
 	path = _vim/bundle/markdown
 	url = https://github.com/tpope/vim-markdown.git
+[submodule "_vim/bundle/matchit"]
+	path = _vim/bundle/matchit
+	url = https://github.com/edsono/vim-matchit.git
+[submodule "_vim/bundle/less"]
+	path = _vim/bundle/less
+	url = https://github.com/groenewege/vim-less.git
