@@ -18,10 +18,6 @@
 	path = _vim/bundle/repeat
 	url = git://github.com/tpope/vim-repeat.git
 	ignore = untracked
-[submodule "_vim/bundle/ack"]
-	path = _vim/bundle/ack
-	url = git://github.com/vim-scripts/ack.vim.git
-	ignore = untracked
 [submodule "_vim/bundle/javascript"]
 	path = _vim/bundle/javascript
 	url = git://github.com/pangloss/vim-javascript.git
@@ -90,3 +86,7 @@
 [submodule "_vim/bundle/less"]
 	path = _vim/bundle/less
 	url = https://github.com/groenewege/vim-less.git
+[submodule "_vim/bundle/easygrep"]
+	path = _vim/bundle/easygrep
+	url = https://github.com/vim-scripts/EasyGrep.git
+	ignore = untracked

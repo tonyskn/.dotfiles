@@ -213,6 +213,13 @@ noremap <silent><Leader>ng :FufLine<CR>
 " open the latest search in :Fufline
 noremap <silent><leader>/ :execute ':FufLine ' . substitute(substitute(substitute(@/, "\\\\<", "", ""), "\\\\>", "", ""), "\\\\v", "", "")<CR>
 
+" EasyGrep
+let g:EasyGrepWindow=1
+let g:EasyGrepReplaceWindowMode=2
+let g:EasyGrepRecursive=1
+let g:EasyGrepReplaceAllPerFile=1
+let g:EasyGrepAllOptionsInExplorer=1
+
 " fix nasty vimux bug with ruby1.9
 ruby << EOF
 class Object
