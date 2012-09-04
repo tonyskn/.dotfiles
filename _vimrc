@@ -144,31 +144,21 @@ map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
 " fold vim files around {{{ ... }}}
 au FileType vim setlocal foldmethod=marker
 
-" _zsh* files are Zsh scripts
-au BufNewFile,BufRead *zsh* set ft=zsh
-
 " JSON files are Javascript
 au BufNewFile,BufRead *.json set ft=javascript
 
 " Thorfile, Rakefile, Vagrantfile and Gemfile are Ruby
 au BufRead,BufNewFile {Gemfile,Rakefile,Vagrantfile,Thorfile,config.ru} set ft=ruby
 
-" make Python follow PEP8 ( http://www.python.org/dev/peps/pep-0008/ )
-au FileType python set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=79
-
-" ghc uses 4-space tabs
-au FileType haskell set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=79
-
-" use 4-space tabs in markdown
-au FileType markdown set softtabstop=4 tabstop=4 shiftwidth=4
+" Some filetypes need 4-space tabs
+au FileType {python,haskell,markdown} set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=79
+" some filetypes need real tabs
+au FileType {make,gitconfig} set noexpandtab
 
 " use xmllint to format xml
 au FileType xml set equalprg=xmllint\ --format\ -
 " use python json.tool to format JSON
 au BufNewFile,BufRead *.json set equalprg=python\ -m\ json.tool
-
-" some filetypes need real tabs
-au FileType {make,gitconfig} set noexpandtab
 
 " }}}
 
