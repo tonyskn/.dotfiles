@@ -71,6 +71,8 @@ noremap <silent><Leader><space> :noh<CR>
 nnoremap * *<c-o>
 " disable displaying manual when hitting K
 nnoremap K <nop>
+" disable C-G (avoids vim freezes when in tmux)
+inoremap <C-G> <nop>
 " Reselect visual block after indent/outdent
 vnoremap < <gv
 vnoremap > >gv
@@ -207,7 +209,7 @@ noremap <silent><leader>/ :execute ':FufLine ' . substitute(substitute(substitut
 let g:EasyGrepWindow=1
 let g:EasyGrepReplaceWindowMode=2
 let g:EasyGrepRecursive=1
-let g:EasyGrepReplaceAllPerFile=1
+" let g:EasyGrepReplaceAllPerFile=1
 let g:EasyGrepAllOptionsInExplorer=1
 
 " fix nasty vimux bug with ruby1.9
