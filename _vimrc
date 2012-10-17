@@ -69,6 +69,8 @@ noremap <silent><Leader><space> :noh<CR>
 
 " don't move cursor on "*"
 nnoremap * *<c-o>
+" search for visual selection
+vnoremap * y/<C-R>"<CR>
 " disable displaying manual when hitting K
 nnoremap K <nop>
 " disable C-G (avoids vim freezes when in tmux)
