@@ -2,6 +2,6 @@
 . ~/.zshrc
 
 yaourt -Qe > packages
-(sudo tar zcf - $( lsetc )) > etc.tar.gz
+rm etc.tar.gz; (sudo tar zcf - $( lsetc )) > etc.tar.gz
 
 # vim:ft=zsh

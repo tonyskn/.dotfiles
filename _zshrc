@@ -88,7 +88,8 @@ socks() {
 }
 alias unsocks="gsettings set org.gnome.system.proxy mode 'none'"
 
-alias lsetc='cat <( yaourt -Qeq | xargs yaourt -Ql | grep " /etc" | grep -v "/$" | cut -d" " -f2 ) \
+alias lsetc='cat <( ls /usr/lib/systemd/system-*/*.sh ) \
+                 <( yaourt -Qeq | xargs yaourt -Ql | grep " /etc" | grep -v "/$" | cut -d" " -f2 ) \
                  <( pacdisowned 2>&/dev/null | grep "^/etc" | grep -v certs | grep -v "[/-]$" \
                      | grep -v "[lock|OLD|pacnew|README|machine.id|catalog]$" \
                      | grep -vi "networkmanager" | grep -v "pacman.d.gnupg" \
