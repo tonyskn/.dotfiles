@@ -1,5 +1,10 @@
 #! /bin/zsh
-. ~/.zshrc
+alias lsetc='cat <( ls /usr/lib/systemd/system-*/*.sh ) \
+                 <( yaourt -Qeq | xargs yaourt -Ql | grep " /etc" | grep -v "/$" | cut -d" " -f2 ) \
+                 <( pacdisowned 2>&/dev/null | grep "^/etc" | grep -v certs | grep -v "[/-]$" \
+                     | grep -v "[lock|OLD|pacnew|README|machine.id|catalog]$" \
+                     | grep -vi "networkmanager" | grep -v "pacman.d.gnupg" \
+                     | grep -v "fonts.conf.d" | grep -v "skel" | grep -v "gtk.2" )'
 
 yaourt -Qe > packages
 rm etc.tar.gz; (sudo tar zcf - $( lsetc )) > etc.tar.gz
