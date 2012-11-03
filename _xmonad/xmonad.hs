@@ -79,9 +79,10 @@ xmobar' = statusBar xmobar pp toggleStrutsKey
             , ppUrgent = xmobarColor "yellow" "red" . xmobarStrip }
         toggleStrutsKey = const (mod4Mask, xK_b)
 
-startupHook' = ( LAPTOP ><> spawnAll [nmApplet, unclutter, dropboxd] )
+startupHook' = ( LAPTOP ><> spawnAll [nmApplet, unclutter, dropboxd, gnomescreensaver] )
            <+> ( DESKTOP ><> spawnAll [unclutter, dropboxd]          )
            where spawnAll = mapM_ spawnOnce
+                 gnomescreensaver = "pgrep gnome-screensaver || gnome-screensaver"
                  dropboxd = "pgrep dropboxd || dropboxd"
                  nmApplet = "pgrep nm-applet || nm-applet"
                  unclutter = "unclutter -idle 1 -jitter 10 -root"
