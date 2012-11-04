@@ -222,7 +222,8 @@ end
 EOF
 
 " configure vimux
-let VimuxHeight = "25"
+let g:VimuxHeight = "35"
+let g:VimuxOrientation = "h"
 noremap <silent><Leader>rp :PromptVimTmuxCommand<CR>
 noremap <silent>! :PromptVimTmuxCommand<CR>
 noremap <silent><Leader>rl :InterruptVimTmuxRunner<CR>:RunLastVimTmuxCommand<CR>
