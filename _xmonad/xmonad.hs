@@ -15,7 +15,6 @@ import XMonad.Layout.Spacing
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Util.EZConfig
-import XMonad.Util.Replace
 import XMonad.Util.SpawnOnce
 
 import qualified XMonad.StackSet as W
@@ -79,23 +78,16 @@ xmobar' = statusBar xmobar pp toggleStrutsKey
             , ppUrgent = xmobarColor "yellow" "red" . xmobarStrip }
         toggleStrutsKey = const (mod4Mask, xK_b)
 
-startupHook' = ( LAPTOP ><> spawnAll [nmApplet, unclutter, dropboxd, gnomescreensaver] )
-           <+> ( DESKTOP ><> spawnAll [unclutter, dropboxd]          )
-           where spawnAll = mapM_ spawnOnce
-                 gnomescreensaver = "pgrep gnome-screensaver || gnome-screensaver"
-                 dropboxd = "pgrep dropboxd || dropboxd"
-                 nmApplet = "pgrep nm-applet || nm-applet"
-                 unclutter = "unclutter -idle 1 -jitter 10 -root"
+startupHook' = ( LAPTOP ><> mapM_ spawnOnce ["unclutter", "dropboxd",
+                                             "nm-applet", "gnome-screensaver"] )
+           <+> ( DESKTOP ><> mapM_ spawnOnce ["unclutter", "dropboxd"] )
+           where unclutter = "unclutter -idle 1 -jitter 10 -root"
 
 toggleMonitorBar = do
     toggleSpawn $ "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs -f " ++ font'
     replicateM_ 4 (sendMessage $ ToggleStrut D)
 
-restart' = restart "/usr/local/bin/replace-xmonad" True
-
-main = do
-    replace
-    xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
+main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         { workspaces = map fst workspaces'
         , startupHook = startupHook'
         , logHook = takeTopFocus -- fixes glitches in Java GUI apps
@@ -111,7 +103,7 @@ main = do
         `additionalKeysP`
             [ ("M-p", shellPrompt xpConfig')
             , ("M-<Tab>", goToSelected gsConfig')
-            , ("M-S-q", spawn "pkill 'gnome-session|xmonad'")
+            , ("M-S-q", spawn "pkill gnome-session")
             , ("M-f", spawn "nautilus --no-desktop ~/Downloads")
             , ("M-<Left>", moveTo Prev NonEmptyWS)
             , ("M-<Right>", moveTo Next NonEmptyWS)
@@ -119,8 +111,6 @@ main = do
             , ("M-n", spawn "touch ~/.pomodoro_session")
             , ("M-S-n", spawn "rm ~/.pomodoro_session")
             , ("M-S-,", spawn "gnome-control-center")
-            , ("M-s"  , spawn "gnome-screenshot -i")
-            , ("M-S-o", restart')
             , ("M-S-b", LAPTOP ><> toggleMonitorBar) ]
         `additionalMouseBindings`
             -- disable floating windows on mouse left-click
