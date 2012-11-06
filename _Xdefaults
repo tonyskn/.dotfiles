@@ -27,10 +27,23 @@ URxvt.internalBorder:       3
 URxvt.lineSpace:            0
 
 ! Fonts
+URxvt.allow_bold:           true
 URxvt.allow_bold:           false
 /* URxvt.font:                 -*-terminus-medium-r-normal-*-12-120-72-72-c-60-iso8859-1 */
-URxvt*font: xft:Mensch for Powerline:regular:pixelsize=14
-URxvt*boldFont: xft:Mensch for Powerline:bold:pixelsize=14
+!URxvt*font: xft:Mensch for Powerline:regular:pixelsize=14
+!URxvt*boldFont: xft:Mensch for Powerline:bold:pixelsize=14
+URxvt*font:                 xft:Monaco for Powerline:regular:size=11
+URxvt*boldFont:             xft:Monaco for Powerline:bold:size=11
+URxvt*italicFont:           xft:Monaco for Powerline:italic:size=11
+URxvt*boldItalicFont:       xft:Monaco for Powerline:bold:italic:size=11
+
+! Fonts settings
+Xft.autohint: 0
+Xft.lcdfilter:  lcddefault
+Xft.hintstyle:  hintfull
+Xft.hinting: 1
+Xft.antialias: 1
+Xft.rgba: rgb
 
 ! Fix font space
 URxvt*letterSpace: -1

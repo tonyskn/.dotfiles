@@ -34,7 +34,6 @@ export DISABLE_AUTO_TITLE=true
 export DISPLAY=${DISPLAY:-:0}
 
 v() { vim =($@) }
-nautilus() { command nautilus --no-desktop > /dev/null 2&>1 "$@" &! }
 
 alias xcopy='xclip -selection c'
 alias xpaste='xclip -o -selection c'

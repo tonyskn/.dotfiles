@@ -15,7 +15,6 @@ import XMonad.Layout.Spacing
 import XMonad.Prompt
 import XMonad.Prompt.Shell
 import XMonad.Util.EZConfig
-import XMonad.Util.SpawnOnce
 
 import qualified XMonad.StackSet as W
 
@@ -78,18 +77,12 @@ xmobar' = statusBar xmobar pp toggleStrutsKey
             , ppUrgent = xmobarColor "yellow" "red" . xmobarStrip }
         toggleStrutsKey = const (mod4Mask, xK_b)
 
-startupHook' = ( LAPTOP ><> mapM_ spawnOnce ["unclutter", "dropboxd",
-                                             "nm-applet", "gnome-screensaver"] )
-           <+> ( DESKTOP ><> mapM_ spawnOnce ["unclutter", "dropboxd"] )
-           where unclutter = "unclutter -idle 1 -jitter 10 -root"
-
 toggleMonitorBar = do
     toggleSpawn $ "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs -f " ++ font'
     replicateM_ 4 (sendMessage $ ToggleStrut D)
 
 main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         { workspaces = map fst workspaces'
-        , startupHook = startupHook'
         , logHook = takeTopFocus -- fixes glitches in Java GUI apps
         , normalBorderColor  = "#586e75" -- solarized base01
         , focusedBorderColor = "#cb4b16" -- solarized orange
@@ -103,14 +96,13 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         `additionalKeysP`
             [ ("M-p", shellPrompt xpConfig')
             , ("M-<Tab>", goToSelected gsConfig')
-            , ("M-S-q", spawn "pkill gnome-session")
-            , ("M-f", spawn "nautilus --no-desktop ~/Downloads")
+            , ("M-f", spawn "thunar")
             , ("M-<Left>", moveTo Prev NonEmptyWS)
             , ("M-<Right>", moveTo Next NonEmptyWS)
             , ("M-<Backspace>", focusUrgent)
             , ("M-n", spawn "touch ~/.pomodoro_session")
             , ("M-S-n", spawn "rm ~/.pomodoro_session")
-            , ("M-S-,", spawn "gnome-control-center")
+            , ("M-S-,", spawn "xfce4-settings-manager")
             , ("M-S-b", LAPTOP ><> toggleMonitorBar) ]
         `additionalMouseBindings`
             -- disable floating windows on mouse left-click
