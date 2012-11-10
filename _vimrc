@@ -195,17 +195,10 @@ nnoremap <leader>! :Clam<space>
 vnoremap <leader>! :ClamVisual<space>
 
 " configure FuzzyFinder mappings
-let g:fuf_modesDisable=[]
-noremap <silent><Leader>nn :FufRenewCache<CR>
-noremap <silent><Leader>nf :FufFileWithCurrentBufferDir<CR>
-noremap <silent><Leader>nd :FufDir<CR>
-noremap <silent><Leader>nt :FufCoverageFile<CR>
-noremap <silent><Leader>nb :FufBuffer<CR>
-noremap <silent><Leader>ne :FufMruFile<CR>
-noremap <silent><Leader>nc :FufMruCmd<CR>
-noremap <silent><Leader>ng :FufLine<CR>
-" open the latest search in :Fufline
-noremap <silent><leader>/ :execute ':FufLine ' . substitute(substitute(substitute(@/, "\\\\<", "", ""), "\\\\>", "", ""), "\\\\v", "", "")<CR>
+let g:ctrlp_mruf_max = 4096
+noremap <silent><Leader>nt :CtrlP<CR>
+noremap <silent><Leader>nb :CtrlPBuffer<CR>
+noremap <silent><Leader>ne :CtrlPMRUFiles<CR>
 
 " EasyGrep
 let g:EasyGrepWindow=1

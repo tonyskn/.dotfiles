@@ -46,10 +46,6 @@
 	path = _vim/bundle/L9
 	url = git://github.com/vim-scripts/L9.git
 	ignore = untracked
-[submodule "_vim/bundle/FuzzyFinder"]
-	path = _vim/bundle/FuzzyFinder
-	url = git://github.com/vim-scripts/FuzzyFinder.git
-	ignore = untracked
 [submodule "_vim/bundle/mucomment.vim"]
 	path = _vim/bundle/mucomment.vim
 	url = git://github.com/tonyskn/mucomment.vim.git
@@ -89,4 +85,8 @@
 [submodule "_vim/bundle/easygrep"]
 	path = _vim/bundle/easygrep
 	url = https://github.com/vim-scripts/EasyGrep.git
+	ignore = untracked
+[submodule "_vim/bundle/ctrlp"]
+	path = _vim/bundle/ctrlp
+	url = https://github.com/kien/ctrlp.vim.git
 	ignore = untracked
