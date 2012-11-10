@@ -96,13 +96,13 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         `additionalKeysP`
             [ ("M-p", shellPrompt xpConfig')
             , ("M-<Tab>", goToSelected gsConfig')
-            , ("M-f", spawn "thunar")
+            , ("M-f", spawn "nautilus --no-desktop ~/Downloads")
             , ("M-<Left>", moveTo Prev NonEmptyWS)
             , ("M-<Right>", moveTo Next NonEmptyWS)
             , ("M-<Backspace>", focusUrgent)
             , ("M-n", spawn "touch ~/.pomodoro_session")
             , ("M-S-n", spawn "rm ~/.pomodoro_session")
-            , ("M-S-,", spawn "xfce4-settings-manager")
+            , ("M-S-,", spawn "gnome-control-center")
             , ("M-S-b", LAPTOP ><> toggleMonitorBar) ]
         `additionalMouseBindings`
             -- disable floating windows on mouse left-click

@@ -1,4 +1,5 @@
 #!/bin/bash
+
 xfsettingsd &
 xfce4-volumed &
 xfce4-power-manager &

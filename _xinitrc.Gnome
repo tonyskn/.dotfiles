@@ -1,0 +1,14 @@
+#!/bin/bash
+
+/usr/lib/gnome-settings-daemon/gnome-settings-daemon &
+/usr/lib/notification-daemon-1.0/notification-daemon &
+gnome-screensaver &
+
+nm-applet &
+
+unclutter -idle 1 -jitter 10 -root &
+xsetroot -cursor_name 'left_ptr' &
+
+dropboxd &
+
+dbus-launch --exit-with-session xmonad
