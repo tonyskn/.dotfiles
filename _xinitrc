@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 
 /usr/lib/gnome-settings-daemon/gnome-settings-daemon &
 /usr/lib/notification-daemon-1.0/notification-daemon &
@@ -11,4 +11,4 @@ xsetroot -cursor_name 'left_ptr' &
 
 dropboxd &
 
-dbus-launch --exit-with-session xmonad
+xmonad
