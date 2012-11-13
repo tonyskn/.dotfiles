@@ -196,6 +196,9 @@ vnoremap <leader>! :ClamVisual<space>
 
 " configure FuzzyFinder mappings
 let g:ctrlp_mruf_max = 4096
+let g:ctrlp_working_path_mode = 'a'
+let g:ctrlp_clear_cache_on_exit = 0
+set wildignore+=*/target/*
 noremap <silent><Leader>nt :CtrlP<CR>
 noremap <silent><Leader>nb :CtrlPBuffer<CR>
 noremap <silent><Leader>ne :CtrlPMRUFiles<CR>
