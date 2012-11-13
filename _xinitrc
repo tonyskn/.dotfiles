@@ -11,4 +11,6 @@ xsetroot -cursor_name 'left_ptr' &
 
 dropboxd &
 
+export _JAVA_OPTIONS=-Dawt.useSystemAAFontSettings=lcd_hrgb
+
 xmonad

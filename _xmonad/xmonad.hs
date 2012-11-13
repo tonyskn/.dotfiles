@@ -57,7 +57,7 @@ layoutHook' = onWorkspace "3:ide" nobordersLayout
           chatLayout = withIM (20/100) (Role "roster") (spacing 8 Grid)
 
 -- status bars font
-font' = "xft:Mensch:size=9:bold:antialias=true"
+font' = "xft:Mensch:bold:antialias=true"
 
 -- [ubuntu] apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
 terminal' = "gnome-terminal --hide-menubar"
