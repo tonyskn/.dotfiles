@@ -35,8 +35,8 @@ export DISPLAY=${DISPLAY:-:0}
 
 v() { vim =($@) }
 nautilus() { command nautilus --no-desktop > /dev/null 2>&1 "$@" &! }
-
 reboot() { sudo umount -a -t cifs && sudo reboot $@ }
+jkill() { jps 2>/dev/null | grep -i $1 | awk '{print $1}' | xargs kill -9 }
 
 alias xcopy='xclip -selection c'
 alias xpaste='xclip -o -selection c'
