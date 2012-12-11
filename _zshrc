@@ -36,7 +36,11 @@ export DISPLAY=${DISPLAY:-:0}
 v() { vim =($@) }
 nautilus() { command nautilus --no-desktop > /dev/null 2>&1 "$@" &! }
 reboot() { sudo umount -a -t cifs && sudo reboot $@ }
-jkill() { jps 2>/dev/null | grep -i $1 | awk '{print $1}' | xargs kill -9 }
+
+yaweb() {
+   if [ -z "$*" ]; then return; fi
+   (yaourt -Si $@ | grep URL | cut -f2,3 -d: | xargs --no-run-if-empty $BROWSER) 2>/dev/null
+}
 
 alias xcopy='xclip -selection c'
 alias xpaste='xclip -o -selection c'
@@ -57,6 +61,8 @@ alias ll='ls -lh'
 
 alias deps='rm -rf node_modules && npm install'
 alias bi='bundle install --path=vendor/bundle --binstubs'
+
+jkill() { jps 2>/dev/null | grep -i $1 | awk '{print $1}' | xargs kill -9 }
 
 mvn() {
    PURPLE=$(echo -en "\033[35m")
