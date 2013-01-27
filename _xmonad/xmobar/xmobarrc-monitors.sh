@@ -5,7 +5,7 @@ FREQ='3s'
 
 while (true) do
    VPN=$( (file /var/run/vpnc/pid > /dev/null && echo $ON) || echo $OFF )
-   NVIDIA=$( (lspci -k | grep nvidia > /dev/null && echo $ON) || echo $OFF )
+   NVIDIA=$( (grep ON /proc/acpi/bbswitch > /dev/null && echo $ON) || echo $OFF )
    BLUE_AUDIO=$( (pactl list | grep a2dp > /dev/null && echo $ON) || echo $OFF )
 
    FAN_SPEED=$(grep -m1 level < /proc/acpi/ibm/fan | awk '{print $2}')
