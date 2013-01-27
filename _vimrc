@@ -67,6 +67,8 @@ noremap <silent><Leader><space> :noh<CR>
 
 " Adjust defaults {{{
 
+" remap,
+nnoremap <Leader>; ,
 " don't move cursor on "*"
 nnoremap * *<c-o>
 " search for visual selection
