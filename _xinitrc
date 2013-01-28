@@ -12,7 +12,4 @@ xsetroot -cursor_name 'left_ptr' &
 
 dropboxd &
 
-export JAVA_FONTS=/usr/share/fonts/TTF
-export _JAVA_OPTIONS='-Dswing.aatext=true -Dawt.useSystemAAFontSettings=on -Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel' 
-
 sleep 1 && ${1:-xmonad}
