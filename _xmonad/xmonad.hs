@@ -2,7 +2,8 @@
 import XMonad
 import XMonad.Actions.CycleWS
 import XMonad.Actions.GridSelect
-import XMonad.Config.Azerty
+import XMonad.Config.Azerty(azertyKeys)
+import XMonad.Config.Gnome
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ICCCMFocus
 import XMonad.Hooks.ManageDocks
@@ -81,7 +82,7 @@ toggleMonitorBar = do
     toggleSpawn $ "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs -f " ++ font'
     replicateM_ 4 (sendMessage $ ToggleStrut D)
 
-main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
+main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ gnomeConfig
         { workspaces = map fst workspaces'
         , logHook = takeTopFocus -- fixes glitches in Java GUI apps
         , normalBorderColor  = "#586e75" -- solarized base01
@@ -92,10 +93,12 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         , focusFollowsMouse = False
         , layoutHook = layoutHook'
         , handleEventHook = docksEventHook
+        , keys = keys'
         , manageHook = manageHook' }
         `additionalKeysP`
             [ ("M-p", shellPrompt xpConfig')
             , ("M-<Tab>", goToSelected gsConfig')
+            , ("M-S-q", spawn "pkill gnome-session")
             , ("M-f", spawn "nautilus --no-desktop ~/Downloads")
             , ("M-<Left>", moveTo Prev NonEmptyWS)
             , ("M-<Right>", moveTo Next NonEmptyWS)
@@ -108,7 +111,8 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         `additionalMouseBindings`
             -- disable floating windows on mouse left-click
             [ ((mod4Mask, button1), const $ return ()) ]
-    where manageHook' = foldl1 (<+>) $ do
+    where keys' = azertyKeys <+> keys gnomeConfig 
+          manageHook' = foldl1 (<+>) $ do
             (label, xCNames) <- workspaces'
             xCName <- xCNames
             return (className =? xCName --> shift label)
