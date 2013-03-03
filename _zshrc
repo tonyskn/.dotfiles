@@ -30,6 +30,9 @@ export BROWSER=google-chrome
 # Prevent oh-my-zsh from auto-updating window titles
 export DISABLE_AUTO_TITLE=true
 
+# C-K expands the current command to its full pathname
+bindkey "^K" expand-cmd-path
+
 # tmux keeps forgetting about $DISPLAY...
 export DISPLAY=${DISPLAY:-:0}
 
