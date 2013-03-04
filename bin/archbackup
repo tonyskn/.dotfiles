@@ -1,12 +1,27 @@
-#! /bin/zsh
-alias lsetc='cat <( ls /usr/lib/systemd/system-*/*.sh ) \
-                 <( yaourt -Qeq | xargs yaourt -Ql | grep " /etc" | grep -v "/$" | cut -d" " -f2 ) \
-                 <( pacdisowned 2>&/dev/null | grep "^/etc" | grep -v certs | grep -v "[/-]$" \
-                     | grep -v "[lock|OLD|pacnew|README|machine.id|catalog]$" \
-                     | grep -vi "networkmanager" | grep -v "pacman.d.gnupg" \
-                     | grep -v "fonts.conf.d" | grep -v "skel" | grep -v "gtk.2" )'
+#!/bin/zsh
+###
+# Arch config backup script
+# - Dumps installed packages list into ./packages
+# - Uses AUR/etckeeper to backup important files from /etc into ./etc.tar.gz
+# - Backs up systemd units & services files from /usr/lib/systemd into ./systemd.tar.gz
+#
+# To automate backups, run the script from a crontab:
+# 00 00 * * * (cd ~/Dropbox/arch/laptop; /usr/local/bin/archbackup)
+###
 
+
+# backup explicitly installed package list
 yaourt -Qe > packages
-rm etc.tar.gz; (sudo tar zcf - $( lsetc )) > etc.tar.gz
+
+# use etckeeper to backup important files in /etc
+rm etc.tar.gz
+sudo etckeeper init
+sudo etckeeper commit -m "Initial" > /dev/null
+sudo etckeeper vcs archive --format=tar.gz master > etc.tar.gz
+sudo etckeeper uninit -f
+
+# backup systemd units
+rm systemd.tar.gz
+tar zcf systemd.tar.gz /usr/lib/systemd/system
 
 # vim:ft=zsh
