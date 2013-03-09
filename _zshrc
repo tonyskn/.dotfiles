@@ -45,6 +45,40 @@ yaweb() {
    (yaourt -Si $@ | grep URL | cut -f2,3 -d: | xargs --no-run-if-empty $BROWSER) 2>/dev/null
 }
 
+# Generates numerical stats based on the following input format:
+#    Label1 x1
+#    Label2 x2
+#    Label1 x3
+#    ...
+# Output format:
+#    MIN1 AVG1 STANDARD_DEVIATION_1 MAX1 OCCURENCES1 Label1 
+#    ...
+# Output is sorted by AVG column
+alias awkstats="awk '{ if (min[\$1]>\$2 || min[\$1]==0) min[\$1]=\$2; \
+                       if (max[\$1]<\$2) max[\$1]=\$2; \
+                       sum[\$1]+=\$2; sumsq[\$1]+=\$2**2; n[\$1]++
+                     } \
+                     END \
+                     { for (i in n) { \
+                        avg=sum[i]/n[i]; \
+                        avgsq=sumsq[i]/n[i]; \
+                        avg2=avg**2; delta=(avgsq>avg2)? avgsq-avg2 : avg2-avgsq; \
+                        stddev=sqrt(delta); \
+                        print min[i], avg, stddev, max[i], n[i], i } \
+                     }' \
+                | column -t | sort -k2nr"
+
+# (Much) Faster equivalent to 'sort | uniq -c'
+alias uniqc="awk '{ s[\$1]++ } END { for (i in s) {print s[i], i} }' | column -t"
+
+# Filter Apache access logs based on HTTP status
+# Retain URL and processing time in ms
+alias apacheok="awk '{ if (\$9<400 && \$9!=404) print \$7, \$10/1000 }'"
+alias apacheerr="awk '{ if (\$9>400 && \$9!=404) print \$9\":\"\$7, \$10/1000 }'"
+
+# Normalize URLs in Apache access logs for easier stats
+alias squashurls="sed -e 's/\/[0-9]\+/\/_ID_/' -e 's/q=[a-zA-Z\+\%]\+/q=_PARAM_/'"
+
 alias xcopy='xclip -selection c'
 alias xpaste='xclip -o -selection c'
 
