@@ -1,0 +1,20 @@
+#!/bin/bash -f
+currentwindow=$(tmux list-windows | grep active | cut -f2 -d' ')
+panecount=$(tmux list-panes | wc -l)
+
+if [[ $currentwindow =~ ^zoom && $panecount -eq 1 ]]; then
+   lastpane=$(cut -f3 -d@ <<< $currentwindow)
+   lastwindow=$(cut -f2 -d@ <<< $currentwindow)
+   tmux select-window -t $lastwindow
+   tmux select-pane -t $lastpane
+   tmux swap-pane -s $currentwindow
+   tmux kill-window -t $currentwindow
+else
+   if [[ $panecount -ne 1 ]]; then
+      currentpane=$(tmux list-panes | grep active | cut -f1 -d:)
+      newwindowname=zoom@$currentwindow@$currentpane
+      tmux new-window -d -n $newwindowname 'clear && echo MAXIMIZED && read'
+      tmux swap-pane -s $newwindowname
+      tmux select-window -t $newwindowname
+   fi
+fi
