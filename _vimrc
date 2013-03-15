@@ -143,6 +143,9 @@ cmap w!! w !sudo tee % > /dev/null <CR>
 " CTags
 map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
 
+" HTML escape the content of Visual selection
+vnoremap <Leader>x :!recode utf8..html<CR>
+
 " }}} 
 
 " Filetype Specific Rules {{{
