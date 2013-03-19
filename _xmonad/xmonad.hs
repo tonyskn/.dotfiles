@@ -98,7 +98,7 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ gnomeConfig
         `additionalKeysP`
             [ ("M-p", shellPrompt xpConfig')
             , ("M-<Tab>", goToSelected gsConfig')
-            , ("M-S-q", spawn "pkill gnome-session")
+            , ("M-S-q", spawn "gnome-session-quit --logout --no-prompt")
             , ("M-f", spawn "nautilus --no-desktop ~/Downloads")
             , ("M-<Left>", moveTo Prev NonEmptyWS)
             , ("M-<Right>", moveTo Next NonEmptyWS)
