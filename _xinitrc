@@ -1,5 +1,6 @@
 #!/bin/bash -l
 
-[ -f /usr/lib/systemd/system/bumblebeed.service ] && sudo systemctl restart bumblebeed.service
+# Force NVIDIA/Optimus to OFF state
+[ -f /usr/bin/optirun ] && optirun false
 
 gnome-session --session=${1:-xmonad}
