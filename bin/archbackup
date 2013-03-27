@@ -20,8 +20,4 @@ sudo etckeeper commit -m "Initial" > /dev/null
 sudo etckeeper vcs archive --format=tar.gz master > etc.tar.gz
 sudo etckeeper uninit -f
 
-# backup systemd units
-rm systemd.tar.gz
-tar zcf systemd.tar.gz /usr/lib/systemd/system
-
 # vim:ft=zsh
