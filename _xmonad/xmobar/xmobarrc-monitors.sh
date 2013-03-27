@@ -1,12 +1,15 @@
-#!/bin/zsh
-ON='Y'
-OFF='N'
-FREQ='3s'
+#!/bin/bash
+declare FREQ='3s'
+
+monitor() {
+   local name=$1; shift
+   eval $name=$( (eval "$@" > /dev/null && echo Y) || echo N )
+}
 
 while (true) do
-   VPN=$( (file /var/run/vpnc/pid > /dev/null && echo $ON) || echo $OFF )
-   NVIDIA=$( (grep ON /proc/acpi/bbswitch > /dev/null && echo $ON) || echo $OFF )
-   BLUE_AUDIO=$( (pactl list | grep a2dp > /dev/null && echo $ON) || echo $OFF )
+   monitor VPN         file /var/run/vpnc/pid 
+   monitor NVIDIA      grep ON /proc/acpi/bbswitch
+   monitor BLUE_AUDIO  pactl list \| grep a2dp
 
    FAN_SPEED=$(grep -m1 level < /proc/acpi/ibm/fan | awk '{print $2}')
    BATT_DRAIN=$(echo "scale=2; $(< /sys/devices/platform/smapi/BAT0/power_now)/1000" | bc)
