@@ -226,14 +226,14 @@ EOF
 " configure vimux
 let g:VimuxHeight = "35"
 let g:VimuxOrientation = "h"
-noremap <silent><Leader>rp :PromptVimTmuxCommand<CR>
-noremap <silent>! :PromptVimTmuxCommand<CR>
-noremap <silent><Leader>rl :InterruptVimTmuxRunner<CR>:RunLastVimTmuxCommand<CR>
-noremap <silent><Leader>ri :InspectVimTmuxRunner<CR>
-noremap <silent><Leader>rx :CloseVimTmuxRunner<CR>
-noremap <silent><Leader>rc :InterruptVimTmuxRunner<CR>
-vnoremap <silent><Leader>rv "vy :call RunVimTmuxCommand(@v . "\n", 0)<CR>
-au! VimLeavePre * :CloseVimTmuxRunner
+noremap <silent>! :VimuxPromptCommand<CR>
+noremap <silent><Leader>rl :VimuxRunLastCommand<CR>
+noremap <silent><Leader>rr :call VimuxRunCommand("", 0)<CR>
+noremap <silent><Leader>ri :VimuxInspectRunner<CR>
+noremap <silent><Leader>rx :VimuxCloseRunner<CR>
+noremap <silent><Leader>rc :VimuxInterruptRunner<CR>
+vnoremap <silent><Leader>rv "vy :call VimuxRunCommand(@v . "\n")<CR>
+au! VimLeavePre * :VimuxCloseRunner
 
 " ZoomWin configuration
 map <silent><Leader><Leader> :ZoomWin<CR>
