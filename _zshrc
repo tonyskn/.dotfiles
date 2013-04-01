@@ -22,6 +22,10 @@ plugins=(archlinux git autojump npm mvn)
 
 source $ZSH/oh-my-zsh.sh
 
+# Re-bind edit-command-line
+# (for some reason, the binding gets lost)
+bindkey "\C-x\C-e" edit-command-line
+
 # Customize to your needs...
 export EDITOR=vim
 export SHELL=zsh
@@ -29,9 +33,6 @@ export BROWSER=google-chrome
 
 # Prevent oh-my-zsh from auto-updating window titles
 export DISABLE_AUTO_TITLE=true
-
-# C-K expands the current command to its full pathname
-bindkey "^K" expand-cmd-path
 
 # tmux keeps forgetting about $DISPLAY...
 export DISPLAY=${DISPLAY:-:0}
