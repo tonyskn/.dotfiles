@@ -135,7 +135,7 @@ map <Leader>k :lprevious<CR>
 " configure extra mappings for fugitive's Gdiff view
 noremap <silent><Leader>d ]czz
 noremap <silent><Leader>D [czz
-noremap <silent><Leader>q <C-w>h:w<CR>:q<CR><C-w>k
+noremap <silent><Leader>q <C-w>h:x<CR>zE<C-w>k
 
 " Sudo write
 cmap w!! w !sudo tee % > /dev/null <CR>
