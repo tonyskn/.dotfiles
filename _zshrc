@@ -1,5 +1,16 @@
 # vim:ft=zsh
 
+if [ -f /usr/bin/tmux ]; then
+   # run tmux in 256-colors compatibility mode
+   tmux() {
+     TERM=screen-256color-bce command tmux "$@"
+   }
+
+   # attach to an already running tmux session or create new one
+   # unless we're running a login shell in a virtual console or via SSH
+   tty | grep -qo /dev/tty.$ || test "$SSH_TTY" || test "$TMUX" || tmux attach || tmux new-session
+fi
+
 # Path to your oh-my-zsh configuration.
 export ZSH=$HOME/.oh-my-zsh
 
@@ -34,8 +45,12 @@ export BROWSER=google-chrome
 # Prevent oh-my-zsh from auto-updating window titles
 export DISABLE_AUTO_TITLE=true
 
-# tmux keeps forgetting about $DISPLAY...
-export DISPLAY=${DISPLAY:-:0}
+# run command in a new tmux pane, while keeping
+# the cursor at the current shell
+# e.g. tmw watch -n 1 uptime
+function tmw() {
+   tmux split-window -dh -p 30 "$*"
+}
 
 v() { vim =($@) }
 nautilus() { command nautilus --no-desktop > /dev/null 2>&1 "$@" &! }
@@ -82,8 +97,6 @@ alias squashurls="sed -e 's/\/[0-9]\+/\/_ID_/' -e 's/q=[a-zA-Z\+\%]\+/q=_PARAM_/
 
 alias xcopy='xclip -selection c'
 alias xpaste='xclip -o -selection c'
-
-alias tmux='TERM=screen-256color-bce tmux'
 
 alias ggpull='git pull --rebase origin $(current_branch)'
 alias ggpnp='git pull --rebase origin $(current_branch) && git push origin $(current_branch)'
