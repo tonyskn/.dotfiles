@@ -62,9 +62,6 @@
 	path = _vim/bundle/coffeescript
 	url = git://github.com/kchmck/vim-coffee-script.git
 	ignore = untracked
-[submodule "gnome-terminal-solarized"]
-	path = gnome-terminal-solarized
-	url = https://github.com/sigurdga/gnome-terminal-colors-solarized.git
 [submodule "_vim/bundle/clam"]
 	path = _vim/bundle/clam
 	url = https://github.com/sjl/clam.vim

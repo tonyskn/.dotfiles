@@ -3,4 +3,4 @@
 # Force NVIDIA/Optimus to OFF state
 [ -f /usr/bin/optirun ] && optirun false
 
-gnome-session --session=${1:-xmonad}
+/usr/local/bin/start-xmonad

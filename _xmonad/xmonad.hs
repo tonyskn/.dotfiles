@@ -2,8 +2,7 @@
 import XMonad
 import XMonad.Actions.CycleWS
 import XMonad.Actions.GridSelect
-import XMonad.Config.Azerty(azertyKeys)
-import XMonad.Config.Gnome
+import XMonad.Config.Azerty
 import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ICCCMFocus
 import XMonad.Hooks.ManageDocks
@@ -61,7 +60,7 @@ layoutHook' = onWorkspace "3:ide" nobordersLayout
 font' = "xft:Mensch:size=9:bold:antialias=true"
 
 -- [ubuntu] apt-get remove appmenu-gtk3 appmenu-gtk appmenu-qt
-terminal' = "gnome-terminal --hide-menubar"
+terminal' = "xfce4-terminal"
 
 xpConfig' = defaultXPConfig { bgColor  = "black", fgColor  = "yellow"
                       , font = font', position = Top, promptBorderWidth = 0
@@ -82,7 +81,7 @@ toggleMonitorBar = do
     toggleSpawn $ "xmobar ~/.xmonad/xmobar/xmobarrc-monitors.hs -f " ++ font'
     replicateM_ 4 (sendMessage $ ToggleStrut D)
 
-main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ gnomeConfig
+main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         { workspaces = map fst workspaces'
         , logHook = takeTopFocus -- fixes glitches in Java GUI apps
         , normalBorderColor  = "#586e75" -- solarized base01
@@ -93,12 +92,10 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ gnomeConfig
         , focusFollowsMouse = False
         , layoutHook = layoutHook'
         , handleEventHook = docksEventHook
-        , keys = keys'
         , manageHook = manageHook' }
         `additionalKeysP`
             [ ("M-p", shellPrompt xpConfig')
             , ("M-<Tab>", goToSelected gsConfig')
-            , ("M-S-q", spawn "gnome-session-quit --logout --no-prompt")
             , ("M-f", spawn "nautilus --no-desktop ~/Downloads")
             , ("M-<Left>", moveTo Prev NonEmptyWS)
             , ("M-<Right>", moveTo Next NonEmptyWS)
@@ -111,8 +108,7 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ gnomeConfig
         `additionalMouseBindings`
             -- disable floating windows on mouse left-click
             [ ((mod4Mask, button1), const $ return ()) ]
-    where keys' = azertyKeys <+> keys gnomeConfig 
-          manageHook' = foldl1 (<+>) $ do
+    where manageHook' = foldl1 (<+>) $ do
             (label, xCNames) <- workspaces'
             xCName <- xCNames
             return (className =? xCName --> shift label)
