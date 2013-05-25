@@ -7,6 +7,7 @@ import XMonad.Hooks.DynamicLog
 import XMonad.Hooks.ICCCMFocus
 import XMonad.Hooks.ManageDocks
 import XMonad.Hooks.UrgencyHook
+import XMonad.Layout.Accordion
 import XMonad.Layout.Grid
 import XMonad.Layout.IM
 import XMonad.Layout.NoBorders(noBorders)
@@ -48,7 +49,7 @@ workspaces' = [ ("1:main", ["Google-chrome", "Hotot"])
 
 layoutHook' = onWorkspace "3:ide" nobordersLayout
             $ onWorkspace "4:chat" chatLayout
-            $ tiled1 ||| nobordersLayout
+            $ tiled1 ||| Accordion ||| nobordersLayout
     where tiled1 = spacing 5 $ Tall nmaster1 delta ratio
           nmaster1 = 1
           ratio = 17/24
