@@ -203,7 +203,7 @@ vnoremap <leader>! :ClamVisual<space>
 let g:ctrlp_mruf_max = 4096
 let g:ctrlp_working_path_mode = 'a'
 let g:ctrlp_clear_cache_on_exit = 0
-set wildignore+=*/target/*
+set wildignore+=*/target/*,*/node_modules/*
 noremap <silent><Leader>nt :CtrlP<CR>
 noremap <silent><Leader>nn :CtrlPClearCache<CR>
 noremap <silent><Leader>nb :CtrlPBuffer<CR>
