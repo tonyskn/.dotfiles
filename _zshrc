@@ -67,6 +67,22 @@ yaweb() {
 #    Label1 x3
 #    ...
 # Output format:
+#    Label1 OCCURENCES1 MIN1 MAX1 OCCURENCES1
+#    ...
+# Output is sorted by occurences
+alias awkminmax="awk '{ if (min[\$1]>\$2 || min[\$1]==0) min[\$1]=\$2; \
+                       if (max[\$1]<\$2) max[\$1]=\$2; \
+                       n[\$1]++ } \
+                     END \
+                     { for (i in n) {print i, n[i], min[i], max[i]} }' \
+                | column -t | sort -k2nr"
+
+# Generates numerical stats based on the following input format:
+#    Label1 x1
+#    Label2 x2
+#    Label1 x3
+#    ...
+# Output format:
 #    MIN1 AVG1 STANDARD_DEVIATION_1 MAX1 OCCURENCES1 Label1 
 #    ...
 # Output is sorted by AVG column
