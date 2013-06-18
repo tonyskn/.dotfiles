@@ -50,10 +50,6 @@
 	path = _vim/bundle/mucomment.vim
 	url = git://github.com/tonyskn/mucomment.vim.git
 	ignore = untracked
-[submodule "_xmonad/pymodoro"]
-	path = _xmonad/pymodoro
-	url = https://github.com/dattanchu/pymodoro.git
-	ignore = untracked
 [submodule "_vim/bundle/powerline"]
 	path = _vim/bundle/powerline
 	url = https://github.com/Lokaltog/vim-powerline.git

@@ -101,9 +101,7 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
             , ("M-<Left>", moveTo Prev NonEmptyWS)
             , ("M-<Right>", moveTo Next NonEmptyWS)
             , ("M-<Backspace>", focusUrgent)
-            , ("M-n", spawn "touch ~/.pomodoro_session")
             , ("M-s", spawn "gnome-screenshot -i")
-            , ("M-S-n", spawn "rm ~/.pomodoro_session")
             , ("M-S-,", spawn "gnome-control-center")
             , ("M-S-b", LAPTOP ><> toggleMonitorBar) ]
         `additionalMouseBindings`
