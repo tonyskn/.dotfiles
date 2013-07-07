@@ -33,6 +33,9 @@ plugins=(archlinux git autojump npm mvn)
 
 source $ZSH/oh-my-zsh.sh
 
+# `gm` alias from oh-my-zsh/git conflicts with GraphicsMagick
+unalias gm
+
 # Re-bind edit-command-line
 # (for some reason, the binding gets lost)
 bindkey "\C-x\C-e" edit-command-line
