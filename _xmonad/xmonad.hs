@@ -49,7 +49,7 @@ workspaces' = [ ("1:main", ["Google-chrome", "Hotot"])
 
 layoutHook' = onWorkspace "3:ide" nobordersLayout
             $ onWorkspace "4:chat" chatLayout
-            $ tiled1 ||| Accordion ||| nobordersLayout
+            $ tiled1 ||| nobordersLayout ||| Accordion
     where tiled1 = spacing 5 $ Tall nmaster1 delta ratio
           nmaster1 = 1
           ratio = 17/24
