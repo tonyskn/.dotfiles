@@ -104,6 +104,9 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
             , ("M-s", spawn "gnome-screenshot -i")
             , ("M-S-,", spawn "gnome-control-center")
             , ("M-S-b", LAPTOP ><> toggleMonitorBar) ]
+        `additionalKeys`
+            -- Thinkpad's ThinkVantage key sym
+            [ ((0, 0x1008ff41), LAPTOP ><> spawn "bluezconnect && gnome-control-center sound") ]
         `additionalMouseBindings`
             -- disable floating windows on mouse left-click
             [ ((mod4Mask, button1), const $ return ()) ]
