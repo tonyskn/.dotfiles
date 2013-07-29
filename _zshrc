@@ -33,6 +33,9 @@ plugins=(archlinux git autojump npm mvn)
 
 source $ZSH/oh-my-zsh.sh
 
+# Do not persist commands starting with *space* in zsh history
+setopt HIST_IGNORE_SPACE
+
 # `gm` alias from oh-my-zsh/git conflicts with GraphicsMagick
 unalias gm
 
