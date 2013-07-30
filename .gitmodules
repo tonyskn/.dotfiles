@@ -87,3 +87,7 @@
 	path = _vim/bundle/varnish
 	url = https://github.com/empanda/vim-varnish.git
 	ignore = untracked
+[submodule "_vim/bundle/node"]
+	path = _vim/bundle/node
+	url = https://github.com/moll/vim-node.git
+	ignore = untracked
