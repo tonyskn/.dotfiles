@@ -71,6 +71,9 @@ noremap <silent><Leader><space> :noh<CR>
 nnoremap <Leader>; ,
 " don't move cursor on "*"
 nnoremap * *<c-o>
+map Oj *
+imap Oj *
+cmap Oj *
 " search for visual selection
 vnoremap * y/<C-R>"<CR>
 " disable displaying manual when hitting K
