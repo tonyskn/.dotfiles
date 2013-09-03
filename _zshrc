@@ -137,6 +137,15 @@ alias bi='bundle install --path=vendor/bundle --binstubs'
 
 jkill() { jps 2>/dev/null | grep -i $1 | awk '{print $1}' | xargs kill -9 }
 
+pdfslice() {
+   # Usage: pdfslice ~/path/to/file.pdf a[-b]
+   # Crops pages a[-b] from file.pdf into ~/path/to/filea[-b].pdf
+   #
+   # Requires 'psutils' and 'poppler' packages
+   #
+   pdftops $1 - | psselect -p$2 | ps2pdf - ${1:r}$2.pdf
+}
+
 mvn() {
    PURPLE=$(echo -en "\033[35m")
    GREEN=$(echo -en "\033[32m")
