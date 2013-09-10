@@ -146,15 +146,6 @@ pdfslice() {
    pdftops $1 - | psselect -p$2 | ps2pdf - ${1:r}$2.pdf
 }
 
-pdfmerge() {
-   # Usage: pdfmerge merged.pdf file1.pdf file2.pdf ...
-   # Merges file_.pdf files into merged.pdf
-   #
-   MERGED=$1
-   shift;
-   echo gs -o $MERGED -sDEVICE=pdfwrite -dPDFSETTINGS=/prepress $@
-}
-
 mvn() {
    PURPLE=$(echo -en "\033[35m")
    GREEN=$(echo -en "\033[32m")
