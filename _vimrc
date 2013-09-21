@@ -172,6 +172,10 @@ au FileType xml set equalprg=xmllint\ --format\ -
 " use python json.tool to format JSON
 au BufNewFile,BufRead *.json set equalprg=python\ -m\ json.tool
 
+" handy mapping to :Eval when in Clojure
+au FileType clojure nnoremap <silent><Leader>e :Eval<CR>
+
+
 " }}}
 
 " Load plugins / Apply customizations {{{
