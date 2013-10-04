@@ -46,7 +46,7 @@ bindkey "\C-x\C-e" edit-command-line
 # Customize to your needs...
 export EDITOR=vim
 export SHELL=zsh
-export BROWSER=google-chrome
+export BROWSER=google-chrome-beta
 
 # Prevent oh-my-zsh from auto-updating window titles
 export DISABLE_AUTO_TITLE=true
