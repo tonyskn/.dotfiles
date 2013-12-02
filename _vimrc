@@ -43,8 +43,8 @@ set cursorline
 
 " indentation and tabs
 set expandtab
-set tabstop=3
-set shiftwidth=3
+set tabstop=2
+set shiftwidth=2
 set autoindent
 set listchars=tab:▸\ ,eol:¬,extends:❯,precedes:❮
 noremap <silent><Leader>s :set list!<CR>

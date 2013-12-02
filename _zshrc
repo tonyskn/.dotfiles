@@ -184,3 +184,5 @@ export PATH=~/.gem/ruby/2.0.0/bin:~/.cabal/bin:/usr/local/bin:$PATH
 export NODE_PATH=/usr/lib/node_modules
 
 source $HOME/.zshrc.extras
+
+source ~/.nvm/nvm.sh
