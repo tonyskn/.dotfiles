@@ -99,3 +99,10 @@
 	path = _vim/bundle/clojure-static
 	url = https://github.com/guns/vim-clojure-static.git
 	ignore = untracked
+[submodule "_vim/bundle/easy-motion"]
+	path = _vim/bundle/easy-motion
+	url = https://github.com/Lokaltog/vim-easymotion.git
+	ignore = untracked
+[submodule "_vim/bundle/json"]
+	path = _vim/bundle/json
+	url = https://github.com/elzr/vim-json.git

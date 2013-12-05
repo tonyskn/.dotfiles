@@ -12,6 +12,12 @@ set laststatus=2
 set backupdir=~/.vim/backup
 set directory=~/.vim/backup
 
+" use + register for copy/paste
+set clipboard=unnamedplus
+
+" minimum lines to keep above/below cursor
+set scrolloff=3
+
 " enable persistant undo
 set udf
 set undodir=~/.vim/vimundo
@@ -42,6 +48,7 @@ set ruler
 set cursorline
 
 " indentation and tabs
+set nowrap
 set expandtab
 set tabstop=2
 set shiftwidth=2
@@ -62,6 +69,10 @@ set incsearch
 set ignorecase
 set smartcase
 noremap <silent><Leader><space> :noh<CR>
+
+" split to the right / below current window
+set splitright
+set splitbelow
 
 " }}}
 
@@ -155,9 +166,6 @@ vnoremap <Leader>x :!recode utf8..html<CR>
 
 " fold vim files around {{{ ... }}}
 au FileType vim setlocal foldmethod=marker
-
-" JSON files are Javascript
-au BufNewFile,BufRead *.json set ft=javascript
 
 " Thorfile, Rakefile, Vagrantfile and Gemfile are Ruby
 au BufRead,BufNewFile {Gemfile,Rakefile,Vagrantfile,Thorfile,config.ru} set ft=ruby
