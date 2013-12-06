@@ -263,4 +263,17 @@ let g:syntastic_mode_map = { 'mode': 'active',
                            \ 'active_filetypes': [],
                            \ 'passive_filetypes': ['java'] }
 
+if filereadable(expand("~/.vimrc.extras"))
+    source ~/.vimrc.extras
+endif
+
+" }}}
+
+" OS X specific settings {{{
+if has("mac")
+  set clipboard=
+  let g:Powerline_symbols = 'compatible'
+  set paste
+endif
+  
 " }}}
