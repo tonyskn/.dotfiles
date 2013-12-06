@@ -32,8 +32,8 @@ URxvt.allow_bold:           false
 /* URxvt.font:                 -*-terminus-medium-r-normal-*-12-120-72-72-c-60-iso8859-1 */
 !URxvt*font: xft:Mensch for Powerline:regular:pixelsize=14
 !URxvt*boldFont: xft:Mensch for Powerline:bold:pixelsize=14
-URxvt*font:                 xft:Monaco for Powerline:regular:size=14
-URxvt*boldFont:             xft:Monaco for Powerline:bold:size=14
+URxvt*font:                 xft:Monaco for Powerline:regular:size=10
+URxvt*boldFont:             xft:Monaco for Powerline:bold:size=10
 
 ! Fonts settings
 Xft.autohint: 0
