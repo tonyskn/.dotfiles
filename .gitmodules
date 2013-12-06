@@ -50,10 +50,6 @@
 	path = _vim/bundle/mucomment.vim
 	url = git://github.com/tonyskn/mucomment.vim.git
 	ignore = untracked
-[submodule "_vim/bundle/powerline"]
-	path = _vim/bundle/powerline
-	url = https://github.com/Lokaltog/vim-powerline.git
-	ignore = untracked
 [submodule "_vim/bundle/coffeescript"]
 	path = _vim/bundle/coffeescript
 	url = git://github.com/kchmck/vim-coffee-script.git
@@ -106,3 +102,6 @@
 [submodule "_vim/bundle/json"]
 	path = _vim/bundle/json
 	url = https://github.com/elzr/vim-json.git
+[submodule "_vim/bundle/airline"]
+	path = _vim/bundle/airline
+	url = https://github.com/bling/vim-airline

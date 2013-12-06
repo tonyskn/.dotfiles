@@ -202,8 +202,8 @@ set background=dark
 colorscheme solarized
 hi Normal ctermbg=none
 
-" set powerline plugin to use fancy symbols
-let g:Powerline_symbols = 'fancy'
+" set airline plugin to use fancy symbols
+let g:airline_powerline_fonts = 1
 
 " set supertab completion scheme
 set completeopt=longest,menuone,preview
@@ -272,7 +272,11 @@ endif
 " OS X specific settings {{{
 if has("mac")
   set clipboard=
-  let g:Powerline_symbols = 'compatible'
+  let g:airline_powerline_fonts = 0
+  let g:airline_left_sep = ' '
+  let g:airline_left_sep = ' '
+  let g:airline_right_sep = ' '
+  let g:airline_right_sep = ' '
   set paste
 endif
   
