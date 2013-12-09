@@ -272,11 +272,6 @@ endif
 " OS X specific settings {{{
 if has("mac")
   set clipboard=
-  let g:airline_powerline_fonts = 0
-  let g:airline_left_sep = ' '
-  let g:airline_left_sep = ' '
-  let g:airline_right_sep = ' '
-  let g:airline_right_sep = ' '
   set paste
 endif
   
