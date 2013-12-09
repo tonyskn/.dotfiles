@@ -272,7 +272,6 @@ endif
 " OS X specific settings {{{
 if has("mac")
   set clipboard=
-  set paste
 endif
   
 " }}}
