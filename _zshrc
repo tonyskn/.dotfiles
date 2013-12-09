@@ -36,6 +36,9 @@ source $ZSH/oh-my-zsh.sh
 # Do not persist commands starting with *space* in zsh history
 setopt HIST_IGNORE_SPACE
 
+# Enable exotic globbing
+setopt extendedglob
+
 # `gm` alias from oh-my-zsh/git conflicts with GraphicsMagick
 unalias gm
 
