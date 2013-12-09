@@ -271,7 +271,7 @@ endif
 
 " OS X specific settings {{{
 if has("mac")
-  set clipboard=
+  set clipboard=unnamed
 endif
   
 " }}}
