@@ -105,3 +105,6 @@
 [submodule "_vim/bundle/airline"]
 	path = _vim/bundle/airline
 	url = https://github.com/bling/vim-airline
+[submodule "_vim/bundle/editorconfig"]
+	path = _vim/bundle/editorconfig
+	url = https://github.com/editorconfig/editorconfig-vim
