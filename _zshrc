@@ -124,6 +124,12 @@ alias printxml='xmllint --format -'
 alias printjson='python -m json.tool'
 alias ll='ls -lh'
 
+# Expands into JS source files under current directory
+# Excludes any files under node_modules, bower_components, or dist
+#
+# Example usage: jshint jss
+alias -g jss='**/*.js~(*node_modules|*bower_components|dist)/*'
+
 alias deps='rm -rf node_modules && npm install'
 alias bi='bundle install --path=vendor/bundle --binstubs'
 
