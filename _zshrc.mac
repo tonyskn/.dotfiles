@@ -1,3 +1,4 @@
 export BROWSER=open
 export REATTACH="reattach-to-user-namespace -l"
 fpath=(/usr/local/share/zsh-completions $fpath)
+NODE_PATH=/usr/local/lib/node_modules:$NODE_PATH
