@@ -18,7 +18,7 @@ export DISABLE_AUTO_UPDATE="true"
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(archlinux git autojump npm mvn)
+plugins=(archlinux git autojump npm mvn nvm node history)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -184,7 +184,6 @@ export PATH=~/.gem/ruby/2.0.0/bin:~/.cabal/bin:/usr/local/bin:$PATH
 export NODE_PATH=/usr/lib/node_modules
 
 uname | grep -q Darwin && source ~/.zshrc.mac
-if [[ -f ~/.nvm/nvm.sh ]]; then source ~/.nvm/nvm.sh; fi
 
 if [[ -f /usr/bin/tmux || -f /usr/local/bin/tmux ]]; then
   # run tmux in 256-colors compatibility mode
