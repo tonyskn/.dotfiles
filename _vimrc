@@ -214,6 +214,10 @@ let g:SuperTabLongestHighlight = 1
 nnoremap <leader>! :Clam<space>
 vnoremap <leader>! :ClamVisual<space>
 
+" configure NERDTree toggler
+nnoremap <silent><Leader>nd :NERDTreeToggle<CR>
+nnoremap <silent><Leader>nf :NERDTreeFind<CR>
+
 " configure FuzzyFinder mappings
 let g:ctrlp_mruf_max = 4096
 let g:ctrlp_working_path_mode = 'a'
@@ -250,9 +254,6 @@ noremap <silent><Leader>rx :VimuxCloseRunner<CR>
 noremap <silent><Leader>rc :VimuxInterruptRunner<CR>
 vnoremap <silent><Leader>rv "vy :call VimuxRunCommand(@v . "\n")<CR>
 au! VimLeavePre * :VimuxCloseRunner
-
-" ZoomWin configuration
-map <silent><Leader><Leader> :ZoomWin<CR>
 
 " Syntastic configuration
 let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
