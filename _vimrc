@@ -136,9 +136,10 @@ nnoremap zJ zjzmza
 nnoremap zK zkzmza[z
 
 " window shortcuts
-map <Leader>= <C-w>=
-map <Leader>l <C-w>L
-map <Leader>p <C-w>J
+nmap <silent>= :res<CR>:vertical res<CR>
+nmap <Leader>= <C-w>=
+nmap <Leader>l <C-w>L
+nmap <Leader>p <C-w>J
 
 " mappings for navigating the location list
 map <Leader>J :lfirst<CR>
