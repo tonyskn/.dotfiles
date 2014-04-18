@@ -103,7 +103,7 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
             , ("M-<Backspace>", focusUrgent)
             , ("M-s", spawn "gnome-screenshot -i")
             , ("M-S-,", spawn "gnome-control-center")
-            , ("M-S-q", spawn "gnome-session-quit --no-prompt")
+            , ("M-S-q", spawn "sudo systemctl stop xlogin@tonyskn && sudo systemctl start xlogin@tonyskn")
             , ("M-S-b", LAPTOP ><> toggleMonitorBar) ]
         `additionalKeys`
             -- Thinkpad's ThinkVantage key sym
