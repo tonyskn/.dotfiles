@@ -13,9 +13,13 @@ set visualbell
 set guioptions-=T
 " remove all scrollbars
 set guioptions-=R
+set guioptions-=m
 set guioptions-=r
 set guioptions-=L
 set guioptions-=l
 
+set guifont=Mensch\ for\ Powerline\ 12
+
 " Default gui color scheme
 color solarized
+set background=light

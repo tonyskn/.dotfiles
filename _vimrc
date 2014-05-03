@@ -200,8 +200,12 @@ call pathogen#helptags()
 
 " default colorscheme
 set background=dark
+let g:solarized_termtrans=1
+" let g:solarized_termcolors=256
+let g:solarized_contrast="high"
+" let g:solarized_visibility="low"
 colorscheme solarized
-hi Normal ctermbg=none
+" hi Normal ctermbg=none
 
 " set airline plugin to use fancy symbols
 let g:airline_powerline_fonts = 1
