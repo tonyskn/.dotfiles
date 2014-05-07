@@ -223,6 +223,9 @@ vnoremap <leader>! :ClamVisual<space>
 nnoremap <silent><Leader>nd :NERDTreeToggle<CR>
 nnoremap <silent><Leader>nf :NERDTreeFind<CR>
 
+" override sparkup mapping
+let g:sparkupExecuteMapping = "<c-f>"
+
 " configure FuzzyFinder mappings
 let g:ctrlp_mruf_max = 4096
 let g:ctrlp_working_path_mode = 'a'
