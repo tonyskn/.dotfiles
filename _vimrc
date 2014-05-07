@@ -176,6 +176,9 @@ au FileType {python,haskell,markdown} set softtabstop=4 tabstop=4 shiftwidth=4 t
 " some filetypes need real tabs
 au FileType {make,gitconfig} set noexpandtab
 
+" handlebars templates are HTML
+au BufRead,BufNewFile *.handlebars set filetype=html
+
 " use xmllint to format xml
 au FileType xml set equalprg=xmllint\ --format\ -
 " use python json.tool to format JSON
