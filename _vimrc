@@ -179,6 +179,9 @@ au FileType {make,gitconfig} set noexpandtab
 " handlebars templates are HTML
 au BufRead,BufNewFile *.handlebars set filetype=html
 
+" fold Gruntfile.js for easier reading
+au BufRead,BufNewFile Gruntfile.js g/^\s\{4}\S*:\s\={\|registerTask/norm $zf%
+
 " use xmllint to format xml
 au FileType xml set equalprg=xmllint\ --format\ -
 " use python json.tool to format JSON
