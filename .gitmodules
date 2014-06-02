@@ -110,3 +110,6 @@
 [submodule "_vim/bundle/sparkup"]
 	path = _vim/bundle/sparkup
 	url = https://github.com/rstacruz/sparkup.git
+[submodule "_vim/bundle/cucumber"]
+	path = _vim/bundle/cucumber
+	url = https://github.com/tpope/vim-cucumber.git
