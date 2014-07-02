@@ -113,3 +113,6 @@
 [submodule "_vim/bundle/cucumber"]
 	path = _vim/bundle/cucumber
 	url = https://github.com/tpope/vim-cucumber.git
+[submodule "_vim/bundle/puppet"]
+	path = _vim/bundle/puppet
+	url = git://github.com/rodjek/vim-puppet.git
