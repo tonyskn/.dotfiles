@@ -87,10 +87,6 @@
 	path = _vim/bundle/fireplace
 	url = https://github.com/tpope/vim-fireplace.git
 	ignore = untracked
-[submodule "_vim/bundle/clojure-static"]
-	path = _vim/bundle/clojure-static
-	url = https://github.com/guns/vim-clojure-static.git
-	ignore = untracked
 [submodule "_vim/bundle/easy-motion"]
 	path = _vim/bundle/easy-motion
 	url = https://github.com/Lokaltog/vim-easymotion.git
