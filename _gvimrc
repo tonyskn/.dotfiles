@@ -18,8 +18,8 @@ set guioptions-=r
 set guioptions-=L
 set guioptions-=l
 
-set guifont=Mensch\ for\ Powerline\ 12
+set guifont=Mensch\ for\ Powerline\ 10
 
 " Default gui color scheme
 color solarized
-set background=light
+set background=dark

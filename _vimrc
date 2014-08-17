@@ -78,6 +78,8 @@ set splitbelow
 
 " Adjust defaults {{{
 
+" automatically read changed files
+set autoread
 " remap,
 nnoremap <Leader>; ,
 " don't move cursor on "*"

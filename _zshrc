@@ -128,7 +128,7 @@ alias ll='ls -lh'
 # Excludes any files under node_modules, bower_components, or dist
 #
 # Example usage: jshint jss
-alias -g jss='**/*.js~(*node_modules|*bower_components|dist)/*'
+alias -g jss='**/*.js~(*node_modules|*bower_components|dist|*styleguide)/*'
 
 alias deps='rm -rf node_modules && npm install'
 alias bi='bundle install --path=vendor/bundle --binstubs'
