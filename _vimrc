@@ -229,6 +229,7 @@ nnoremap <leader>! :Clam<space>
 vnoremap <leader>! :ClamVisual<space>
 
 " configure NERDTree toggler
+let g:NERDTreeWinSize=40
 nnoremap <silent><Leader>nd :NERDTreeToggle<CR>
 nnoremap <silent><Leader>nf :NERDTreeFind<CR>
 
