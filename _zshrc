@@ -109,9 +109,6 @@ alias apacheerr="awk '{ if (\$9>400 && \$9!=404) print \$9\":\"\$7, \$10/1000 }'
 # Normalize URLs in Apache access logs for easier stats
 alias squashurls="sed -e 's/\/[0-9]\+/\/_ID_/' -e 's/q=[a-zA-Z\+\%]\+/q=_PARAM_/'"
 
-alias xcopy='xclip -selection c'
-alias xpaste='xclip -o -selection c'
-
 alias ggpull='git pull --rebase origin $(current_branch)'
 alias ggpnp='git pull --rebase origin $(current_branch) && git push origin $(current_branch)'
 alias ggl='git log --decorate --oneline --graph --all -20'

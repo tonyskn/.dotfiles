@@ -1,0 +1,8 @@
+#!/bin/sh
+if uname | grep -q Darwin;
+then
+  reattach-to-user-namespace pbpaste
+else
+  xclip -o -selection c
+fi
+
