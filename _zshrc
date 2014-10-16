@@ -50,6 +50,17 @@ function tmw() {
    tmux split-window -dh -p 30 "$*"
 }
 
+# SSH to multiple hosts and
+# turn on synchronization
+function tssh() {
+  for host in "$@"
+  do
+    tmux split-window -d -p30 "ssh $host"
+  done
+  tmux setw synchronize-panes
+  exit
+}
+
 v() { vim =($@) }
 nautilus() { command nautilus --no-desktop > /dev/null 2>&1 "$@" &! }
 reboot() { sudo umount -a -t cifs && sudo reboot $@ }
