@@ -47,18 +47,24 @@ export DISABLE_AUTO_TITLE=true
 # the cursor at the current shell
 # e.g. tmw watch -n 1 uptime
 function tmw() {
-   tmux split-window -dh -p 30 "$*"
+   tmux split-window -d -p 80 "$*"
 }
 
 # SSH to multiple hosts and
 # turn on synchronization
 function tssh() {
-  for host in "$@"
-  do
-    tmux split-window -d -p30 "ssh $host"
-  done
-  tmux setw synchronize-panes
-  exit
+  if [ $1 == "-g" ];
+  then
+    tssh $(cat ~/.dsh/group/$2)
+  else
+    for (( i=$#; i>0; i-- ));
+    do
+      tmux split-window -d -p$((100 / $i)) "ssh $1"
+      shift;
+    done
+    tmux setw synchronize-panes
+    exit
+  fi
 }
 
 v() { vim =($@) }
