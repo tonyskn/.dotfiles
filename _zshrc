@@ -131,7 +131,7 @@ alias ggpnp='git pull --rebase origin $(current_branch) && git push origin $(cur
 alias ggl='git log --decorate --oneline --graph --all -20'
 gitweb() {
    branch=$(current_branch) || return
-   $BROWSER $(sed -e "s#^.*github\.com.#https://github.com/#" -e "s#\.git#/tree/$(current_branch)#" <(git config --get remote.origin.url)) 2>& /dev/null
+   $BROWSER $(sed -e "s#^.*\(git[^\.]*\.[^:\.]*\)[:\.]#http://\1/#" -e "s#\.git#/tree/$(current_branch)#" <(git config --get remote.origin.url)) 2>& /dev/null
 }
 
 alias printxml='xmllint --format -'
