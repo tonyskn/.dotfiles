@@ -55,7 +55,7 @@ function tmw() {
 function tssh() {
   if [ $1 == "-g" ];
   then
-    tssh $(cat ~/.dsh/group/$2)
+    tssh $(pdsh -q "$@" | tail -1 | sed -e 's/,/ /g')
   else
     for (( i=$#; i>0; i-- ));
     do
