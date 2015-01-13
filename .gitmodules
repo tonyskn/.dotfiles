@@ -112,3 +112,6 @@
 [submodule "_vim/bundle/puppet"]
 	path = _vim/bundle/puppet
 	url = git://github.com/rodjek/vim-puppet.git
+[submodule "_vim/bundle/jade"]
+	path = _vim/bundle/jade
+	url = https://github.com/digitaltoad/vim-jade.git
