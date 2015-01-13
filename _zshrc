@@ -197,7 +197,7 @@ alias unsocks="gsettings set org.gnome.system.proxy mode 'none'"
 
 alias minecraft='java -Xmx1024M -Xms512M -cp ~/minecraft.jar net.minecraft.LauncherFrame'
 
-export PATH=~/.gem/ruby/2.0.0/bin:~/.cabal/bin:/usr/local/bin:$PATH
+export PATH=~/.gem/ruby/2.0.0/bin:~/.cabal/bin:/usr/local/sbin:/usr/local/bin:$PATH
 export NODE_PATH=/usr/lib/node_modules
 
 uname | grep -q Darwin && source ~/.zshrc.mac
