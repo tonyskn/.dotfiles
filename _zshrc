@@ -58,6 +58,7 @@ function tmw() {
 function tssh() {
   if [ $1 == "-g" ];
   then
+    tmux rename-window "ssh: $2"
     tssh $(pdsh -q "$@" | tail -1 | sed -e 's/,/ /g')
   else
     for (( i=$#; i>0; i-- ));
