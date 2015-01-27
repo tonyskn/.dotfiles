@@ -43,9 +43,6 @@ export BROWSER=google-chrome-beta
 # Prevent oh-my-zsh from auto-updating window titles
 export DISABLE_AUTO_TITLE=true
 
-# grep dropped support for GREP_OPTIONS
-export GREP_OPTIONS=
-
 # run command in a new tmux pane, while keeping
 # the cursor at the current shell
 # e.g. tmw watch -n 1 uptime
