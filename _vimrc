@@ -230,6 +230,8 @@ vnoremap <leader>! :ClamVisual<space>
 
 " configure NERDTree toggler
 let g:NERDTreeWinSize=40
+let g:NERDTreeMinimalUI=1
+let g:NERDTreeAutoDeleteBuffer=1
 nnoremap <silent><Leader>nd :NERDTreeToggle<CR>
 nnoremap <silent><Leader>nf :NERDTreeFind<CR>
 
