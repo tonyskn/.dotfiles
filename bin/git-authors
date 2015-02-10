@@ -2,7 +2,7 @@
 
 git ls-files "$@" |\
   xargs file | grep 'text$' | awk -F':' '{print $1}' |\
-  xargs -n1 git blame --line-porcelain |\
+  parallel git blame --line-porcelain |\
   sed -n 's/^author //p' |\
   sort | uniq -c | sort -nr
 
