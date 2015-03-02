@@ -50,6 +50,11 @@ function tmw() {
    tmux split-window -d -p 80 "$*"
 }
 
+# Use some sensible gtimeout defaults
+function gtimeout() {
+  command gtimeout --foreground --preserve-status "$@"
+}
+
 # SSH to multiple hosts and
 # turn on synchronization
 function tssh() {
