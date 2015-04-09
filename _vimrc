@@ -164,6 +164,10 @@ map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
 " HTML escape the content of Visual selection
 vnoremap <Leader>x :!recode utf8..html<CR>
 
+" Diff contents of registers 'a and 'b
+nnoremap <silent><Leader>V :tabnew<CR>:put a<CR>:diffthis<CR>:vnew<CR>:put b<CR>:diffthis<CR>
+nnoremap <silent><Leader>Q :tabclose!<CR>
+
 " }}} 
 
 " Filetype Specific Rules {{{
