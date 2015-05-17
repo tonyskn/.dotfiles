@@ -39,7 +39,7 @@ infix 9 ><>
 -- Define workspaces as (workspaceId, [className]) tuples where
 -- [className] contains the X WM_CLASS propertes of the windows
 -- bound to workspaceId.
-workspaces' = [ ("1:main", ["Google-chrome-beta", "Hotot"])
+workspaces' = [ ("1:main", [])
               , ("2:term", [])
               , ("3:ide" , ["jetbrains-idea"])
               , ("4:chat", ["Gajim", "Gajim.py"])
