@@ -253,12 +253,8 @@ noremap <silent><Leader>nn :CtrlPClearCache<CR>
 noremap <silent><Leader>nb :CtrlPBuffer<CR>
 noremap <silent><Leader>ne :CtrlPMRUFiles<CR>
 
-" EasyGrep
-let g:EasyGrepWindow=1
-let g:EasyGrepReplaceWindowMode=2
-let g:EasyGrepRecursive=1
-" let g:EasyGrepReplaceAllPerFile=1
-let g:EasyGrepAllOptionsInExplorer=1
+" Ag
+noremap <silent><Leader>G :AgFromSearch<CR>
 
 " fix nasty vimux bug with ruby1.9
 ruby << EOF

@@ -63,10 +63,6 @@
 [submodule "_vim/bundle/less"]
 	path = _vim/bundle/less
 	url = https://github.com/groenewege/vim-less.git
-[submodule "_vim/bundle/easygrep"]
-	path = _vim/bundle/easygrep
-	url = https://github.com/vim-scripts/EasyGrep.git
-	ignore = untracked
 [submodule "_vim/bundle/ctrlp"]
 	path = _vim/bundle/ctrlp
 	url = https://github.com/kien/ctrlp.vim.git
@@ -119,3 +115,6 @@
 	path = _vim/bundle/yajs
 	url = https://github.com/othree/yajs.vim.git
 	ignore = untracked
+[submodule "_vim/bundle/ag"]
+	path = _vim/bundle/ag
+	url = https://github.com/rking/ag.vim
