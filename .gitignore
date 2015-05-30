@@ -5,7 +5,6 @@ Session.vim
 _fonts/fonts.dir
 _xmonad/history
 _xmonad/xmonad-*
-*.swp
 *.hi
 *.o
 *.errors
