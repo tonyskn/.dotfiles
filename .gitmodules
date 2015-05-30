@@ -120,4 +120,4 @@
 	url = https://github.com/rking/ag.vim
 [submodule "_vim/bundle/rest-console"]
 	path = _vim/bundle/rest-console
-	url = https://github.com/tonyskn/vim-rest-console.git
+	url = https://github.com/diepm/vim-rest-console.git

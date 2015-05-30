@@ -126,8 +126,6 @@ cnoremap <C-a> <Home>
 cnoremap <C-e> <End>
 
 " Line bubbling
-noremap <C-j> mz:m+<cr>`z
-noremap <C-k> mz:m-2<cr>`z
 vnoremap <C-j> :m'>+<cr>`<my`>mzgv`yo`z
 vnoremap <C-k> :m'<-2<cr>`>my`<mzgv`yo`z
 
@@ -197,10 +195,6 @@ au BufNewFile,BufRead *.json set equalprg=python\ -m\ json.tool
 " handy mapping to :Eval when in Clojure
 au FileType clojure nnoremap <silent><Leader>e :Eval<CR>
 
-" Auto format JSON curl output in REST console buffers
-au BufEnter __REST_response__ silent exe "norm gg:set mad}:%!python -mjson.tool 2>&/dev/null || trueP:set noma"
-
-
 " }}}
 
 " Load plugins / Apply customizations {{{
@@ -260,7 +254,13 @@ noremap <silent><Leader>ne :CtrlPMRUFiles<CR>
 noremap <silent><Leader>G :AgFromSearch<CR>
 
 " REST Console
+let g:vrc_set_default_mapping = 0
+" enable persistent cookies
 let g:vrc_cookie_jar = $HOME . '/.vim/backup/vrc_cookie_jar'
+" call current API block and pretty-print cURL output
+au BufNewFile,BufRead *.rest nmap <silent><c-i> :call VrcQuery()<CR><c-w>lgg:set ma<CR>"xd}:%!python -mjson.tool 2>&/dev/null \|\| true<CR><CR>"xP:set noma<CR><c-w>h
+" calls current API block in debug mode
+au BufNewFile,BufRead *.rest nmap <silent><c-j> :let b:vrc_debug=1<CR><c-i>:let b:vrc_debug=0<CR>
 
 " fix nasty vimux bug with ruby1.9
 ruby << EOF
