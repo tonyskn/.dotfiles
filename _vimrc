@@ -191,6 +191,8 @@ au BufRead,BufNewFile Gruntfile.js g/^\s\{4}\S*:\s\={\|registerTask/norm $zf%
 au FileType xml set equalprg=xmllint\ --format\ -
 " use python json.tool to format JSON
 au BufNewFile,BufRead *.json set equalprg=python\ -m\ json.tool
+" ES6!
+au BufNewFile,BufRead *.es6 set ft=javascript
 
 " handy mapping to :Eval when in Clojure
 au FileType clojure nnoremap <silent><Leader>e :Eval<CR>
@@ -289,10 +291,13 @@ let g:syntastic_check_on_wq = 0
 let g:syntastic_enable_signs=1
 " errors split closes when no errors left
 let g:syntastic_auto_loc_list=2
-" let g:syntastic_javascript_checkers = ['eslint']
+
 let g:syntastic_mode_map = { 'mode': 'active',
                            \ 'active_filetypes': [],
                            \ 'passive_filetypes': ['java'] }
+" ES6 support
+au BufNewFile,BufRead *.es6 let g:syntastic_javascript_checkers = ['eslint']
+au BufNewFile,BufRead *.js let g:syntastic_javascript_checkers = ['jshint']
 
 if filereadable(expand("~/.vimrc.extras"))
     source ~/.vimrc.extras
