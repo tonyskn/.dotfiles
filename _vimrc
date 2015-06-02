@@ -251,6 +251,7 @@ noremap <silent><Leader>nt :CtrlP<CR>
 noremap <silent><Leader>nn :CtrlPClearCache<CR>
 noremap <silent><Leader>nb :CtrlPBuffer<CR>
 noremap <silent><Leader>ne :CtrlPMRUFiles<CR>
+call ctrlp_bdelete#init()
 
 " Ag
 noremap <silent><Leader>G :AgFromSearch<CR>

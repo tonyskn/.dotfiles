@@ -121,3 +121,6 @@
 [submodule "_vim/bundle/rest-console"]
 	path = _vim/bundle/rest-console
 	url = https://github.com/diepm/vim-rest-console.git
+[submodule "_vim/bundle/ctrlp_bdelete"]
+	path = _vim/bundle/ctrlp_bdelete
+	url = https://github.com/d11wtq/ctrlp_bdelete.vim.git
