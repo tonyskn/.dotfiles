@@ -38,10 +38,6 @@
 	path = _vim/bundle/L9
 	url = git://github.com/vim-scripts/L9.git
 	ignore = untracked
-[submodule "_vim/bundle/mucomment.vim"]
-	path = _vim/bundle/mucomment.vim
-	url = git://github.com/tonyskn/mucomment.vim.git
-	ignore = untracked
 [submodule "_vim/bundle/coffeescript"]
 	path = _vim/bundle/coffeescript
 	url = git://github.com/kchmck/vim-coffee-script.git
@@ -124,3 +120,6 @@
 [submodule "_vim/bundle/ctrlp_bdelete"]
 	path = _vim/bundle/ctrlp_bdelete
 	url = https://github.com/d11wtq/ctrlp_bdelete.vim.git
+[submodule "_vim/bundle/commentary"]
+	path = _vim/bundle/commentary
+	url = https://github.com/tpope/vim-commentary.git

@@ -96,8 +96,10 @@ inoremap <C-G> <nop>
 " Reselect visual block after indent/outdent
 vnoremap < <gv
 vnoremap > >gv
-" When pasting, auto-adjust indent
-nnoremap p ]p
+" When pasting, auto-adjust indent and jump to end
+nnoremap p ]p`]
+vnoremap p ]p`]
+vnoremap y y`]
 nnoremap P ]P
 " Navigate to next diff after action
 nmap do do]c
@@ -244,11 +246,11 @@ let g:sparkupExecuteMapping = "<c-f>"
 " configure FuzzyFinder mappings
 let g:ctrlp_mruf_max = 4096
 let g:ctrlp_working_path_mode = 'a'
-let g:ctrlp_clear_cache_on_exit = 0
+let g:ctrlp_use_caching = 0
+let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
 let g:ctrlp_match_window = 'max:30'
 set wildignore+=*/target/*,*/node_modules/*,*/vimundo/*
 noremap <silent><Leader>nt :CtrlP<CR>
-noremap <silent><Leader>nn :CtrlPClearCache<CR>
 noremap <silent><Leader>nb :CtrlPBuffer<CR>
 noremap <silent><Leader>ne :CtrlPMRUFiles<CR>
 call ctrlp_bdelete#init()
@@ -264,6 +266,9 @@ let g:vrc_cookie_jar = $HOME . '/.vim/backup/vrc_cookie_jar'
 au BufNewFile,BufRead *.rest nmap <silent><c-i> :call VrcQuery()<CR><c-w>lgg:set ma<CR>"xd}:%!python -mjson.tool 2>&/dev/null \|\| true<CR><CR>"xP:set noma<CR><c-w>h
 " calls current API block in debug mode
 au BufNewFile,BufRead *.rest nmap <silent><c-j> :let b:vrc_debug=1<CR><c-i>:let b:vrc_debug=0<CR>
+
+" Remap vim-commentary
+map ,c gc
 
 " fix nasty vimux bug with ruby1.9
 ruby << EOF
