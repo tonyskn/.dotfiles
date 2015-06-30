@@ -262,8 +262,7 @@ noremap <silent><Leader>G :AgFromSearch<CR>
 let g:vrc_set_default_mapping = 0
 " enable persistent cookies
 let g:vrc_cookie_jar = $HOME . '/.vim/backup/vrc_cookie_jar'
-" call current API block and pretty-print cURL output
-au BufNewFile,BufRead *.rest nmap <silent><c-i> :call VrcQuery()<CR><c-w>lgg:set ma<CR>"xd}:%!python -mjson.tool 2>&/dev/null \|\| true<CR><CR>"xP:set noma<CR><c-w>h
+au BufNewFile,BufRead *.rest nmap <silent><c-i> :call VrcQuery()<CR>
 " calls current API block in debug mode
 au BufNewFile,BufRead *.rest nmap <silent><c-j> :let b:vrc_debug=1<CR><c-i>:let b:vrc_debug=0<CR>
 
