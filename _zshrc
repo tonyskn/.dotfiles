@@ -205,6 +205,10 @@ export NODE_PATH=/usr/lib/node_modules
 
 uname | grep -q Darwin && source ~/.zshrc.mac
 
+# Bootstrap nvm
+# Will set the node version when the working dir has .nvmrc
+nvm use > /dev/null
+
 if [[ -f /usr/bin/tmux || -f /usr/local/bin/tmux ]]; then
   # run tmux in 256-colors compatibility mode
   tmux() {
