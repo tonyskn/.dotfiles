@@ -35,6 +35,11 @@ unalias gm
 # (for some reason, the binding gets lost)
 bindkey "\C-x\C-e" edit-command-line
 
+# <c-z> runs fg
+fg_widget() fg
+zle -N fg_widget
+bindkey '^z' fg_widget
+
 # Customize to your needs...
 export EDITOR=vim
 export SHELL=zsh
