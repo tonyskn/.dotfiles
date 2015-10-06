@@ -104,7 +104,10 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
             , ("M-s", spawn "gnome-screenshot -i")
             , ("M-S-,", spawn "gnome-control-center")
             , ("M-S-q", spawn "pkill gnome-session")
-            , ("M-S-b", LAPTOP ><> toggleMonitorBar) ]
+            , ("M-S-b", LAPTOP ><> toggleMonitorBar)
+            -- Brightness controls
+            , (("M-<F5>"), LAPTOP ><> spawn "xbacklight -dec 10")
+            , (("M-<F6>"), LAPTOP ><> spawn "xbacklight -inc 10")]
         `additionalKeys`
             -- Thinkpad's ThinkVantage key sym
             [ ((0, 0x1008ff41), LAPTOP ><> spawn "bluezconnect && gnome-control-center sound") ]
