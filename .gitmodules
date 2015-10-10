@@ -123,3 +123,6 @@
 [submodule "_vim/bundle/commentary"]
 	path = _vim/bundle/commentary
 	url = https://github.com/tpope/vim-commentary.git
+[submodule "_vim/bundle/gundo"]
+	path = _vim/bundle/gundo
+	url = http://github.com/sjl/gundo.vim.git

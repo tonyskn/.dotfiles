@@ -52,6 +52,7 @@ set nowrap
 set expandtab
 set tabstop=2
 set shiftwidth=2
+set softtabstop=2
 set autoindent
 set listchars=tab:▸\ ,eol:¬,extends:❯,precedes:❮
 noremap <silent><Leader>s :set list!<CR>
@@ -112,6 +113,15 @@ nnoremap k gk
 " Keep the search matches in the middle of the window
 nnoremap n nzzzv
 nnoremap N Nzzzv
+
+" allows cursor change in tmux mode
+if exists('$TMUX')
+    let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=1\x7\<Esc>\\"
+    let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=0\x7\<Esc>\\"
+else
+    let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+    let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+endif
 " }}}
 
 " Mappings {{{
@@ -171,34 +181,36 @@ nnoremap <silent><Leader>Q :tabclose!<CR>
 " }}} 
 
 " Filetype Specific Rules {{{
+augroup configgroup
+   autocmd!
 
-" fold vim files around {{{ ... }}}
-au FileType vim setlocal foldmethod=marker
+   " fold vim files around {{{ ... }}}
+   au FileType vim setlocal foldmethod=marker
 
-" Thorfile, Rakefile, Vagrantfile and Gemfile are Ruby
-au BufRead,BufNewFile {Gemfile,Rakefile,Vagrantfile,Thorfile,config.ru} set ft=ruby
+   " Thorfile, Rakefile, Vagrantfile and Gemfile are Ruby
+   au BufRead,BufNewFile {Gemfile,Rakefile,Vagrantfile,Thorfile,config.ru} set ft=ruby
 
-" Some filetypes need 4-space tabs
-au FileType {python,haskell,markdown} set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=79
-" some filetypes need real tabs
-au FileType {make,gitconfig} set noexpandtab
+   " Some filetypes need 4-space tabs
+   au FileType {python,haskell,markdown} set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=79
 
-" handlebars templates are HTML
-au BufRead,BufNewFile *.handlebars set filetype=html
+   " some filetypes need real tabs
+   au FileType {make,gitconfig} set noexpandtab
 
-" fold Gruntfile.js for easier reading
-au BufRead,BufNewFile Gruntfile.js g/^\s\{4}\S*:\s\={\|registerTask/norm $zf%
+   " handlebars templates are HTML
+   au BufRead,BufNewFile *.handlebars set filetype=html
 
-" use xmllint to format xml
-au FileType xml set equalprg=xmllint\ --format\ -
-" use python json.tool to format JSON
-au BufNewFile,BufRead *.json set equalprg=python\ -m\ json.tool
-" ES6!
-au BufNewFile,BufRead *.es6 set ft=javascript
+  " fold Gruntfile.js for easier reading
+   au BufRead,BufNewFile Gruntfile.js g/^\s\{4}\S*:\s\={\|registerTask/norm $zf%
 
-" handy mapping to :Eval when in Clojure
-au FileType clojure nnoremap <silent><Leader>e :Eval<CR>
+   " use xmllint to format xml
+   au FileType xml set equalprg=xmllint\ --format\ -
 
+   " ES6!
+   au BufNewFile,BufRead *.es6 set ft=javascript
+
+   " handy mapping to :Eval when in Clojure
+   au FileType clojure nnoremap <silent><Leader>e :Eval<CR>
+augroup END
 " }}}
 
 " Load plugins / Apply customizations {{{
@@ -242,6 +254,12 @@ nnoremap <silent><Leader>nf :NERDTreeFind<CR>
 
 " override sparkup mapping
 let g:sparkupExecuteMapping = "<c-f>"
+
+" configure gundo
+nnoremap <Leader>u :GundoToggle<CR>
+let g:gundo_preview_bottom=1
+let g:gundo_help=0
+let g:gundo_close_on_revert=1
 
 " configure FuzzyFinder mappings
 let g:ctrlp_mruf_max = 4096
