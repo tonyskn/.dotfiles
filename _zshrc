@@ -212,7 +212,7 @@ uname | grep -q Darwin && source ~/.zshrc.mac
 
 # Bootstrap nvm
 # Will set the node version when the working dir has .nvmrc
-nvm use > /dev/null
+nvm use 2> /dev/null 1> /dev/null
 
 if [[ -f /usr/bin/tmux || -f /usr/local/bin/tmux ]]; then
   # run tmux in 256-colors compatibility mode
