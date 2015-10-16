@@ -39,18 +39,17 @@ infix 9 ><>
 -- Define workspaces as (workspaceId, [className]) tuples where
 -- [className] contains the X WM_CLASS propertes of the windows
 -- bound to workspaceId.
-workspaces' = [ ("1:main", [])
-              , ("2:term", [])
-              , ("3:ide" , ["jetbrains-idea"])
-              , ("4:chat", ["Gajim", "Gajim.py"])
-              , ("5:misc", ["Spotify", "Vlc", "Bibble5"])
-              , ("6:misc", ["Skype", "VirtualBox", "Transmission-gtk"])
-              , ("7:scratch", ["Firefox", "Firefox-bin"]) ]
+workspaces' = [ ("1:main", ["Google-chrome"])
+              , ("2:term", ["Xfce4-terminal"])
+              , ("3:ide" , [])
+              , ("4:chat", [])
+              , ("5:media", ["Spotify", "Vlc"])
+              , ("6:scratch", ["Skype"]) ]
 
 layoutHook' = onWorkspace "3:ide" nobordersLayout
             $ onWorkspace "4:chat" chatLayout
             $ tiled1 ||| nobordersLayout ||| Accordion
-    where tiled1 = spacing 5 $ Tall nmaster1 delta ratio
+    where tiled1 = spacing 3 $ Tall nmaster1 delta ratio
           nmaster1 = 1
           ratio = 17/24
           delta = 3/100
@@ -85,9 +84,9 @@ toggleMonitorBar = do
 main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
         { workspaces = map fst workspaces'
         , logHook = takeTopFocus -- fixes glitches in Java GUI apps
-        , normalBorderColor  = "#586e75" -- solarized base01
-        , focusedBorderColor = "#cb4b16" -- solarized orange
-        , borderWidth = 2
+        , normalBorderColor  = "#002b36" -- solarized base03
+        , focusedBorderColor = "#586e75" -- solarized base01
+        , borderWidth = 1
         , terminal = terminal'
         , modMask = mod4Mask
         , focusFollowsMouse = False
