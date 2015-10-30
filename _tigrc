@@ -1,0 +1,2 @@
+bind generic + !git commit --amend
+bind generic ! !@sh -c "echo %(commit) | xcopy"
