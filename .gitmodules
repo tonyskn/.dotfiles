@@ -126,3 +126,6 @@
 [submodule "_vim/bundle/gundo"]
 	path = _vim/bundle/gundo
 	url = http://github.com/sjl/gundo.vim.git
+[submodule "_vim/bundle/airline-themes"]
+	path = _vim/bundle/airline-themes
+	url = https://github.com/vim-airline/vim-airline-themes
