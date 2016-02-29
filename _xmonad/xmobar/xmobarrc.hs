@@ -7,7 +7,8 @@
                  , Run Cpu ["-L", "3", "-H", "50", "-l", "green", "-n", "lightblue", "-h", "red"] 10
                  , Run Memory ["-t", "Mem: <usedratio>%", "-L", "20", "-H", "50", "-l", "green", "-n", "lightblue", "-h", "red"] 10
                  , Run Uptime [] 10
+                 , Run Volume "default" "Master" [] 1
                  , Run Date "%a %b %_d %H:%M" "date" 10
                  , Run StdinReader ]
-     , template = " %StdinReader%}{ %cpu% ~ %memory% ~ %uptime% ~ Bri: %cat0% ~ <fc=#ee9a00>%date% %EDDT%</fc> " }
+     , template = " %StdinReader%}{ %cpu% ~ %memory% ~ %uptime% ~ Vol: %default:Master% ~ Bri: %cat0% ~ <fc=#ee9a00>%date% %EDDT%</fc> " }
 

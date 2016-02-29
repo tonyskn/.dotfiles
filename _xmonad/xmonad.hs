@@ -106,7 +106,11 @@ main = xmonad <=< xmobar' $ withUrgencyHook NoUrgencyHook $ azertyConfig
             , ("M-S-b", LAPTOP ><> toggleMonitorBar)
             -- Brightness controls
             , (("M-<F5>"), LAPTOP ><> spawn "xbacklight -dec 10")
-            , (("M-<F6>"), LAPTOP ><> spawn "xbacklight -inc 10")]
+            , (("M-<F6>"), LAPTOP ><> spawn "xbacklight -inc 10")
+            -- Volume controls
+            , (("M-<F1>"), spawn "pactl set-sink-mute 1 toggle")
+            , (("M-<F2>"), spawn "pactl set-sink-volume 1 -10%")
+            , (("M-<F3>"), spawn "pactl set-sink-volume 1 +10%")]
         `additionalKeys`
             -- Thinkpad's ThinkVantage key sym
             [ ((0, 0x1008ff41), LAPTOP ><> spawn "bluezconnect && gnome-control-center sound") ]
