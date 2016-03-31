@@ -75,6 +75,9 @@ noremap <silent><Leader><space> :noh<CR>
 set splitright
 set splitbelow
 
+" highlight line length
+set colorcolumn=120
+
 " }}}
 
 " Adjust defaults {{{
