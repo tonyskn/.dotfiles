@@ -8,3 +8,5 @@
 [user]
    name = tonyskn
    email = tonyskn@gmail.com
+[include]
+	path = ~/.git_aliases

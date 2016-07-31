@@ -1,0 +1,52 @@
+[alias]
+  ## Start a feature with the given name
+  ## @param Name of the feature (excluding "feature/")
+  ## @param Branch to start from (default: "master")
+  ## @see `checkout`
+  ## @see `branch`
+  feature = "!f() { \
+               git fetch -p -q && \
+               git checkout -b feature/$1 --no-track -l "${2:-master}"; \
+             }; f"
+
+  ## Start a hotfix with the given name and the current date in the branch name
+  ## @param Name of the hotfix (excluding "hotfix/" and date)
+  ## @param Branch to start from (default: "master")
+  ## @see `checkout`
+  ## @see `branch`
+  fix = "!f() { \
+           git fetch -p -q && \
+           git checkout -b hotfix/`date +%Y%m%d`-$1 --no-track "${2:-master}"; \
+         }; f"
+
+  ## Publish the current branch
+  ## @see `push`
+  publish = push -u origin HEAD
+
+  ## Finish the current feature or hotfix branch properly
+  ## @see `merge`
+  finish = "!f() { \
+              [ `git status --porcelain | grep -v "??" | wc -l` -gt 0 ] && echo WC dirty && return; \
+              BRANCH=`git symbolic-ref --short HEAD`; \
+              git fetch -p -q && \
+              git checkout master && \
+              git pull && \
+              git merge --no-ff "${BRANCH}" && \
+              git push origin ":refs/heads/${BRANCH}" && \
+              git branch -d "${BRANCH}" && \
+              git push; \
+            }; f"
+			
+  ## Automatically move your current gitflow branch to the tip of the respective root branch
+  ## @see `rebase`
+  tipbase = "!f() { \
+               [ `git status --porcelain | egrep -v '^\\?\\?' | wc -l` -gt 0 ] && echo 'WC dirty 💩 ' && return; \
+               BRANCH=`git symbolic-ref --short HEAD`; \
+               git fetch -p -q; \
+               TARGET=master; \
+               if [ -n $TARGET ]; then \
+                 git rebase --onto $TARGET `git merge-base $TARGET $BRANCH` $BRANCH; \
+               else \
+                 git checkout $BRANCH; \
+               fi \
+             }; f"
