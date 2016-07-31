@@ -7,7 +7,7 @@ end
 
 desc "update submodules repositories"
 task :update do
-   system %Q{git submodule foreach git pull origin master}
+   system %Q{ls _vim/bundle | parallel  'sh -c "cd _vim/bundle/{}; git pull origin master"'}
 end
 
 desc "fetch changes"
