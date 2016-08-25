@@ -82,34 +82,32 @@ watch() {
   command watch -n1 "zsh -l -c \"source ~/.zshrc; $@\""
 }
 
-# Allows overriding DOCKER_HOST each time you run docker
+# Allows running docker commands on remote hosts
 dk() {
-  HOST=$1
+  local HOST=$1
   shift
-  DOCKER_HOST=$HOST:2375 docker "$@"
+  ssh $HOST sudo docker "$@"
 }
 
 dcp() {
-  HOST=$1
+  local HOST=$1
   shift
   DOCKER_HOST=$HOST:2375 docker-compose "$@"
 }
 
-docker-rm-stopped-containers () {
-  export DOCKER_HOST=$1:2375
-  docker rm $(comm -13 <(docker ps -q) <(docker ps -aq))
-  unset DOCKER_HOST
+dcpl() {
+  local HOST=$1
+  shift
+  DOCKER_HOST=$HOST:2375 docker-compose logs -f --no-color
 }
 
-docker-rm-untagged-images() {
-  export DOCKER_HOST=$1:2375
-  docker rmi $(docker images | grep none | awk '{print $3}')
-  unset DOCKER_HOST
-}
+# Inline aliases for removing stopped containers or untagged images
+# Usage:
+#  ssh $HOST drm
+#  clush -w @consul:name drmi
+alias -g drm='"comm -13 <(sudo docker ps -q |sort) <(sudo docker ps -aq |sort) | xargs -r sudo docker rm"'
+alias -g drmi='"sudo docker images | grep none | cut -c 61-72 | xargs -r sudo docker rmi"'
 
-docker-compose-logs() {
-  docker-compose logs --no-color | sed 's/^.*| //'
-}
 
 v() { vim =($@) }
 nautilus() { command nautilus --no-desktop > /dev/null 2>&1 "$@" &! }
