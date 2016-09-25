@@ -220,23 +220,56 @@ augroup END
 
 " Load plugins / Apply customizations {{{
 
-" load pathogen
-source ~/.vim/bundle/pathogen/autoload/pathogen.vim
+call plug#begin('~/.vim/plugged')
 
-" pathogen plugin, requires filetype plugin indent
-filetype plugin indent on
-call pathogen#infect()
-" required to get help on stuff installed through pathogen
-call pathogen#helptags()
+Plug 'bling/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'flazz/vim-colorschemes'
+
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-repeat'
+
+Plug 'kien/ctrlp.vim'
+Plug 'd11wtq/ctrlp_bdelete.vim'
+Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeFind', 'NERDTreeToggle'] }
+Plug 'benmills/vimux', { 'on': [] }
+
+Plug 'tpope/vim-commentary'
+Plug 'scrooloose/syntastic'
+Plug 'editorconfig/editorconfig-vim'
+
+Plug 'rking/ag.vim'
+Plug 'sjl/gundo.vim'
+Plug 'edsono/vim-matchit'
+Plug 'Lokaltog/vim-easymotion'
+Plug 'diepm/vim-rest-console', { 'for': 'rest' }
+
+Plug 'moll/vim-node'
+Plug 'othree/yajs.vim'
+Plug 'othree/javascript-libraries-syntax.vim'
+Plug 'elzr/vim-json', { 'for': 'json' }
+Plug 'digitaltoad/vim-jade', { 'for': 'pug' }
+
+Plug 'tpope/vim-fireplace', { 'for': 'clojure' }
+Plug 'mattn/emmet-vim', { 'for': ['html', 'css'] }
+Plug 'tpope/vim-markdown', { 'for': 'markdown' }
+Plug 'groenewege/vim-less', { 'for': 'less' }
+Plug 'rodjek/vim-puppet', { 'for': 'pp' }
+
+Plug 'ervandew/supertab'
+
+" Add plugins to &runtimepath
+call plug#end()
+
+" shortcut for PlugStatus
+nnoremap <silent><Leader>S :PlugStatus<CR>
 
 " default colorscheme
 set background=dark
 let g:solarized_termtrans=1
-" let g:solarized_termcolors=256
 let g:solarized_contrast="high"
-" let g:solarized_visibility="low"
 colorscheme solarized
-" hi Normal ctermbg=none
 
 " set airline plugin to use fancy symbols
 let g:airline_powerline_fonts = 1
@@ -246,19 +279,13 @@ set completeopt=longest,menuone,preview
 let g:SuperTabDefaultCompletionType = "<c-n>"
 let g:SuperTabLongestHighlight = 1
 
-" easier Clam mappings
-nnoremap <leader>! :Clam<space>
-vnoremap <leader>! :ClamVisual<space>
-
 " configure NERDTree toggler
 let g:NERDTreeWinSize=40
 let g:NERDTreeMinimalUI=1
+let g:NERDTreeQuitOnOpen=1
 let g:NERDTreeAutoDeleteBuffer=1
 nnoremap <silent><Leader>nd :NERDTreeToggle<CR>
 nnoremap <silent><Leader>nf :NERDTreeFind<CR>
-
-" override sparkup mapping
-let g:sparkupExecuteMapping = "<c-f>"
 
 " configure gundo
 nnoremap <Leader>u :GundoToggle<CR>
@@ -266,7 +293,7 @@ let g:gundo_preview_bottom=1
 let g:gundo_help=0
 let g:gundo_close_on_revert=1
 
-" configure FuzzyFinder mappings
+" configure ctrlp mappings
 let g:ctrlp_mruf_max = 4096
 let g:ctrlp_working_path_mode = 'a'
 let g:ctrlp_use_caching = 0
@@ -319,6 +346,10 @@ let g:syntastic_check_on_wq = 0
 let g:syntastic_enable_signs=1
 " errors split closes when no errors left
 let g:syntastic_auto_loc_list=2
+let g:syntastic_error_symbol = '✗✗'
+let g:syntastic_style_error_symbol = '✗✗'
+let g:syntastic_warning_symbol = '≈≈'
+let g:syntastic_style_warning_symbol = '≈≈'
 
 let g:syntastic_mode_map = { 'mode': 'active',
                            \ 'active_filetypes': [],

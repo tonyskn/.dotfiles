@@ -1,13 +1,8 @@
 require 'rake'
 
-desc "remove untracked files in each submodule"
-task :clean do
-   system %Q{git submodule foreach git clean -fd}
-end
-
-desc "update submodules repositories"
+desc "update submodule repositories"
 task :update do
-   system %Q{ls _vim/bundle | parallel  'sh -c "cd _vim/bundle/{}; git pull origin master"'}
+   system %Q{git submodule foreach git pull origin master}
 end
 
 desc "fetch changes"
@@ -29,6 +24,7 @@ end
 desc "create symlinks into _* entries in user's home directory"
 task :install => ["fetch", "binlink"] do
    puts
+   system %Q{curl -fLso _vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim}
    Dir['_*'].each do |file|
       dotfile = File.join(ENV['HOME'], "#{file.sub('_', '.')}")
 
@@ -40,9 +36,4 @@ task :install => ["fetch", "binlink"] do
       puts ">>> Linking #{file}"
       system %Q{ln -f -s "$PWD/#{file}" "#{dotfile}"}
    end
-end
-
-desc "remove ~/.*.old created by :install"
-task :rmold do
-   system %Q{rm ~/.*.old}
 end
