@@ -84,7 +84,9 @@ set colorcolumn=120
 
 " automatically read changed files
 set autoread
-" remap,
+" adjust indentation of wrapped lines
+set breakindent
+" remap leader
 nnoremap <Leader>; ,
 " don't move cursor on "*"
 nnoremap * *<c-o>
@@ -92,7 +94,7 @@ map Oj *
 imap Oj *
 cmap Oj *
 " search for visual selection
-vnoremap * y/<C-R>"<CR>
+vnoremap * y/<c-r>"<cr><c-o>
 " disable displaying manual when hitting K
 nnoremap K <nop>
 " disable C-G (avoids vim freezes when in tmux)
