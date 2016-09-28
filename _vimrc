@@ -251,11 +251,12 @@ Plug 'othree/javascript-libraries-syntax.vim'
 Plug 'elzr/vim-json', { 'for': 'json' }
 Plug 'digitaltoad/vim-jade', { 'for': 'pug' }
 
+Plug 'derekwyatt/vim-scala', { 'for': ['scala', 'sbt.scala'] }
 Plug 'tpope/vim-fireplace', { 'for': 'clojure' }
 Plug 'mattn/emmet-vim', { 'for': ['html', 'css'] }
 Plug 'tpope/vim-markdown', { 'for': 'markdown' }
 Plug 'groenewege/vim-less', { 'for': 'less' }
-Plug 'rodjek/vim-puppet', { 'for': 'pp' }
+Plug 'rodjek/vim-puppet', { 'for': 'puppet' }
 
 Plug 'ervandew/supertab'
 
@@ -267,7 +268,6 @@ nnoremap <silent><Leader>S :PlugStatus<CR>
 
 " default colorscheme
 set background=dark
-let g:solarized_termtrans=1
 let g:solarized_contrast="high"
 colorscheme solarized
 
@@ -284,6 +284,8 @@ let g:NERDTreeWinSize=40
 let g:NERDTreeMinimalUI=1
 let g:NERDTreeQuitOnOpen=1
 let g:NERDTreeAutoDeleteBuffer=1
+let g:NERDTreeDirArrowExpandable = '+'
+let g:NERDTreeDirArrowCollapsible = '-'
 nnoremap <silent><Leader>nd :NERDTreeToggle<CR>
 nnoremap <silent><Leader>nf :NERDTreeFind<CR>
 
@@ -299,7 +301,7 @@ let g:ctrlp_working_path_mode = 'a'
 let g:ctrlp_use_caching = 0
 let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
 let g:ctrlp_match_window = 'max:30'
-set wildignore+=*/target/*,*/node_modules/*,*/vimundo/*
+set wildignore+=*/target/*,*/node_modules*/*,*/vimundo/*
 noremap <silent><Leader>nt :CtrlP<CR>
 noremap <silent><Leader>nb :CtrlPBuffer<CR>
 noremap <silent><Leader>ne :CtrlPMRUFiles<CR>
@@ -336,7 +338,6 @@ noremap <silent><Leader>ri :VimuxInspectRunner<CR>
 noremap <silent><Leader>rx :VimuxCloseRunner<CR>
 noremap <silent><Leader>rc :VimuxInterruptRunner<CR>
 vnoremap <silent><Leader>rv "vy :call VimuxRunCommand(@v . "\n")<CR>
-au! VimLeavePre * :VimuxCloseRunner
 
 " Syntastic configuration
 let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
