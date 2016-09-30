@@ -10,3 +10,5 @@
    email = tonyskn@gmail.com
 [include]
 	path = ~/.git_aliases
+[rebase]
+	autoStash = true
