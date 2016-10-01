@@ -246,11 +246,6 @@ uname | grep -q Darwin && source ~/.zshrc.mac
 nvm use 2> /dev/null 1> /dev/null
 
 if [[ -f /usr/bin/tmux || -f /usr/local/bin/tmux ]]; then
-  # run tmux in 256-colors compatibility mode
-  tmux() {
-    TERM=screen-256color-bce command tmux "$@"
-  }
-
   # attach to an already running tmux session or create new one
   # unless we're running a login shell in a virtual console or via SSH
   tty | grep -qo /dev/tty.$ || test "$SSH_TTY" || test "$TMUX" || tmux attach 2>/dev/null || tmux new-session

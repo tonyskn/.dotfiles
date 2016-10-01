@@ -97,8 +97,6 @@ cmap Oj *
 vnoremap * y/<c-r>"<cr><c-o>
 " disable displaying manual when hitting K
 nnoremap K <nop>
-" disable C-G (avoids vim freezes when in tmux)
-inoremap <C-G> <nop>
 " Reselect visual block after indent/outdent
 vnoremap < <gv
 vnoremap > >gv
@@ -233,7 +231,10 @@ Plug 'tpope/vim-repeat'
 Plug 'kien/ctrlp.vim'
 Plug 'd11wtq/ctrlp_bdelete.vim'
 Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeFind', 'NERDTreeToggle'] }
+
 Plug 'benmills/vimux', { 'on': [] }
+Plug 'tmux-plugins/vim-tmux', { 'for': 'tmux' }
+Plug 'tmux-plugins/vim-tmux-focus-events'
 
 Plug 'tpope/vim-commentary'
 Plug 'scrooloose/syntastic'
