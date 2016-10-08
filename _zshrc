@@ -176,6 +176,11 @@ gitweb() {
    $BROWSER $(sed -e "s#^.*\(git[^\.]*\.[^:\.]*\)[:\.]#http://\1/#" -e "s#\.git#/tree/$(current_branch)#" <(git config --get remote.origin.url)) 2>& /dev/null
 }
 
+swap() {
+  local TMP="_$1.tmp_"
+  mv $1 $TMP && mv $2 $1 &&  mv $TMP $2
+}
+
 alias printxml='xmllint --format -'
 alias printjson='python -m json.tool'
 alias ll='ls -lh'
