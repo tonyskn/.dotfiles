@@ -1,7 +1,7 @@
 #!/bin/sh
 if uname | grep -q Darwin;
 then
-  reattach-to-user-namespace pbcopy
+  pbcopy
 else
   xclip -selection c
 fi
