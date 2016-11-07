@@ -1,4 +1,5 @@
 _vim/plugged
+_vim/.netrwhist
 _tmux/plugins/
 !_tmux/plugins/tpm
 _vim/autoload/plug.vim
