@@ -1,3 +1,4 @@
 bind generic + !git commit --amend
 bind generic ! !@sh -c "echo %(commit) | xcopy"
 bind generic R ?git push origin :%(branch)
+set line-graphics = utf-8
