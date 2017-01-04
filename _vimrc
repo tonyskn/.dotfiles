@@ -229,6 +229,7 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
 
 Plug 'kien/ctrlp.vim'
+Plug 'sgur/ctrlp-extensions.vim'
 Plug 'd11wtq/ctrlp_bdelete.vim'
 Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeFind', 'NERDTreeToggle'] }
 
@@ -302,10 +303,12 @@ let g:ctrlp_working_path_mode = 'a'
 let g:ctrlp_use_caching = 0
 let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
 let g:ctrlp_match_window = 'max:30'
+let g:ctrlp_yankring_disable = 1
 set wildignore+=*/target/*,*/node_modules*/*,*/vimundo/*
 noremap <silent><Leader>nt :CtrlP<CR>
 noremap <silent><Leader>nb :CtrlPBuffer<CR>
 noremap <silent><Leader>ne :CtrlPMRUFiles<CR>
+noremap <silent><Leader>nr :CtrlPCmdline<CR>
 call ctrlp_bdelete#init()
 
 " Ag
