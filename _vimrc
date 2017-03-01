@@ -356,12 +356,17 @@ let g:syntastic_style_error_symbol = '✗✗'
 let g:syntastic_warning_symbol = '≈≈'
 let g:syntastic_style_warning_symbol = '≈≈'
 
+" disable warnings
+noremap <silent><Leader>z :let g:syntastic_quiet_messages = { "!level":  "errors" }<CR>:e<CR>
+" enable warnings
+noremap <silent><Leader>Z :let g:syntastic_quiet_messages = {}<CR>:e<CR>
+
 let g:syntastic_mode_map = { 'mode': 'active',
                            \ 'active_filetypes': [],
                            \ 'passive_filetypes': ['java'] }
 " ES6 support
-au BufNewFile,BufRead *.es6 let g:syntastic_javascript_checkers = ['eslint']
-au BufNewFile,BufRead *.js let g:syntastic_javascript_checkers = ['jshint']
+au BufNewFile,BufRead *.js let g:syntastic_javascript_checkers = ['eslint']
+au BufNewFile,BufRead *.go let g:syntastic_go_checkers = ['go']
 
 if filereadable(expand("~/.vimrc.extras"))
     source ~/.vimrc.extras
