@@ -37,6 +37,17 @@
               git push; \
             }; f"
 			
+  ## Usage: git fixup COMMIT
+  ## Like git commit --amend but for older commits
+  fixup = "!f() { \
+            TARGET=$(git rev-parse "$1"); \
+            git commit --fixup=$TARGET ${@:2} && \
+            EDITOR=: GIT_SEQUENCE_EDITOR=: git rebase -i --autostash --autosquash $TARGET^; \
+           }; f"
+
+  ## List untracked filed
+  untracked = "!git ls-files --others --exclude-standard"
+
   ## Automatically move your current gitflow branch to the tip of the respective root branch
   ## @see `rebase`
   tipbase = "!f() { \

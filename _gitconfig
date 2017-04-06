@@ -12,3 +12,13 @@
 	path = ~/.git_aliases
 [rebase]
 	autoStash = true
+[status]
+	showUntrackedFiles = all
+[diff]
+	tool = icdiff
+[difftool]
+	prompt = false
+[difftool "icdiff"]
+	cmd = /usr/local/bin/icdiff --line-numbers --no-bold $LOCAL $REMOTE | less
+[remote "origin"]
+	prune = true
