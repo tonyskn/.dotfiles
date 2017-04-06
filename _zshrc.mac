@@ -1,3 +1,4 @@
 export BROWSER=open
 fpath=(/usr/local/share/zsh-completions $fpath)
-NODE_PATH=/usr/local/lib/node_modules:$NODE_PATH
+export NVM_DIR=~/.nvm
+. "/usr/local/opt/nvm/nvm.sh"
