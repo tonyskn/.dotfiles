@@ -231,6 +231,7 @@ Plug 'flazz/vim-colorschemes'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-projectionist'
 
 Plug 'kien/ctrlp.vim'
 Plug 'sgur/ctrlp-extensions.vim'
