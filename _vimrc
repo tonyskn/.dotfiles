@@ -255,6 +255,7 @@ Plug 'diepm/vim-rest-console', { 'for': 'rest' }
 Plug 'moll/vim-node'
 Plug 'othree/yajs.vim'
 Plug 'othree/javascript-libraries-syntax.vim'
+Plug 'leafgarland/typescript-vim'
 Plug 'elzr/vim-json', { 'for': 'json' }
 Plug 'digitaltoad/vim-jade', { 'for': 'pug' }
 
@@ -367,7 +368,7 @@ noremap <silent><Leader>z :let g:syntastic_quiet_messages = { "!level":  "errors
 noremap <silent><Leader>Z :let g:syntastic_quiet_messages = {}<CR>:e<CR>
 
 let g:syntastic_mode_map = { 'mode': 'active',
-                           \ 'active_filetypes': [],
+                           \ 'active_filetypes': ['typescript', 'javascript', 'go'],
                            \ 'passive_filetypes': ['java'] }
 " ES6 support
 au BufNewFile,BufRead *.js let g:syntastic_javascript_checkers = ['eslint']

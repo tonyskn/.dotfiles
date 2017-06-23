@@ -107,7 +107,7 @@ alias gd='git difftool'
 alias ggl='git log --decorate --oneline --graph --all -20'
 gitweb() {
    branch=$(current_branch) || return
-   $BROWSER $(sed -e "s#^.*\(git[^\.]*\.[^:\.]*\)[:\.]#http://\1/#" -e "s#\.git#/tree/$(current_branch)#" <(git config --get remote.origin.url)) 2>& /dev/null
+   $BROWSER $(sed -e "s#^.*\(git[^\.]*\.[^:\.]*\)[:\.]#http://\1/#" -e "s#\.git#/pipelines#" <(git config --get remote.origin.url)) 2>& /dev/null
 }
 
 swap() {
