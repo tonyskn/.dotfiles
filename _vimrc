@@ -253,9 +253,9 @@ Plug 'Lokaltog/vim-easymotion'
 Plug 'diepm/vim-rest-console', { 'for': 'rest' }
 
 Plug 'moll/vim-node'
-Plug 'othree/yajs.vim'
+Plug 'othree/yajs.vim', { 'tag': '1.6' }
 Plug 'othree/javascript-libraries-syntax.vim'
-Plug 'leafgarland/typescript-vim'
+Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
 Plug 'elzr/vim-json', { 'for': 'json' }
 Plug 'digitaltoad/vim-jade', { 'for': 'pug' }
 
