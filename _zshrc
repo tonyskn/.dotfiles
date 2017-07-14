@@ -63,14 +63,15 @@ gtimeout() {
 # SSH to multiple hosts and
 # turn on synchronization
 function tssh() {
-  if [ "$1" = "-g" ];
+  if [ "$1" = "-e" ];
   then
-    tmux rename-window "ssh: $2"
-    tssh $(paste -sd' ' ~/.dsh/group/$2)
+    shift
+    tmux rename-window "tssh"
+    tssh $(nodeset -e "$@")
   else
-    for (( i=$#; i>0; i-- ));
-    do
+    for (( i=$#; i>0; i-- )); do
       tmux split-window -d -p$((100 / $i)) "ssh $1"
+      tmux select-layout tiled
       shift;
     done
     tmux setw synchronize-panes
