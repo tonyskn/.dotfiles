@@ -322,11 +322,17 @@ noremap <silent><Leader>G :AgFromSearch<CR>
 
 " REST Console
 let g:vrc_set_default_mapping = 0
-" enable persistent cookies
-let g:vrc_cookie_jar = $HOME . '/.vim/backup/vrc_cookie_jar'
+let g:vrc_allow_get_request_body = 1
+let g:vrc_elasticsearch_support = 1
+let b:vrc_response_default_content_type = 'application/json'
+let g:vrc_curl_opts = {
+  \ '-b': $HOME . '/.vim/backup/vrc_cookie_jar',
+  \ '-c': $HOME . '/.vim/backup/vrc_cookie_jar',
+  \ '-s': '',
+  \ '-L': '',
+  \ '-k': '',
+\}
 au BufNewFile,BufRead *.rest nmap <silent><c-i> :call VrcQuery()<CR>
-" calls current API block in debug mode
-au BufNewFile,BufRead *.rest nmap <silent><c-j> :let b:vrc_debug=1<CR><c-i>:let b:vrc_debug=0<CR>
 
 " Remap vim-commentary
 map ,c gc
