@@ -1,6 +1,7 @@
 [core]
    autocrlf = input
    editor = vim
+   ignorecase = false
 [color]
    ui = auto
 [push]
@@ -9,16 +10,16 @@
    name = tonyskn
    email = tonyskn@gmail.com
 [include]
-	path = ~/.git_aliases
+   path = ~/.git_aliases
 [rebase]
-	autoStash = true
+   autoStash = true
 [status]
-	showUntrackedFiles = all
+   showUntrackedFiles = all
 [diff]
-	tool = icdiff
+   tool = icdiff
 [difftool]
-	prompt = false
+   prompt = false
 [difftool "icdiff"]
-	cmd = /usr/local/bin/icdiff --line-numbers --no-bold $LOCAL $REMOTE | less
+   cmd = /usr/local/bin/icdiff --line-numbers --no-bold $LOCAL $REMOTE | less
 [remote "origin"]
-	prune = true
+   prune = true
