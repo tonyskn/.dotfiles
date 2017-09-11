@@ -1,4 +1,9 @@
-bind generic + !git commit --amend
-bind generic ! !@sh -c "echo %(commit) | xcopy"
-bind generic R ?git push origin :%(branch)
+bind diff ! !@sh -c "echo %(commit) | xcopy"
+bind main ! !@sh -c "echo %(branch) | xcopy"
+
+bind status + !git commit --amend
+bind main f ?git fixup %(commit) -a
+
+bind refs R ?git push origin :%(branch)
+
 set line-graphics = utf-8
