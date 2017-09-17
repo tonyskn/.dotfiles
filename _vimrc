@@ -203,17 +203,11 @@ augroup configgroup
    " some filetypes need real tabs
    au FileType {make,gitconfig} set noexpandtab
 
+   " apply 'eslint --fix' over the current javascript buffer
+   au FileType javascript nnoremap <silent><Leader>f :%!eslint --fix %<CR>:e!<CR>
+
    " handlebars templates are HTML
    au BufRead,BufNewFile *.handlebars set filetype=html
-
-  " fold Gruntfile.js for easier reading
-   au BufRead,BufNewFile Gruntfile.js g/^\s\{4}\S*:\s\={\|registerTask/norm $zf%
-
-   " use xmllint to format xml
-   au FileType xml set equalprg=xmllint\ --format\ -
-
-   " ES6!
-   au BufNewFile,BufRead *.es6 set ft=javascript
 
    " handy mapping to :Eval when in Clojure
    au FileType clojure nnoremap <silent><Leader>e :Eval<CR>
