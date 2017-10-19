@@ -18,7 +18,7 @@ export DISABLE_AUTO_UPDATE="true"
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(archlinux git git-flow autojump npm mvn nvm node history docker)
+plugins=(archlinux git autojump npm nvm node history docker)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -43,7 +43,9 @@ bindkey '^z' fg_widget
 # Customize to your needs...
 export EDITOR=vim
 export SHELL=zsh
-export BROWSER=google-chrome-stable
+export BROWSER=open
+
+fpath=(/usr/local/share/zsh-completions $fpath)
 
 # Prevent oh-my-zsh from auto-updating window titles
 export DISABLE_AUTO_TITLE=true
@@ -83,29 +85,8 @@ watch() {
   command watch -n1 "zsh -l -c \"source ~/.zshrc; $@\""
 }
 
-# Inline aliases for removing stopped containers or untagged images
-# Usage:
-#  ssh $HOST drm
-#  clush -w @consul:name drmi
-alias -g drm='"comm -13 <(sudo docker ps -q |sort) <(sudo docker ps -aq |sort) | xargs -r sudo docker rm"'
-alias -g drmi='"sudo docker images | grep none | cut -c 61-72 | xargs -r sudo docker rmi"'
-
-
-v() { vim =($@) }
-nautilus() { command nautilus --no-desktop > /dev/null 2>&1 "$@" &! }
-reboot() { sudo umount -a -t cifs && sudo reboot $@ }
-
-yaweb() {
-   if [ -z "$*" ]; then return; fi
-   (yaourt -Si $@ | grep URL | cut -f2,3 -d: | xargs --no-run-if-empty $BROWSER) 2>/dev/null
-}
-
-# (Much) Faster equivalent to 'sort | uniq -c'
-alias uniqc="awk '{ s[\$1]++ } END { for (i in s) {print s[i], i} }' | column -t"
-
 alias ggpull='git pull --rebase origin $(current_branch)'
 alias gd='git difftool'
-alias ggl='git log --decorate --oneline --graph --all -20'
 gitweb() {
    branch=$(current_branch) || return
    $BROWSER $(sed -e "s#^.*\(git[^\.]*\.[^:\.]*\)[:\.]#http://\1/#" -e "s#\.git#/pipelines#" <(git config --get remote.origin.url)) 2>& /dev/null
@@ -124,49 +105,13 @@ alias ll='ls -lh'
 # Example usage: jshint jss
 alias -g jss='**/*.js~(*node_modules|*bower_components|dist|*styleguide)/*'
 
-jkill() { jps 2>/dev/null | grep -i $1 | awk '{print $1}' | xargs kill -9 }
-
-pdfslice() {
-   # Usage: pdfslice ~/path/to/file.pdf a[-b]
-   # Crops pages a[-b] from file.pdf into ~/path/to/filea[-b].pdf
-   #
-   # Requires 'psutils' and 'poppler' packages
-   #
-   pdftops $1 - | psselect -p$2 | ps2pdf - ${1:r}$2.pdf
-}
-
-mvn() {
-   PURPLE=$(echo -en "\033[35m")
-   GREEN=$(echo -en "\033[32m")
-   RED=$(echo -en "\033[31m")
-   YELLOW=$(echo -e "\033[33m")
-   NORMAL=$(echo -e "\033[0m")
-   command mvn $* | sed \
-           -e "s/^\(.ERROR. .*\)$/$RED\1$NORMAL/" \
-           -e "s/^\([^\[].*\)/${YELLOW}\1${NORMAL}/" \
-           -e "s/^\(.INFO. ----.*\)$/$PURPLE\1$NORMAL/" \
-           -e "s/^\(.INFO. Building.*SNAPSHOT\)$/$PURPLE\1$NORMAL/" \
-           -e "s/^\(.INFO. --- .* ---.*\)$/$PURPLE\1$NORMAL/"\
-           -e "s/^\(.INFO. .*\)$/$GREEN\1$NORMAL/" \
-           -e "s/^\(.WARNING. .*\)$/$YELLOW\1$NORMAL/"
-}
-
-alias mci='mvn clean install -Dmaven.test.skip=true -T2'
 export M2_MEM="-Xms512m -Xmx768m -XX:PermSize=256m -XX:MaxPermSize=256m"
 export M2_DEBUG="$M2_MEM -Dmaven.test.skip=true -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000"
-export M2_DEBUG_ALT="${M2_DEBUG/8000/4000}"
-
 export SBT_OPTS=$M2_MEM
-
-export IPAD_AGENT="Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.10"
-
-alias minecraft='java -Xmx1024M -Xms512M -cp ~/minecraft.jar net.minecraft.LauncherFrame'
 
 export PATH=~/.gem/ruby/2.0.0/bin:/usr/local/sbin:/usr/local/bin:/usr/local/opt/node@6/bin:/usr/local/opt/go@1.7/bin:$PATH
 export NODE_PATH=/usr/local/lib/node_modules:$NODE_PATH
 export GOPATH=~/gocode
-
-uname | grep -q Darwin && source ~/.zshrc.mac
 
 # Bootstrap nvm
 # Will set the node version when the working dir has .nvmrc

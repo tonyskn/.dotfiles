@@ -1,2 +1,0 @@
-export BROWSER=open
-fpath=(/usr/local/share/zsh-completions $fpath)

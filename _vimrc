@@ -58,7 +58,7 @@ set tabstop=2
 set shiftwidth=2
 set softtabstop=2
 set autoindent
-set listchars=tab:▸\ ,eol:¬,extends:❯,precedes:❮
+set listchars=tab:»\ ,eol:¬,extends:❯,precedes:❮
 noremap <silent><Leader>s :set list!<CR>
 
 " tab completion
@@ -86,6 +86,8 @@ set colorcolumn=120
 
 " Adjust defaults {{{
 
+" don't bother me when a swap file exists
+set shortmess+=A
 " automatically read changed files
 set autoread
 " adjust indentation of wrapped lines
@@ -133,9 +135,6 @@ endif
 
 " Mappings {{{
 
-" easy newline
-nnoremap <CR> O<ESC>
-
 " Emacs style Home/End
 inoremap <c-a> <esc>I
 inoremap <c-e> <esc>A
@@ -143,10 +142,6 @@ inoremap <c-e> <esc>A
 " Better comand-line editing
 cnoremap <C-a> <Home>
 cnoremap <C-e> <End>
-
-" Line bubbling
-vnoremap <C-j> :m'>+<cr>`<my`>mzgv`yo`z
-vnoremap <C-k> :m'<-2<cr>`>my`<mzgv`yo`z
 
 " More fold/unfold mappings
 nnoremap <Space> za
@@ -160,23 +155,15 @@ nmap <Leader>= <C-w>=
 nmap <Leader>l <C-w>L
 nmap <Leader>p <C-w>J
 
-" mappings for navigating the location list
-map <Leader>J :lfirst<CR>
-map <Leader>j :lnext<CR>
-map <Leader>K :llast<CR>
-map <Leader>k :lprevious<CR>
-
 " configure extra mappings for fugitive's Gdiff view
 noremap <silent><Leader>d ]czz
 noremap <silent><Leader>D [czz
-" close Gdiff (or Gblame) view
+
+" close buffer and go up
 noremap <silent><Leader>q :x<CR><C-w>j
 
 " Sudo write
 cmap w!! w !sudo tee % > /dev/null <CR>
-
-" CTags
-map <Leader>rt :!ctags --extra=+f -R *<CR><CR>
 
 " HTML escape the content of Visual selection
 vnoremap <Leader>x :!recode utf8..html<CR>
@@ -199,18 +186,6 @@ augroup configgroup
 
    " Some filetypes need 4-space tabs
    au FileType {python,haskell,markdown} set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=79
-
-   " some filetypes need real tabs
-   au FileType {make,gitconfig} set noexpandtab
-
-   " apply 'eslint --fix' over the current javascript buffer
-   au FileType javascript nnoremap <silent><Leader>f :%!eslint --fix %<CR>:e!<CR>
-
-   " handlebars templates are HTML
-   au BufRead,BufNewFile *.handlebars set filetype=html
-
-   " handy mapping to :Eval when in Clojure
-   au FileType clojure nnoremap <silent><Leader>e :Eval<CR>
 augroup END
 " }}}
 
@@ -223,44 +198,32 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'flazz/vim-colorschemes'
 
 Plug 'tpope/vim-fugitive'
+Plug 'shumphrey/fugitive-gitlab.vim'
+
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
-Plug 'tpope/vim-projectionist'
 
-Plug 'kien/ctrlp.vim'
-Plug 'sgur/ctrlp-extensions.vim'
-Plug 'd11wtq/ctrlp_bdelete.vim'
+Plug 'mileszs/ack.vim'
+Plug 'ervandew/supertab'
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --bin' }
+Plug 'junegunn/fzf.vim'
 Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeFind', 'NERDTreeToggle'] }
 
-Plug 'benmills/vimux', { 'on': [] }
-Plug 'tmux-plugins/vim-tmux', { 'for': 'tmux' }
-Plug 'tmux-plugins/vim-tmux-focus-events'
-
-Plug 'tpope/vim-commentary'
-Plug 'scrooloose/syntastic'
-Plug 'editorconfig/editorconfig-vim'
-
-Plug 'rking/ag.vim'
-Plug 'sjl/gundo.vim'
 Plug 'edsono/vim-matchit'
 Plug 'Lokaltog/vim-easymotion'
+
 Plug 'diepm/vim-rest-console', { 'for': 'rest' }
+
+Plug 'w0rp/ale'
 
 Plug 'moll/vim-node'
 Plug 'othree/yajs.vim', { 'tag': '1.6' }
 Plug 'othree/javascript-libraries-syntax.vim'
-Plug 'leafgarland/typescript-vim', { 'for': 'typescript' }
-Plug 'elzr/vim-json', { 'for': 'json' }
-Plug 'digitaltoad/vim-jade', { 'for': 'pug' }
 
-Plug 'derekwyatt/vim-scala', { 'for': ['scala', 'sbt.scala'] }
-Plug 'tpope/vim-fireplace', { 'for': 'clojure' }
-Plug 'mattn/emmet-vim', { 'for': ['html', 'css'] }
-Plug 'tpope/vim-markdown', { 'for': 'markdown' }
-Plug 'groenewege/vim-less', { 'for': 'less' }
-Plug 'rodjek/vim-puppet', { 'for': 'puppet' }
+Plug 'tpope/vim-commentary'
+Plug 'sheerun/vim-polyglot'
 
-Plug 'ervandew/supertab'
+Plug 'tmux-plugins/vim-tmux-focus-events'
 
 " Add plugins to &runtimepath
 call plug#end()
@@ -280,6 +243,9 @@ let g:airline_powerline_fonts = 1
 set completeopt=longest,menuone,preview
 let g:SuperTabDefaultCompletionType = "<c-n>"
 let g:SuperTabLongestHighlight = 1
+let g:SuperTabLongestEnhanced = 1
+
+let g:fugitive_gitlab_domains = ['https://gitlab.adam']
 
 " configure NERDTree toggler
 let g:NERDTreeWinSize=40
@@ -291,28 +257,18 @@ let g:NERDTreeDirArrowCollapsible = '-'
 nnoremap <silent><Leader>nd :NERDTreeToggle<CR>
 nnoremap <silent><Leader>nf :NERDTreeFind<CR>
 
-" configure gundo
-nnoremap <Leader>u :GundoToggle<CR>
-let g:gundo_preview_bottom=1
-let g:gundo_help=0
-let g:gundo_close_on_revert=1
-
-" configure ctrlp mappings
-let g:ctrlp_mruf_max = 4096
-let g:ctrlp_working_path_mode = 'a'
-let g:ctrlp_use_caching = 0
-let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
-let g:ctrlp_match_window = 'max:30'
-let g:ctrlp_yankring_disable = 1
-set wildignore+=*/target/*,*/node_modules*/*,*/vimundo/*
-noremap <silent><Leader>nt :CtrlP<CR>
-noremap <silent><Leader>nb :CtrlPBuffer<CR>
-noremap <silent><Leader>ne :CtrlPMRUFiles<CR>
-noremap <silent><Leader>nr :CtrlPCmdline<CR>
-call ctrlp_bdelete#init()
+" configure FZF
+noremap <silent><Leader>nt :call fzf#run(fzf#wrap({'source': 'ag -g ""'}))<CR>
+noremap <silent><Leader>nb :Buffers<CR>
+noremap <silent><Leader>ne :History<CR>
+noremap <silent><Leader>nr :History:<CR>
+noremap <silent><Leader>nc :BCommits!<CR>
+let g:fzf_layout = { 'down': '~30%' }
 
 " Ag
-noremap <silent><Leader>G :AgFromSearch<CR>
+let g:ackprg = 'ag --vimgrep'
+" searches for the word under the cursor
+nnoremap <silent><Leader>G :Ack! "\b<cword>\b"<CR>
 
 " REST Console
 let g:vrc_set_default_mapping = 0
@@ -331,52 +287,32 @@ au BufNewFile,BufRead *.rest nmap <silent><c-i> :call VrcQuery()<CR>
 " Remap vim-commentary
 map ,c gc
 
-" fix nasty vimux bug with ruby1.9
-ruby << EOF
-class Object
-  def flush; end unless Object.new.respond_to?(:flush)
-end
-EOF
+" Enable quotes concealing for JSON files
+let g:vim_json_syntax_conceal = 1
 
-" configure vimux
-let g:VimuxHeight = "35"
-let g:VimuxOrientation = "h"
-noremap <silent>! :VimuxPromptCommand<CR>
-noremap <silent><Leader>rl :VimuxRunLastCommand<CR>
-noremap <silent><Leader>rr :call VimuxRunCommand("", 0)<CR>
-noremap <silent><Leader>ri :VimuxInspectRunner<CR>
-noremap <silent><Leader>rx :VimuxCloseRunner<CR>
-noremap <silent><Leader>rc :VimuxInterruptRunner<CR>
-vnoremap <silent><Leader>rv "vy :call VimuxRunCommand(@v . "\n")<CR>
-
-" Syntastic configuration
-let g:syntastic_stl_format = '[%E{Err: %fe #%e}%B{, }%W{Warn: %fw #%w}]'
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
-let g:syntastic_enable_signs=1
-" errors split closes when no errors left
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_error_symbol = '✗✗'
-let g:syntastic_style_error_symbol = '✗✗'
-let g:syntastic_warning_symbol = '≈≈'
-let g:syntastic_style_warning_symbol = '≈≈'
-
-" warnings are disabled by default
-let g:syntastic_quiet_messages = { "!level": "errors" }
-" enable warnings
-noremap <silent><Leader>z :let b:syntastic_quiet_messages = {}<CR>:e<CR>
-
-let g:syntastic_mode_map = { 'mode': 'active',
-                           \ 'active_filetypes': ['javascript', 'go'],
-                           \ 'passive_filetypes': ['java'] }
-
-let g:syntastic_javascript_checkers = ['eslint']
-let g:syntastic_go_checkers = ['go']
-
-if filereadable(expand("~/.vimrc.extras"))
-    source ~/.vimrc.extras
-endif
+" ALE configuration
+let g:ale_lint_on_text_changed = 'never'
+let g:ale_set_loclist = 0
+let g:ale_set_quickfix = 1
+let g:ale_sign_error = '✗✗'
+let g:ale_sign_highlights = 1 
+let g:ale_sign_warning = '▲'
+let g:airline#extensions#ale#enabled = 1
+let g:ale_javascript_eslint_options = '--quiet'
+let g:ale_pattern_options = {
+\   '\.js$': {
+\     'ale_linters': {'javascript': ['eslint']},
+\     'ale_fixers': {'javascript': ['eslint']}
+\   },
+\   '\.handlebars$': {
+\     'ale_enabled': 0
+\   },
+\}
+nmap <silent><Leader>f <Plug>(ale_fix)
+nmap <silent><Leader>J <Plug>(ale_first)
+nmap <silent><Leader>j <Plug>(ale_next_wrap)
+nmap <silent><Leader>k <Plug>(ale_previous_wrap)
+nmap <silent><Leader>K <Plug>(ale_last)
 
 " }}}
 
