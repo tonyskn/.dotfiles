@@ -172,6 +172,10 @@ vnoremap <Leader>x :!recode utf8..html<CR>
 nnoremap <silent><Leader>V :tabnew<CR>:put a<CR>:diffthis<CR>:vnew<CR>:put b<CR>:diffthis<CR>
 nnoremap <silent><Leader>Q :tabclose!<CR>
 
+" Toggle 'ignore whitespace' in vimdiff
+command ToggleIWhite if &diffopt =~ 'iwhite' | set diffopt-=iwhite | else | set diffopt+=iwhite | endif
+nnoremap <silent><Leader>w :ToggleIWhite<CR>
+
 " }}} 
 
 " Filetype Specific Rules {{{
