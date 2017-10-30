@@ -122,6 +122,8 @@ nnoremap k gk
 " Keep the search matches in the middle of the window
 nnoremap n nzzzv
 nnoremap N Nzzzv
+" Increase the amount of remembered old files
+set viminfo='1024
 
 " allows cursor change in tmux mode
 if exists('$TMUX')
@@ -170,9 +172,10 @@ vnoremap <Leader>x :!recode utf8..html<CR>
 
 " Diff contents of registers 'a and 'b
 nnoremap <silent><Leader>V :tabnew<CR>:put a<CR>:diffthis<CR>:vnew<CR>:put b<CR>:diffthis<CR>
-nnoremap <silent><Leader>Q :tabclose!<CR>
+nnoremap <silent><Leader>Q :windo bd!<CR>tabclose<CR>
 
 " Toggle 'ignore whitespace' in vimdiff
+set diffopt+=iwhite
 command ToggleIWhite if &diffopt =~ 'iwhite' | set diffopt-=iwhite | else | set diffopt+=iwhite | endif
 nnoremap <silent><Leader>w :ToggleIWhite<CR>
 
@@ -268,6 +271,10 @@ noremap <silent><Leader>ne :History<CR>
 noremap <silent><Leader>nr :History:<CR>
 noremap <silent><Leader>nc :BCommits!<CR>
 let g:fzf_layout = { 'down': '~30%' }
+let g:fzf_action = {
+  \ 'ctrl-x': 'split',
+  \ 'ctrl-v': 'vsplit',
+  \ 'ctrl-d': 'vertical diffsplit' }
 
 " Ag
 let g:ackprg = 'ag --vimgrep'
