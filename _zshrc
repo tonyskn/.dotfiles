@@ -43,7 +43,12 @@ bindkey '^z' fg_widget
 # Customize to your needs...
 export EDITOR=vim
 export SHELL=zsh
-export BROWSER=open
+if uname | grep -q Darwin;
+then
+  export BROWSER=open
+else
+  export BROWSER=google-chrome
+fi
 
 fpath=(/usr/local/share/zsh-completions $fpath)
 
