@@ -1,5 +1,5 @@
 
-" General Settings {{{
+" General settings {{{
 
 set nocompatible
 let mapleader = ","
@@ -13,7 +13,7 @@ set backupdir=~/.vim/backup
 set directory=~/.vim/backup
 
 " use + register for copy/paste
-set clipboard=unnamedplus
+set clipboard=unnamed
 
 " minimum lines to keep above/below cursor
 set scrolloff=3
@@ -42,7 +42,7 @@ let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 " don't redraw while executing macros
 set lazyredraw
 
-" allow to have hidden buffers not written
+" enable hidden unsaved buffers
 set hidden
 
 " enable syntax highlighting
@@ -81,6 +81,9 @@ set splitbelow
 
 " highlight line length
 set colorcolumn=120
+
+" fold vim files
+au FileType vim setlocal foldmethod=marker
 
 " }}}
 
@@ -133,21 +136,22 @@ else
     let &t_SI = "\<Esc>]50;CursorShape=1\x7"
     let &t_EI = "\<Esc>]50;CursorShape=0\x7"
 endif
+
 " }}}
 
-" Mappings {{{
+" Custom mappings {{{
 
-" Emacs style Home/End
+" Emacs style Home/End in insert/command mode
 inoremap <c-a> <esc>I
 inoremap <c-e> <esc>A
-
-" Better comand-line editing
 cnoremap <C-a> <Home>
 cnoremap <C-e> <End>
 
-" More fold/unfold mappings
+" <Space> toggles folding
 nnoremap <Space> za
 vnoremap <Space> za
+
+" enable quick navigation between folds
 nnoremap zJ zjzmza
 nnoremap zK zkzmza[z
 
@@ -157,7 +161,7 @@ nmap <Leader>= <C-w>=
 nmap <Leader>l <C-w>L
 nmap <Leader>p <C-w>J
 
-" configure extra mappings for fugitive's Gdiff view
+" handier navigation between diffs
 noremap <silent><Leader>d ]czz
 noremap <silent><Leader>D [czz
 
@@ -180,21 +184,6 @@ command ToggleIWhite if &diffopt =~ 'iwhite' | set diffopt-=iwhite | else | set 
 nnoremap <silent><Leader>w :ToggleIWhite<CR>
 
 " }}} 
-
-" Filetype Specific Rules {{{
-augroup configgroup
-   autocmd!
-
-   " fold vim files around {{{ ... }}}
-   au FileType vim setlocal foldmethod=marker
-
-   " Thorfile, Rakefile, Vagrantfile and Gemfile are Ruby
-   au BufRead,BufNewFile {Gemfile,Rakefile,Vagrantfile,Thorfile,config.ru} set ft=ruby
-
-   " Some filetypes need 4-space tabs
-   au FileType {python,haskell,markdown} set softtabstop=4 tabstop=4 shiftwidth=4 textwidth=79
-augroup END
-" }}}
 
 " Load plugins / Apply customizations {{{
 
@@ -325,11 +314,4 @@ nmap <silent><Leader>j <Plug>(ale_next_wrap)
 nmap <silent><Leader>k <Plug>(ale_previous_wrap)
 nmap <silent><Leader>K <Plug>(ale_last)
 
-" }}}
-
-" OS X specific settings {{{
-if has("mac")
-  set clipboard=unnamed
-endif
-  
 " }}}

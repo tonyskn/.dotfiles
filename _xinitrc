@@ -1,6 +1,0 @@
-#!/bin/bash -l
-
-# Force NVIDIA/Optimus to OFF state
-[ -f /usr/bin/optirun ] && optirun false
-
-exec gnome-session
