@@ -205,7 +205,7 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
 Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeFind', 'NERDTreeToggle'] }
 
-Plug 'edsono/vim-matchit'
+Plug 'tmhedberg/matchit'
 Plug 'Lokaltog/vim-easymotion'
 
 Plug 'diepm/vim-rest-console', { 'for': 'rest' }
