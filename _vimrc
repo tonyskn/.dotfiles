@@ -198,6 +198,7 @@ Plug 'shumphrey/fugitive-gitlab.vim'
 
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
+Plug 'justinmk/vim-sneak'
 
 Plug 'mileszs/ack.vim'
 Plug 'ervandew/supertab'
@@ -206,7 +207,6 @@ Plug 'junegunn/fzf.vim'
 Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeFind', 'NERDTreeToggle'] }
 
 Plug 'tmhedberg/matchit'
-Plug 'Lokaltog/vim-easymotion'
 
 Plug 'diepm/vim-rest-console', { 'for': 'rest' }
 
@@ -234,6 +234,12 @@ colorscheme solarized
 
 " set airline plugin to use fancy symbols
 let g:airline_powerline_fonts = 1
+
+" force sneak into label mode
+let g:sneak#use_ic_scs = 1
+nmap s <Plug>SneakLabel_s
+nmap S <Plug>SneakLabel_S
+nmap g; <Plug>Sneak_,
 
 " set supertab completion scheme
 set completeopt=longest,menuone,preview
