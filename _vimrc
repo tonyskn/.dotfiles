@@ -168,6 +168,11 @@ noremap <silent><Leader>D [czz
 " close buffer and go up
 noremap <silent><Leader>q :x<CR><C-w>j
 
+" walk through a list of files and show diffs against master
+nmap <silent><Leader>id <c-w>f:resize<CR><c-j><c-j>:Gvdiff master<CR>
+nmap <silent><Leader>if :bd<CR>:bd<CR>j<Leader>id
+nmap <silent><Leader>iF :bd<CR>:bd<CR>dd<Leader>id
+
 " Sudo write
 cmap w!! w !sudo tee % > /dev/null <CR>
 
