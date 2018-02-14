@@ -213,11 +213,11 @@ Plug 'diepm/vim-rest-console', { 'for': 'rest' }
 Plug 'w0rp/ale'
 
 Plug 'moll/vim-node'
-Plug 'othree/yajs.vim', { 'tag': '1.6' }
+Plug 'othree/yajs.vim'
 Plug 'othree/javascript-libraries-syntax.vim'
+Plug 'sheerun/vim-polyglot'
 
 Plug 'tpope/vim-commentary'
-Plug 'sheerun/vim-polyglot'
 
 Plug 'tmux-plugins/vim-tmux-focus-events'
 
@@ -295,6 +295,11 @@ map ,c gc
 
 " Enable quotes concealing for JSON files
 let g:vim_json_syntax_conceal = 1
+
+" Otherwise, YaJS would assign ft=javascript.jsx, and that
+" has some slight differences in syntax highliting
+au BufNewFile,BufRead *.js set ft=javascript
+
 
 " ALE configuration
 let g:ale_lint_on_text_changed = 'never'
