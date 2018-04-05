@@ -2,7 +2,7 @@ bind diff ! !@sh -c "echo %(commit) | xcopy"
 bind main ! !@sh -c "echo %(branch) | xcopy"
 
 bind status + !git commit --amend
-bind main f ?git fixup %(commit) -a
+bind main f ?git fixup %(commit)
 
 bind refs R ?git push origin :%(branch)
 
