@@ -45,6 +45,12 @@
             EDITOR=: GIT_SEQUENCE_EDITOR=: git rebase -i --autostash --autosquash $TARGET^; \
            }; f"
 
+  ## List changed files
+  changed = "!git diff --diff-filter=M --name-only"
+
+  ## List added files
+  added = "!git diff --diff-filter=A --name-only"
+
   ## List untracked filed
   untracked = "!git ls-files --others --exclude-standard"
 
