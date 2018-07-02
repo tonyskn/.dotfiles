@@ -125,6 +125,10 @@ nnoremap k gk
 " Keep the search matches in the middle of the window
 nnoremap n nzzzv
 nnoremap N Nzzzv
+" Make it easier to navigate links
+nnoremap <c-$> <C-]>
+" Make it easier to exit Terminal mode
+tnoremap <Esc> <C-\><C-n>
 " Increase the amount of remembered old files
 set viminfo='1024
 
@@ -203,7 +207,9 @@ Plug 'shumphrey/fugitive-gitlab.vim'
 
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
+Plug 'wellle/targets.vim'
 Plug 'justinmk/vim-sneak'
+Plug 'tmhedberg/matchit'
 
 Plug 'mileszs/ack.vim'
 Plug 'ervandew/supertab'
@@ -211,17 +217,14 @@ Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
 Plug 'scrooloose/nerdtree', { 'on':  ['NERDTreeFind', 'NERDTreeToggle'] }
 
-Plug 'tmhedberg/matchit'
-
 Plug 'diepm/vim-rest-console', { 'for': 'rest' }
-
-Plug 'w0rp/ale'
 
 Plug 'moll/vim-node'
 Plug 'othree/yajs.vim'
 Plug 'othree/javascript-libraries-syntax.vim'
-Plug 'sheerun/vim-polyglot'
 
+Plug 'w0rp/ale'
+Plug 'sheerun/vim-polyglot'
 Plug 'tpope/vim-commentary'
 
 Plug 'tmux-plugins/vim-tmux-focus-events'
@@ -245,6 +248,11 @@ let g:sneak#use_ic_scs = 1
 nmap s <Plug>SneakLabel_s
 nmap S <Plug>SneakLabel_S
 nmap g; <Plug>Sneak_,
+
+" Customize targets
+let g:targets_pairs = '()b {}c []B'
+let g:targets_argOpening = '[({[]'
+let g:targets_argClosing = '[]})]'
 
 " set supertab completion scheme
 set completeopt=longest,menuone,preview
