@@ -51,6 +51,9 @@
   ## List added files
   added = "!git diff --diff-filter=A --name-only"
 
+  ## List added files
+  deleted = "!git diff --diff-filter=D --name-only"
+
   ## List untracked filed
   untracked = "!git ls-files --others --exclude-standard"
 
