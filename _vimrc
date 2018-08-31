@@ -273,7 +273,7 @@ nnoremap <silent><Leader>nd :NERDTreeToggle<CR>
 nnoremap <silent><Leader>nf :NERDTreeFind<CR>
 
 " configure FZF
-noremap <silent><Leader>nt :call fzf#run(fzf#wrap({'source': 'ag -g ""'}))<CR>
+noremap <silent><Leader>nt :call fzf#run(fzf#wrap({'source': 'ag --hidden --ignore .git -g ""'}))<CR>
 noremap <silent><Leader>nb :Buffers<CR>
 noremap <silent><Leader>ne :History<CR>
 noremap <silent><Leader>nr :History:<CR>
