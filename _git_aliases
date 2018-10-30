@@ -45,14 +45,26 @@
             EDITOR=: GIT_SEQUENCE_EDITOR=: git rebase -i --autostash --autosquash $TARGET^; \
            }; f"
 
-  ## List changed files
-  changed = "!git diff --diff-filter=M --name-only"
+  ## List changed files between $REF (or HEAD) and the closest merge
+  changed = "!f() { \
+              REF=${1:-HEAD}; \
+              PARENT=`git rev-list --min-parents=2 --max-count=1 "${REF}^"`; \
+              git diff --diff-filter=M --name-only $PARENT..$REF; \
+            }; f"
 
-  ## List added files
-  added = "!git diff --diff-filter=A --name-only"
+  ## List added files between $REF (or HEAD) and the closest merge
+  added = "!f() { \
+              REF=${1:-HEAD}; \
+              PARENT=`git rev-list --min-parents=2 --max-count=1 "${REF}^"`; \
+              git diff --diff-filter=A --name-only $PARENT..$REF; \
+            }; f"
 
-  ## List added files
-  deleted = "!git diff --diff-filter=D --name-only"
+  ## List deleted files between $REF (or HEAD) and the closest merge
+  deleted = "!f() { \
+              REF=${1:-HEAD}; \
+              PARENT=`git rev-list --min-parents=2 --max-count=1 "${REF}^"`; \
+              git diff --diff-filter=D --name-only $PARENT..$REF; \
+            }; f"
 
   ## List untracked filed
   untracked = "!git ls-files --others --exclude-standard"
