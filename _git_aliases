@@ -23,6 +23,11 @@
   ## @see `push`
   publish = push -u origin HEAD
 
+  ## Dealing with named stashes
+  ssave = stash save
+  sshow = "!f() { git stash show stash^{/$*} -p; }; f"
+  sapply = "!f() { git stash apply stash^{/$*}; }; f"
+
   ## Finish the current feature or hotfix branch properly
   ## @see `merge`
   finish = "!f() { \
