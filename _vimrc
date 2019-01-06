@@ -297,6 +297,7 @@ let b:vrc_response_default_content_type = 'application/json'
 let g:vrc_curl_opts = {
   \ '-b': $HOME . '/.vim/backup/vrc_cookie_jar',
   \ '-c': $HOME . '/.vim/backup/vrc_cookie_jar',
+  \ '-i': '',
   \ '-s': '',
   \ '-L': '',
   \ '-k': '',
