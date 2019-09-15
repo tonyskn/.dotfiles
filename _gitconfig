@@ -21,3 +21,4 @@
    prompt = false
 [remote "origin"]
    prune = true
+   tagOpt = --tags
