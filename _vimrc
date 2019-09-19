@@ -230,6 +230,7 @@ Plug 'othree/javascript-libraries-syntax.vim'
 Plug 'w0rp/ale'
 Plug 'sheerun/vim-polyglot'
 Plug 'tpope/vim-commentary'
+Plug 'editorconfig/editorconfig-vim'
 
 Plug 'tmux-plugins/vim-tmux-focus-events'
 
