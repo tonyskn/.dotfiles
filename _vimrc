@@ -247,6 +247,10 @@ colorscheme solarized
 
 " set airline plugin to use fancy symbols
 let g:airline_powerline_fonts = 1
+if !exists('g:airline_symbols')
+  let g:airline_symbols = {}
+endif
+let g:airline_symbols.dirty = " \u2042"
 
 " force sneak into label mode
 let g:sneak#use_ic_scs = 1
