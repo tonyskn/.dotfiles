@@ -326,7 +326,7 @@ let g:airline#extensions#ale#enabled = 1
 let g:ale_javascript_eslint_options = '--quiet'
 let g:ale_pattern_options = {
 \   '\.js$': {
-\     'ale_linters': {'javascript': ['eslint']},
+\     'ale_linters': {'javascript': ['eslint', 'flow']},
 \     'ale_fixers': {'javascript': ['eslint']}
 \   },
 \   '\.handlebars$': {
