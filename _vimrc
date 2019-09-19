@@ -192,6 +192,10 @@ set diffopt+=iwhite
 command ToggleIWhite if &diffopt =~ 'iwhite' | set diffopt-=iwhite | else | set diffopt+=iwhite | endif
 nnoremap <silent><Leader>w :ToggleIWhite<CR>
 
+" Run a terminal command silently
+command -nargs=1 Run execute ':call job_start("'.<q-args>.'")'
+nnoremap <Leader>! :Run<Space>
+
 " }}} 
 
 " Load plugins / Apply customizations {{{
