@@ -227,7 +227,7 @@ Plug 'moll/vim-node'
 Plug 'othree/yajs.vim'
 Plug 'othree/javascript-libraries-syntax.vim'
 
-Plug 'w0rp/ale'
+Plug 'dense-analysis/ale'
 Plug 'sheerun/vim-polyglot'
 Plug 'tpope/vim-commentary'
 Plug 'editorconfig/editorconfig-vim'
@@ -323,9 +323,9 @@ let g:vim_json_syntax_conceal = 1
 " has some slight differences in syntax highliting
 au BufNewFile,BufRead *.js set ft=javascript
 
-
 " ALE configuration
 let g:ale_lint_on_text_changed = 'never'
+let g:ale_lint_on_insert_leave = 0
 let g:ale_set_loclist = 0
 let g:ale_set_quickfix = 1
 let g:ale_sign_error = '✗✗'
@@ -333,19 +333,23 @@ let g:ale_sign_highlights = 1
 let g:ale_sign_warning = '▲'
 let g:airline#extensions#ale#enabled = 1
 let g:ale_javascript_eslint_options = '--quiet'
-let g:ale_pattern_options = {
-\   '\.js$': {
-\     'ale_linters': {'javascript': ['eslint', 'flow']},
-\     'ale_fixers': {'javascript': ['eslint']}
-\   },
-\   '\.handlebars$': {
-\     'ale_enabled': 0
-\   },
-\}
-nmap <silent><Leader>f <Plug>(ale_fix)
+let g:ale_linters_explicit = 1
+let g:ale_echo_msg_error_str = 'E'
+let g:ale_echo_msg_warning_str = 'W'
+let g:ale_echo_msg_format = '[%linter%] [%severity%] %s'
+let g:ale_linters = {'javascript': ['eslint'], 'typescript': ['eslint', 'tsserver']}
+let g:ale_fixers = {'javascript': ['eslint'], 'typescript': ['eslint']}
+
+nmap <silent><Leader>f :let g:ale_javascript_eslint_options=''<CR><Plug>(ale_fix):let g:ale_javascript_eslint_options='--quiet'<CR>
 nmap <silent><Leader>J <Plug>(ale_first)
 nmap <silent><Leader>j <Plug>(ale_next_wrap)
 nmap <silent><Leader>k <Plug>(ale_previous_wrap)
 nmap <silent><Leader>K <Plug>(ale_last)
+
+nmap <silent><Leader>gf :ALEGoToDefinition<CR>
+nmap <silent><Leader>gr :ALEFindReferences<CR>
+nmap <silent><Leader>gg :ALEHover<CR>
+
+au BufNewFile,BufRead *.ts,*.tsx set omnifunc=ale#completion#OmniFunc
 
 " }}}
