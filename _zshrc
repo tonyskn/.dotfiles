@@ -138,7 +138,7 @@ nvm use 2> /dev/null 1> /dev/null
 
 # Boostrap rbenv
 # Selects the Ruby version in folders with a .ruby-version file
-eval "$(rbenv init -)"
+which rbenv > /dev/null && eval "$(rbenv init -)"
 
 if [[ -f /usr/bin/tmux || -f /usr/local/bin/tmux ]]; then
   # attach to an already running tmux session or create new one
