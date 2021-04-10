@@ -126,8 +126,9 @@ alias -g jss='**/*.js~(*node_modules|dist|*styleguide)/*'
 # Example usage: cat logs | grep endpoint | jq -r .took | stats
 alias -g stats='datamash -H count 1 min 1 max 1 q3 1 perc:90 1 perc:98 1 perc:99 1 | column -t'
 
-export PATH=~/.bin:/usr/local/sbin:/usr/local/bin:~/gocode/bin:$PATH
-export NODE_PATH=/usr/local/lib/node_modules:$NODE_PATH
+export BREW=/opt/homebrew
+export PATH=~/.bin:$BREW/sbin:$BREW/bin:$PATH
+export NODE_PATH=$BREW/lib/node_modules:$NODE_PATH
 export GOPATH=~/gocode
 # Among other things, this suppresses LOCALE warnings when launching VIM
 export LC_ALL=en_US.UTF-8
@@ -140,7 +141,7 @@ nvm use 2> /dev/null 1> /dev/null
 # Selects the Ruby version in folders with a .ruby-version file
 which rbenv > /dev/null && eval "$(rbenv init -)"
 
-if [[ -f /usr/bin/tmux || -f /usr/local/bin/tmux ]]; then
+if [[ -f /usr/bin/tmux || -f $BREW/bin/tmux ]]; then
   # attach to an already running tmux session or create new one
   # unless we're running a login shell in a virtual console or via SSH
   tty | grep -qo /dev/tty.$ || test "$SSH_TTY" || test "$TMUX" || tmux attach 2>/dev/null || tmux new-session
