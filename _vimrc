@@ -210,7 +210,8 @@ call plug#begin('~/.vim/plugged')
 
 Plug 'bling/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'flazz/vim-colorschemes'
+Plug 'lifepillar/vim-solarized8'
+Plug 'arcticicestudio/nord-vim'
 
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-rhubarb'
@@ -247,9 +248,10 @@ call plug#end()
 nnoremap <silent><Leader>S :PlugStatus<CR>
 
 " default colorscheme
+set termguicolors
 set background=dark
-let g:solarized_contrast="high"
-colorscheme solarized
+" colorscheme solarized8
+colorscheme nord
 
 " set airline plugin to use fancy symbols
 let g:airline_powerline_fonts = 1
