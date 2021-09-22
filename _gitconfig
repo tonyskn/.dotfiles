@@ -7,8 +7,8 @@
 [push]
    default = current
 [user]
-   name = tonyskn
-   email = tonyskn@gmail.com
+  name = Tony Elsokhon
+  userConfigOnly = true
 [include]
    path = ~/.git_aliases
 [rebase]
