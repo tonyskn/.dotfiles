@@ -1,8 +1,0 @@
-#!/bin/sh
-if uname | grep -q Darwin;
-then
-  pbpaste
-else
-  xclip -o -selection c
-fi
-

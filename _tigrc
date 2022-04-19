@@ -1,5 +1,5 @@
-bind diff ! !@sh -c "echo %(commit) | xcopy"
-bind main ! !@sh -c "echo %(branch) | xcopy"
+bind diff ! !@sh -c "echo %(commit) | pbcopy"
+bind main ! !@sh -c "echo %(branch) | pbcopy"
 
 bind status + !git commit --amend
 bind main f ?git fixup %(commit)
