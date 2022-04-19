@@ -196,6 +196,9 @@ nnoremap <silent><Leader>w :ToggleIWhite<CR>
 command -nargs=1 Run execute ':call job_start("'.<q-args>.'")'
 nnoremap <Leader>! :Run<Space>
 
+" Replace visual selection with output of command
+vnoremap <Leader>! c<C-R>=system("zsh -lc '" . input(":") . "'")<CR>
+
 " }}} 
 
 " Load plugins / Apply customizations {{{
@@ -278,6 +281,7 @@ let g:SuperTabLongestHighlight = 1
 let g:SuperTabLongestEnhanced = 1
 
 let g:fugitive_gitlab_domains = ['https://gitlab.adam']
+let g:github_enterprise_urls = ['https://ghe.spotify.net']
 
 " configure NERDTree toggler
 let g:NERDTreeWinSize=40
@@ -311,15 +315,16 @@ let g:vrc_set_default_mapping = 0
 let g:vrc_allow_get_request_body = 1
 let g:vrc_elasticsearch_support = 1
 let b:vrc_response_default_content_type = 'application/json'
+let g:vrc_output_buffer_name = '__REST.json'
 let g:vrc_curl_opts = {
   \ '-b': $HOME . '/.vim/backup/vrc_cookie_jar',
   \ '-c': $HOME . '/.vim/backup/vrc_cookie_jar',
-  \ '-i': '',
   \ '-s': '',
   \ '-L': '',
   \ '-k': '',
 \}
 au BufNewFile,BufRead *.rest nmap <silent><c-i> :call VrcQuery()<CR>
+au BufEnter __REST.json set modifiable
 
 " Remap vim-commentary
 map ,c gc
