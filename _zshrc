@@ -88,6 +88,10 @@ function tssh() {
   fi
 }
 
+function table() {
+  awk -F'|' ' NR > 3 && !/^+--/ { print $2,$3,$4,$5,$6,$7 }' | column -t
+}
+
 watch() {
   command watch -n1 "zsh -l -c \"source ~/.zshrc; $@\""
 }
