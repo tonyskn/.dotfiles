@@ -1,4 +1,12 @@
 [alias]
+  ## git onto $ref [newbase=master]
+  onto = "!f() { \
+              REF=$1; \
+              NEWBASE=${2:-master}; \
+              BRANCH=$(git symbolic-ref --quiet HEAD); \
+              git rebase --onto $NEWBASE "${REF}^" ${BRANCH#refs/heads/}; \
+            }; f"
+
   ## Dealing with named stashes
   ssave = stash save
   sshow = "!f() { git stash show stash^{/$*} -p; }; f"
