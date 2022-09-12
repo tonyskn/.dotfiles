@@ -324,6 +324,9 @@ let g:vrc_curl_opts = {
   \ '-k': '',
 \}
 au BufNewFile,BufRead *.rest nmap <silent><c-i> :call VrcQuery()<CR>
+au BufWinLeave *.rest mkview 
+au BufWinEnter *.rest silent! loadview
+
 au BufEnter __REST.json set modifiable
 
 " Remap vim-commentary

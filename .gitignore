@@ -1,4 +1,5 @@
 _vim/plugged
+_vim/view
 _vim/.netrwhist
 _tmux/plugins/
 !_tmux/plugins/tpm
