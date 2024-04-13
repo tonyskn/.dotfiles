@@ -43,7 +43,8 @@ zle -N fg_widget
 bindkey '^z' fg_widget
 
 # Customize to your needs...
-export EDITOR=vim
+export EDITOR=nvim
+alias -g vim=nvim
 export SHELL=zsh
 if uname | grep -q Darwin;
 then
@@ -88,8 +89,8 @@ function tssh() {
   fi
 }
 
-function table() {
-  awk -F'|' ' NR > 3 && !/^+--/ { print $2,$3,$4,$5,$6,$7 }' | column -t
+table() {
+  tail +4 | ghead -n -1 | sed 's/ *| */\t/g'
 }
 
 watch() {
@@ -150,3 +151,10 @@ if [[ -f /usr/bin/tmux || -f $BREW/bin/tmux ]]; then
   # unless we're running a login shell in a virtual console or via SSH
   tty | grep -qo /dev/tty.$ || test "$SSH_TTY" || test "$TMUX" || tmux attach 2>/dev/null || tmux new-session
 fi
+
+# bun completions
+[ -s "/Users/telsokhon/.bun/_bun" ] && source "/Users/telsokhon/.bun/_bun"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="$HOME/.sdkman"
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
