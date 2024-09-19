@@ -18,7 +18,7 @@ export DISABLE_AUTO_UPDATE="true"
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git z npm nvm node yarn history docker)
+plugins=(git npm nvm node yarn history docker)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -154,6 +154,9 @@ fi
 
 # bun completions
 [ -s "/Users/telsokhon/.bun/_bun" ] && source "/Users/telsokhon/.bun/_bun"
+
+# zoxide
+eval "$(zoxide init zsh)"
 
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
