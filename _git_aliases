@@ -1,8 +1,8 @@
 [alias]
   ## git onto $ref [newbase=master]
   onto = "!f() { \
-              REF=$1; \
-              NEWBASE=${2:-master}; \
+              REF=$2; \
+              NEWBASE=${1:-master}; \
               BRANCH=$(git symbolic-ref --quiet HEAD); \
               git rebase --onto $NEWBASE "${REF}^" ${BRANCH#refs/heads/}; \
             }; f"

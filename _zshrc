@@ -24,11 +24,19 @@ source $ZSH/oh-my-zsh.sh
 
 # Do not persist commands starting with *space* in zsh history
 setopt HIST_IGNORE_SPACE
+# Set up history sharing
+setopt hist_expire_dups_first
+setopt sharehistory
 
 # Enable exotic globbing
 setopt extendedglob
 
 ulimit -n 2048
+
+# Increase Zsh history size
+export HISTSIZE=100000
+export SAVEHIST=$HISTSIZE
+
 
 # `gm` alias from oh-my-zsh/git conflicts with GraphicsMagick
 unalias gm
@@ -72,21 +80,21 @@ gtimeout() {
 
 # SSH to multiple hosts and
 # turn on synchronization
-function tssh() {
-  if [ "$1" = "-e" ];
-  then
-    shift
-    tmux rename-window "tssh"
-    tssh $(nodeset -e "$@")
-  else
+function tmulti() {
+  # if [ "$1" = "-e" ];
+  # then
+  #   shift
+  #   tmux rename-window "mux"
+  #   tssh $(nodeset -e "$@")
+  # else
     for (( i=$#; i>0; i-- )); do
-      tmux split-window -d -p$((100 / $i)) "ssh $1"
+      tmux split-window -d -p$((100 / $i)) zsh -lc "$1"
       tmux select-layout tiled
       shift;
     done
     tmux setw synchronize-panes
     exit
-  fi
+  # fi
 }
 
 table() {
@@ -132,7 +140,7 @@ alias -g jss='**/*.js~(*node_modules|dist|*styleguide)/*'
 alias -g stats='datamash -H count 1 min 1 max 1 q3 1 perc:90 1 perc:98 1 perc:99 1 | column -t'
 
 export BREW=/opt/homebrew
-export PATH=~/.bin:$BREW/sbin:$BREW/bin:$PATH
+export PATH=~/.bin:~/.local/bin:$BREW/sbin:$BREW/bin:$PATH
 export NODE_PATH=$BREW/lib/node_modules:$NODE_PATH
 export GOPATH=~/gocode
 # Among other things, this suppresses LOCALE warnings when launching VIM
@@ -149,11 +157,14 @@ which rbenv > /dev/null && eval "$(rbenv init -)"
 if [[ -f /usr/bin/tmux || -f $BREW/bin/tmux ]]; then
   # attach to an already running tmux session or create new one
   # unless we're running a login shell in a virtual console or via SSH
-  tty | grep -qo /dev/tty.$ || test "$SSH_TTY" || test "$TMUX" || tmux attach 2>/dev/null || tmux new-session
+  tty | grep -qo /dev/tty.$ || test "$SSH_TTY" || test "$TMUX" || ps -p $PPID | grep 'IntelliJ\|WebStorm' > /dev/null \
+    || tmux attach 2>/dev/null || tmux new-session
 fi
 
 # bun completions
-[ -s "/Users/telsokhon/.bun/_bun" ] && source "/Users/telsokhon/.bun/_bun"
+export BUN_INSTALL=~/.bun
+export PATH=$BUN_INSTALL/bin:$PATH
+[ -s ~/.bun/_bun ] && source ~/.bun/_bun
 
 # zoxide
 eval "$(zoxide init zsh)"
@@ -161,3 +172,6 @@ eval "$(zoxide init zsh)"
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+
+alias claude="/Users/telsokhon/.claude/local/claude"
