@@ -23,20 +23,16 @@ plugins=(git npm nvm node yarn history docker)
 source $ZSH/oh-my-zsh.sh
 
 # Do not persist commands starting with *space* in zsh history
-setopt HIST_IGNORE_SPACE
-# Set up history sharing
-setopt hist_expire_dups_first
-setopt sharehistory
+setopt inc_append_history hist_expire_dups_first hist_ignore_space
+HISTFILE=${XDG_DATA_HOME:-$HOME/.local/share}/zsh/zsh_history
+[[ -d $HISTFILE:h ]] || mkdir -p $HISTFILE:h
+SAVEHIST=100000  # History file size
+HISTSIZE=20000   # Session history size
 
 # Enable exotic globbing
 setopt extendedglob
 
 ulimit -n 2048
-
-# Increase Zsh history size
-export HISTSIZE=100000
-export SAVEHIST=$HISTSIZE
-
 
 # `gm` alias from oh-my-zsh/git conflicts with GraphicsMagick
 unalias gm
@@ -160,11 +156,6 @@ if [[ -f /usr/bin/tmux || -f $BREW/bin/tmux ]]; then
   tty | grep -qo /dev/tty.$ || test "$SSH_TTY" || test "$TMUX" || ps -p $PPID | grep 'IntelliJ\|WebStorm' > /dev/null \
     || tmux attach 2>/dev/null || tmux new-session
 fi
-
-# bun completions
-export BUN_INSTALL=~/.bun
-export PATH=$BUN_INSTALL/bin:$PATH
-[ -s ~/.bun/_bun ] && source ~/.bun/_bun
 
 # zoxide
 eval "$(zoxide init zsh)"
