@@ -48,7 +48,8 @@ bindkey '^z' fg_widget
 
 # Customize to your needs...
 export EDITOR=nvim
-alias -g vim=nvim
+alias vim=nvim
+alias vi=nvim
 export SHELL=zsh
 if uname | grep -q Darwin;
 then
@@ -113,6 +114,22 @@ travis() {
   $BROWSER $(sed -e "s#^.*\(git[^\.]*\.[^:\.]*\)[:\.]#https://travis-ci.com/#" -e "s#\.git##" <(git config --get remote.origin.url)) 2>& /dev/null
 }
 
+linview() {
+  branch=$(current_branch) || return
+  # Extract ticket ID from branch pattern: username/ticket-id-description
+  ticket=$(echo "$branch" | sed -n 's#.*/\([a-zA-Z0-9]*-[0-9]*\)-.*#\1#p')
+  if [[ -z "$ticket" ]]; then
+    echo "No ticket ID found in branch: $branch"
+    return 1
+  fi
+  url=$(linctl issue get "${ticket:u}" --json 2>/dev/null | jq -r '.url // empty')
+  if [[ -z "$url" ]]; then
+    echo "Could not find Linear issue: ${ticket:u}"
+    return 1
+  fi
+  $BROWSER "$url" 2>/dev/null
+}
+
 sample() {
   gsort -R | head -$1
 }
@@ -164,5 +181,11 @@ eval "$(zoxide init zsh)"
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
+# fzf keybindings: Ctrl+R (history), Ctrl+T (file picker), Alt+C (cd into dir)
+source $BREW/opt/fzf/shell/key-bindings.zsh
+source $BREW/opt/fzf/shell/completion.zsh
 
-alias claude="/Users/telsokhon/.claude/local/claude"
+
+# Starship prompt (overrides oh-my-zsh theme)
+eval "$(starship init zsh)"
+
