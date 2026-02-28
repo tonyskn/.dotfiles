@@ -1,0 +1,160 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(~/.claude/CLAUDE.md)",
+      "Edit(~/.claude/CLAUDE.md)",
+      "Write(~/.claude/CLAUDE.md)",
+      "Edit(~/spotify/**)",
+      "Write(~/spotify/**)",
+      "Read(~/spotify/**)",
+      "Read(~/.claude/settings.json)",
+      "Read(~/.dotfiles/**)",
+      "Edit(~/.dotfiles/**)",
+      "Write(~/.dotfiles/**)",
+      "Glob(~/.dotfiles/**)",
+      "Grep(~/.dotfiles/**)",
+      "Glob(~/spotify/**)",
+      "Grep(~/spotify/**)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git fetch:*)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(git stash:*)",
+      "Bash(git remote:*)",
+      "Bash(git config:*)",
+      "Bash(git clone:*)",
+      "Bash(gh api:*)",
+      "Bash(gh repo view:*)",
+      "Bash(gh repo clone:*)",
+      "Bash(gh repo fork:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr status:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr diff:*)",
+      "Bash(gcloud logging read:*)",
+      "Bash(curl -s http*)",
+      "Bash(curl -s https*)",
+      "Bash(curl --silent http*)",
+      "Bash(curl --silent https*)",
+      "mcp__linear-server__get_issue",
+      "mcp__linear-server__list_issues",
+      "mcp__linear-server__save_issue",
+      "mcp__linear-server__list_comments",
+      "mcp__linear-server__create_comment",
+      "mcp__linear-server__list_issue_statuses",
+      "mcp__linear-server__list_issue_labels",
+      "mcp__linear-server__list_projects",
+      "mcp__linear-server__get_project",
+      "mcp__linear-server__list_teams",
+      "mcp__linear-server__get_team",
+      "mcp__linear-server__list_users",
+      "mcp__linear-server__get_user",
+      "mcp__linear-server__list_cycles",
+      "mcp__linear-server__get_document",
+      "mcp__linear-server__list_documents",
+      "mcp__linear-server__create_document",
+      "mcp__linear-server__update_document",
+      "mcp__linear-server__extract_images",
+      "mcp__linear-server__get_attachment",
+      "mcp__linear-server__create_attachment",
+      "mcp__linear-server__search_documentation",
+      "Bash(GH_HOST=ghe.spotify.net gh gist *)",
+      "Bash(yarn tsc*)",
+      "Bash(yarn lint*)",
+      "Bash(yarn test*)",
+      "Bash(yarn build*)",
+      "Bash(yarn format*)",
+      "Bash(yarn prettier*)",
+      "Bash(mvn test*)",
+      "Bash(mvn compile*)",
+      "Bash(mvn com.spotify.fmt:fmt-maven-plugin:format*)",
+      "Bash(cd ~/spotify/* && yarn *)",
+      "Bash(cd ~/spotify/* && mvn *)",
+      "Bash(cd ~/spotify/* && git status*)",
+      "Bash(cd ~/spotify/* && git diff*)",
+      "Bash(cd ~/spotify/* && git log*)",
+      "Bash(cd ~/spotify/* && git show*)",
+      "Bash(cd ~/spotify/* && git branch*)",
+      "Bash(cd ~/spotify/* && git fetch*)",
+      "Bash(cd ~/spotify/* && git remote*)",
+      "Bash(cd ~/spotify/* && git config*)",
+      "Bash(~/spotify/toggle-sdk local*)",
+      "Bash(~/spotify/toggle-sdk published*)",
+      "mcp__aika__spotify_internal_search",
+      "mcp__aika__list_data_sources",
+      "mcp__codesearch__search_code",
+      "mcp__codesearch__read_file",
+      "mcp__codesearch__count_matches",
+      "mcp__jetbrains__get_run_configurations",
+      "mcp__jetbrains__execute_run_configuration",
+      "mcp__jetbrains__get_file_problems",
+      "mcp__jetbrains__execute_terminal_command",
+      "mcp__jetbrains__get_file_text_by_path",
+      "mcp__jetbrains__replace_text_in_file",
+      "mcp__jetbrains__find_files_by_name_keyword",
+      "mcp__jetbrains__find_files_by_glob",
+      "mcp__jetbrains__search_in_files_by_text",
+      "mcp__jetbrains__search_in_files_by_regex",
+      "mcp__jetbrains__list_directory_tree",
+      "mcp__jetbrains__get_all_open_file_paths",
+      "mcp__jetbrains__open_file_in_editor",
+      "mcp__jetbrains__reformat_file",
+      "mcp__jetbrains__get_symbol_info",
+      "mcp__jetbrains__get_project_modules",
+      "mcp__jetbrains__get_project_dependencies",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__click",
+      "mcp__chrome-devtools__fill",
+      "mcp__chrome-devtools__press_key",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__select_page",
+      "mcp__chrome-devtools__close_page",
+      "mcp__chrome-devtools__wait_for"
+    ]
+  },
+  "model": "opus",
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/add-attention.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/clear-attention.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/add-stopped.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "effortLevel": "medium"
+}
