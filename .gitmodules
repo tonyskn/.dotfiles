@@ -1,4 +1,0 @@
-[submodule "_oh-my-zsh"]
-	path = _oh-my-zsh
-	url = https://github.com/ohmyzsh/ohmyzsh
-	ignore = untracked

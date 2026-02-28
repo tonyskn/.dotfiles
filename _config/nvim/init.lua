@@ -43,7 +43,7 @@ vim.opt.completeopt = { "longest", "menuone", "preview" }
 vim.opt.diffopt:append("iwhite")
 
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = "vim",
+  pattern = { "vim", "lua", "zsh", "tmux" },
   callback = function() vim.opt_local.foldmethod = "marker" end,
 })
 

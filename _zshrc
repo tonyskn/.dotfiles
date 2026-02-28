@@ -1,44 +1,33 @@
 # vim:ft=zsh
 
-# Path to your oh-my-zsh configuration.
-export ZSH=$HOME/.oh-my-zsh
+# Completion system {{{
 
-# Set to the name theme to load.
-# Look in ~/.oh-my-zsh/themes/
-export ZSH_THEME="arrow"
+autoload -Uz compinit
+compinit -C
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
-# Set to this to use case-sensitive completion
-# export CASE_SENSITIVE="true"
+# }}}
 
-# Comment this out to disable weekly auto-update checks
-export DISABLE_AUTO_UPDATE="true"
+# Shell options {{{
 
-# Uncomment following line if you want to disable colors in ls
-# export DISABLE_LS_COLORS="true"
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Example format: plugins=(rails git textmate ruby lighthouse)
-plugins=(git npm nvm node yarn history docker)
-
-source $ZSH/oh-my-zsh.sh
-
+bindkey -e
 # Do not persist commands starting with *space* in zsh history
 setopt inc_append_history hist_expire_dups_first hist_ignore_space
+setopt extendedglob
 HISTFILE=${XDG_DATA_HOME:-$HOME/.local/share}/zsh/zsh_history
 [[ -d $HISTFILE:h ]] || mkdir -p $HISTFILE:h
 SAVEHIST=100000  # History file size
 HISTSIZE=20000   # Session history size
 
-# Enable exotic globbing
-setopt extendedglob
-
 ulimit -n 2048
 
-# `gm` alias from oh-my-zsh/git conflicts with GraphicsMagick
-unalias gm
+# }}}
 
-# Re-bind edit-command-line
-# (for some reason, the binding gets lost)
+# Key bindings {{{
+
+autoload -Uz edit-command-line
+zle -N edit-command-line
 bindkey "\C-x\C-e" edit-command-line
 
 # <c-z> runs fg
@@ -46,52 +35,82 @@ fg_widget() fg
 zle -N fg_widget
 bindkey '^z' fg_widget
 
-# Customize to your needs...
+# up/down arrow searches history matching current input
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+bindkey "^[[A" up-line-or-beginning-search
+bindkey "^[[B" down-line-or-beginning-search
+
+# }}}
+
+# Environment {{{
+
+eval $(/opt/homebrew/bin/brew shellenv)
+export HOMEBREW_NO_ENV_HINTS=1
+
 export EDITOR=nvim
 alias vim=nvim
 alias vi=nvim
 export SHELL=zsh
-if uname | grep -q Darwin;
-then
-  export BROWSER=open
-else
-  export BROWSER=google-chrome
-fi
+export BROWSER=open
+export PATH=~/.bin:~/.local/bin:$PATH
+export NODE_PATH=$HOMEBREW_PREFIX/lib/node_modules:$NODE_PATH
+export GOPATH=~/gocode
+# Suppresses LOCALE warnings when launching VIM, among other things
+export LC_ALL=en_US.UTF-8
+export PARALLEL='--keep-order -j4 -C"\\\t"'
 
-fpath=(/usr/local/share/zsh-completions $fpath)
+# Google Cloud SDK
+source "$HOMEBREW_PREFIX/share/google-cloud-sdk/path.zsh.inc"
+source "$HOMEBREW_PREFIX/share/google-cloud-sdk/completion.zsh.inc"
 
-# Prevent oh-my-zsh from auto-updating window titles
-export DISABLE_AUTO_TITLE=true
+# JetBrains Toolbox
+export PATH="$PATH:$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
 
-# run command in a new tmux pane, while keeping
-# the cursor at the current shell
+fpath=($HOMEBREW_PREFIX/share/zsh-completions $fpath)
+
+# }}}
+
+# Git aliases {{{
+
+current_branch() {
+  git symbolic-ref --quiet --short HEAD 2>/dev/null
+}
+
+alias g='git'
+alias gst='git status'
+alias gco='git checkout'
+alias gb='git branch'
+alias gc='git commit --verbose'
+alias gc!='git commit --verbose --amend'
+alias gca='git commit --verbose --all'
+alias gca!='git commit --verbose --all --amend'
+alias ggpush='git push origin "$(current_branch)"'
+alias ggpull='git pull --rebase origin $(current_branch)'
+alias gd='git difftool'
+
+# }}}
+
+# Aliases and functions {{{
+
+alias l='ls -lah'
+alias ll='ls -lh'
+# Expands into JS source files under current directory
+# Example usage: jshint jss
+alias -g jss='**/*.js~(*node_modules|dist|*styleguide)/*'
+# Aggregate stats from numbers on stdin
+# Example: cat logs | grep endpoint | jq -r .took | stats
+alias -g stats='datamash -H count 1 min 1 max 1 q3 1 perc:90 1 perc:98 1 perc:99 1 | column -t'
+
+# run command in a new tmux pane, keeping cursor at current shell
 # e.g. tmw watch -n 1 uptime
 tmw() {
    tmux split-window -d -p 80 "$@"
 }
 
-# Use some sensible gtimeout defaults
 gtimeout() {
   command gtimeout --foreground --preserve-status "$@"
-}
-
-# SSH to multiple hosts and
-# turn on synchronization
-function tmulti() {
-  # if [ "$1" = "-e" ];
-  # then
-  #   shift
-  #   tmux rename-window "mux"
-  #   tssh $(nodeset -e "$@")
-  # else
-    for (( i=$#; i>0; i-- )); do
-      tmux split-window -d -p$((100 / $i)) zsh -lc "$1"
-      tmux select-layout tiled
-      shift;
-    done
-    tmux setw synchronize-panes
-    exit
-  # fi
 }
 
 table() {
@@ -102,21 +121,8 @@ watch() {
   command watch -n1 "zsh -l -c \"source ~/.zshrc; $@\""
 }
 
-alias ggpull='git pull --rebase origin $(current_branch)'
-alias gd='git difftool'
-gitweb() {
-  branch=$(current_branch) || return
-  $BROWSER $(sed -e "s#^.*\(git[^\.]*\.[^:\.]*\)[:\.]#https://\1/#" -e "s/\.git//" <(git config --get remote.origin.url)) 2>& /dev/null
-}
-
-travis() {
-  branch=$(current_branch) || return
-  $BROWSER $(sed -e "s#^.*\(git[^\.]*\.[^:\.]*\)[:\.]#https://travis-ci.com/#" -e "s#\.git##" <(git config --get remote.origin.url)) 2>& /dev/null
-}
-
 linview() {
   branch=$(current_branch) || return
-  # Extract ticket ID from branch pattern: username/ticket-id-description
   ticket=$(echo "$branch" | sed -n 's#.*/\([a-zA-Z0-9]*-[0-9]*\)-.*#\1#p')
   if [[ -z "$ticket" ]]; then
     echo "No ticket ID found in branch: $branch"
@@ -136,40 +142,22 @@ sample() {
 
 swap() {
   local TMP="_$1.tmp_"
-  mv $1 $TMP && mv $2 $1 &&  mv $TMP $2
+  mv $1 $TMP && mv $2 $1 && mv $TMP $2
 }
 
-alias ll='ls -lh'
+# }}}
 
-# Expands into JS source files under current directory
-# Excludes any files under node_modules, bower_components, or dist
-#
-# Example usage: jshint jss
-alias -g jss='**/*.js~(*node_modules|dist|*styleguide)/*'
+# Runtime bootstrapping {{{
 
-# Aggregates stats from numbers flowing into stdin
-#
-# Example usage: cat logs | grep endpoint | jq -r .took | stats
-alias -g stats='datamash -H count 1 min 1 max 1 q3 1 perc:90 1 perc:98 1 perc:99 1 | column -t'
-
-export BREW=/opt/homebrew
-export PATH=~/.bin:~/.local/bin:$BREW/sbin:$BREW/bin:$PATH
-export NODE_PATH=$BREW/lib/node_modules:$NODE_PATH
-export GOPATH=~/gocode
-# Among other things, this suppresses LOCALE warnings when launching VIM
-export LC_ALL=en_US.UTF-8
-
-# Bootstrap nvm
-# Will set the node version when the working dir has .nvmrc
+# Bootstrap nvm — sets node version when the working dir has .nvmrc
 nvm use 2> /dev/null 1> /dev/null
 
-# Boostrap rbenv
-# Selects the Ruby version in folders with a .ruby-version file
+# Bootstrap rbenv — selects Ruby version in folders with .ruby-version
 which rbenv > /dev/null && eval "$(rbenv init -)"
 
-if [[ -f /usr/bin/tmux || -f $BREW/bin/tmux ]]; then
-  # attach to an already running tmux session or create new one
-  # unless we're running a login shell in a virtual console or via SSH
+# Attach to an already running tmux session or create new one
+# unless running in a virtual console, SSH, tmux, or IDE terminal
+if [[ -f /usr/bin/tmux || -f $HOMEBREW_PREFIX/bin/tmux ]]; then
   tty | grep -qo /dev/tty.$ || test "$SSH_TTY" || test "$TMUX" || ps -p $PPID | grep 'IntelliJ\|WebStorm' > /dev/null \
     || tmux attach 2>/dev/null || tmux new-session
 fi
@@ -177,15 +165,15 @@ fi
 # zoxide
 eval "$(zoxide init zsh)"
 
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+# sdkman (must be near end)
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
 # fzf keybindings: Ctrl+R (history), Ctrl+T (file picker), Alt+C (cd into dir)
-source $BREW/opt/fzf/shell/key-bindings.zsh
-source $BREW/opt/fzf/shell/completion.zsh
+source $HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh
+source $HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh
 
-
-# Starship prompt (overrides oh-my-zsh theme)
+# Starship prompt
 eval "$(starship init zsh)"
 
+# }}}
