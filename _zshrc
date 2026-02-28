@@ -169,9 +169,13 @@ eval "$(zoxide init zsh)"
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
-# fzf keybindings: Ctrl+R (history), Ctrl+T (file picker), Alt+C (cd into dir)
+# fzf keybindings: Ctrl+R (history), Ctrl+T (file picker)
+export FZF_ALT_C_COMMAND='zoxide query -l'
 source $HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh
 source $HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh
+# Rebind fzf cd-widget from Alt+C (unreliable in tmux) to Ctrl+F
+bindkey -rM emacs '\ec'
+bindkey -M emacs '^F' fzf-cd-widget
 
 # Starship prompt
 eval "$(starship init zsh)"
