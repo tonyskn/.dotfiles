@@ -1,7 +1,8 @@
 [core]
    autocrlf = input
-   editor = vim
+   editor = nvim
    ignorecase = false
+   pager = delta
 [color]
    ui = auto
 [push]
@@ -15,10 +16,25 @@
    autoStash = true
 [status]
    showUntrackedFiles = all
+[interactive]
+   diffFilter = delta --color-only
+[delta]
+   navigate = true
+   line-numbers = true
+   side-by-side = true
+   hunk-header-style = omit
+   file-style = bold yellow ul
+   file-decoration-style = none
 [diff]
    tool = icdiff
+   colorMoved = default
 [difftool]
    prompt = false
 [remote "origin"]
    prune = true
    tagOpt = --tags
+[filter "lfs"]
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
