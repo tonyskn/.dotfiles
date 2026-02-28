@@ -2,7 +2,3 @@
 	path = _oh-my-zsh
 	url = https://github.com/ohmyzsh/ohmyzsh
 	ignore = untracked
-[submodule "_tmux/plugins/tpm"]
-	path = _tmux/plugins/tpm
-	url = https://github.com/tmux-plugins/tpm
-	ignore = untracked
