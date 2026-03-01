@@ -70,9 +70,6 @@ map("n", "p", "]p`]")
 map("v", "p", "]p`]")
 map("v", "y", "y`]")
 map("n", "P", "]P")
--- navigate to next diff after action
-map("n", "do", "do]c", { remap = true })
-map("n", "dp", "dp]c", { remap = true })
 -- make Y behave like other capitals
 map("", "Y", "y$")
 -- improve up/down on wrapped lines
@@ -304,8 +301,8 @@ require("lazy").setup({
   {
     url = "https://codeberg.org/andyg/leap.nvim",
     config = function()
-      map({ "n", "x", "o" }, "s", "<Plug>(leap-forward-to)")
-      map({ "n", "x", "o" }, "S", "<Plug>(leap-backward-to)")
+      map({ "n", "x", "o" }, "s", "<Plug>(leap-forward)")
+      map({ "n", "x", "o" }, "S", "<Plug>(leap-backward)")
     end,
   },
 
