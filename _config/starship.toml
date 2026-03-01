@@ -1,0 +1,26 @@
+# Minimal prompt emulating the old oh-my-zsh "arrow" theme
+# Shows: directory ➤  (with git branch on the right)
+
+add_newline = false
+
+format = """$directory$character"""
+right_format = """$git_branch$git_status"""
+
+[character]
+success_symbol = "[➤](bold yellow)"
+error_symbol = "[➤](bold red)"
+
+[directory]
+truncation_length = 1
+truncate_to_repo = false
+style = "bold yellow"
+format = "[$path]($style) "
+
+[git_branch]
+format = "[$branch]($style)"
+style = "bold green"
+
+[git_status]
+format = "[ $all_status$ahead_behind]($style)"
+style = "bold red"
+stashed = ""
