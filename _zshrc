@@ -132,6 +132,20 @@ linview() {
   $BROWSER "$url" 2>/dev/null
 }
 
+claude() {
+  local title=""
+  local args=()
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -t) title="$2"; shift 2 ;;
+      *) args+=("$1"); shift ;;
+    esac
+  done
+  [[ -z "$title" ]] && title="${PWD##*/}"
+  [[ -n "$TMUX" ]] && tmux rename-window "${title:u}"
+  command claude "${args[@]}"
+}
+
 sample() {
   gsort -R | head -$1
 }
