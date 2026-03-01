@@ -5,12 +5,9 @@ vim.g.maplocalleader = ","
 -- General settings {{{
 
 vim.opt.laststatus = 2
-vim.opt.backupdir = vim.fn.expand("~/.vim/backup")
-vim.opt.directory = vim.fn.expand("~/.vim/backup")
 vim.opt.clipboard = "unnamed"
 vim.opt.scrolloff = 3
 vim.opt.undofile = true
-vim.opt.undodir = vim.fn.expand("~/.vim/vimundo-nvim")
 vim.opt.errorbells = false
 vim.opt.visualbell = true
 vim.opt.showcmd = true
@@ -123,8 +120,6 @@ map("v", "<Leader>!", function()
   vim.cmd('normal! gv"_d')
   vim.cmd('normal! "zP')
 end)
--- html escape visual selection
-map("v", "<Leader>x", ":!recode utf8..html<CR>")
 -- format text into columns
 map("n", "<Leader>t", ":%!column -t<CR>", { silent = true })
 -- diff registers a and b

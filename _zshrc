@@ -13,7 +13,7 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 
 bindkey -e
 # Do not persist commands starting with *space* in zsh history
-setopt inc_append_history hist_expire_dups_first hist_ignore_space
+setopt inc_append_history extended_history hist_expire_dups_first hist_ignore_space
 setopt extendedglob
 HISTFILE=${XDG_DATA_HOME:-$HOME/.local/share}/zsh/zsh_history
 [[ -d $HISTFILE:h ]] || mkdir -p $HISTFILE:h
@@ -55,8 +55,6 @@ alias vi=nvim
 export SHELL=zsh
 export BROWSER=open
 export PATH=~/.bin:~/.local/bin:$PATH
-export NODE_PATH=$HOMEBREW_PREFIX/lib/node_modules:$NODE_PATH
-export GOPATH=~/gocode
 # Suppresses LOCALE warnings when launching VIM, among other things
 export LC_ALL=en_US.UTF-8
 export PARALLEL='--keep-order -j4 -C"\\\t"'
@@ -78,7 +76,6 @@ current_branch() {
   git symbolic-ref --quiet --short HEAD 2>/dev/null
 }
 
-alias g='git'
 alias gst='git status'
 alias gco='git checkout'
 alias gb='git branch'
@@ -87,8 +84,8 @@ alias gc!='git commit --verbose --amend'
 alias gca='git commit --verbose --all'
 alias gca!='git commit --verbose --all --amend'
 alias ggpush='git push origin "$(current_branch)"'
+alias ggpushf='git push origin "$(current_branch)" --force-with-lease'
 alias ggpull='git pull --rebase origin $(current_branch)'
-alias gd='git difftool'
 
 # }}}
 
@@ -96,9 +93,6 @@ alias gd='git difftool'
 
 alias l='ls -lah'
 alias ll='ls -lh'
-# Expands into JS source files under current directory
-# Example usage: jshint jss
-alias -g jss='**/*.js~(*node_modules|dist|*styleguide)/*'
 # Aggregate stats from numbers on stdin
 # Example: cat logs | grep endpoint | jq -r .took | stats
 alias -g stats='datamash -H count 1 min 1 max 1 q3 1 perc:90 1 perc:98 1 perc:99 1 | column -t'
@@ -148,12 +142,6 @@ swap() {
 # }}}
 
 # Runtime bootstrapping {{{
-
-# Bootstrap nvm — sets node version when the working dir has .nvmrc
-nvm use 2> /dev/null 1> /dev/null
-
-# Bootstrap rbenv — selects Ruby version in folders with .ruby-version
-which rbenv > /dev/null && eval "$(rbenv init -)"
 
 # Attach to an already running tmux session or create new one
 # unless running in a virtual console, SSH, tmux, or IDE terminal

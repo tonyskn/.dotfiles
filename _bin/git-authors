@@ -1,8 +1,8 @@
 #!/bin/bash
 
 git ls-files "$@" |\
-  xargs file | grep 'text$' | awk -F':' '{print $1}' |\
-  parallel git blame --line-porcelain -- |\
+  parallel -j10 file | grep 'text$' | awk -F':' '{print $1}' |\
+  parallel -j10 git blame --line-porcelain -- |\
   sed -n 's/^author //p' |\
   sort | uniq -c | sort -nr
 

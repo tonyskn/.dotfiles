@@ -26,7 +26,7 @@
    file-style = bold yellow ul
    file-decoration-style = none
 [diff]
-   tool = icdiff
+   tool = nvimdiff
    colorMoved = default
 [difftool]
    prompt = false
