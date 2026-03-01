@@ -93,6 +93,7 @@ gonto() { git rebase --onto origin/master "${1:?Usage: gonto <base-branch>}"; }
 
 # Aliases and functions {{{
 
+export CLICOLOR=1
 alias l='ls -lah'
 alias ll='ls -lh'
 # Aggregate stats from numbers on stdin
@@ -174,6 +175,8 @@ export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
 # fzf keybindings: Ctrl+R (history), Ctrl+T (file picker)
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND='zoxide query -l'
 source $HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh
 source $HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh

@@ -25,8 +25,9 @@ coreutils
 datamash
 parallel
 ripgrep
+fd
 jq
 curl
 wget
-htop
+btop
 watch
