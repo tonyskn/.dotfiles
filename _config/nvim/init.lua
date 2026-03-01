@@ -97,9 +97,6 @@ map("n", "=", "<cmd>res<CR><cmd>vertical res<CR>", { silent = true })
 map("n", "<Leader>=", "<C-w>=")
 map("n", "<Leader>l", "<C-w>L")
 map("n", "<Leader>p", "<C-w>J")
--- diff navigation
-map("", "<Leader>d", "]czz", { silent = true })
-map("", "<Leader>D", "[czz", { silent = true })
 -- close buffer and go up
 map("", "<Leader>q", "<cmd>x<CR><C-w>j", { silent = true })
 -- walk through files and diff against master
@@ -288,6 +285,26 @@ require("lazy").setup({
   -- Git
   { "tpope/vim-fugitive" },
   { "tpope/vim-rhubarb" },
+  {
+    "lewis6991/gitsigns.nvim",
+    event = "VeryLazy",
+    opts = {
+      on_attach = function(bufnr)
+        local gs = require("gitsigns")
+        local opts = function(desc) return { buffer = bufnr, desc = desc } end
+        map("n", "<Leader>d", function()
+          if vim.wo.diff then vim.cmd("normal! ]czz") else gs.next_hunk() end
+        end, opts("Next diff/hunk"))
+        map("n", "<Leader>D", function()
+          if vim.wo.diff then vim.cmd("normal! [czz") else gs.prev_hunk() end
+        end, opts("Prev diff/hunk"))
+        map("n", "<Leader>hs", gs.stage_hunk, opts("Stage hunk"))
+        map("n", "<Leader>hr", gs.reset_hunk, opts("Reset hunk"))
+        map("v", "<Leader>hs", function() gs.stage_hunk({ vim.fn.line("v"), vim.fn.line(".") }) end, opts("Stage selection"))
+        map("v", "<Leader>hr", function() gs.reset_hunk({ vim.fn.line("v"), vim.fn.line(".") }) end, opts("Reset selection"))
+      end,
+    },
+  },
 
   -- Text objects and editing
   { "wellle/targets.vim" },
