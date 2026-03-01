@@ -14,6 +14,7 @@
    path = ~/.git_aliases
 [rebase]
    autoStash = true
+   autoSquash = true
 [status]
    showUntrackedFiles = all
 [interactive]
@@ -22,14 +23,19 @@
    navigate = true
    line-numbers = true
    side-by-side = true
+   syntax-theme = Nord
    hunk-header-style = omit
    file-style = bold yellow ul
    file-decoration-style = none
+   line-numbers-minus-style = "#BF616A"
+   line-numbers-plus-style = "#A3BE8C"
+   line-numbers-zero-style = "#616E88"
+   minus-style = syntax "#4D2B3A"
+   minus-emph-style = syntax "#7D3B55"
+   plus-style = syntax "#2B4A3E"
+   plus-emph-style = syntax "#3D6B56"
 [diff]
-   tool = nvimdiff
    colorMoved = default
-[difftool]
-   prompt = false
 [remote "origin"]
    prune = true
    tagOpt = --tags

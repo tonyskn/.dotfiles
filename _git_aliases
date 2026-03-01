@@ -1,12 +1,4 @@
 [alias]
-  ## git onto $ref [newbase=master]
-  onto = "!f() { \
-              REF=$2; \
-              NEWBASE=${1:-master}; \
-              BRANCH=$(git symbolic-ref --quiet HEAD); \
-              git rebase --onto $NEWBASE "${REF}^" ${BRANCH#refs/heads/}; \
-            }; f"
-
   ## Dealing with named stashes
   ssave = stash save
   sshow = "!f() { git stash show stash^{/$*} -p; }; f"
@@ -17,11 +9,8 @@
   fixup = "!f() { \
             TARGET=$(git rev-parse "$1"); \
             git commit --fixup=$TARGET ${@:2} && \
-            EDITOR=: GIT_SEQUENCE_EDITOR=: git rebase -i --autostash --autosquash $TARGET^; \
+            EDITOR=: GIT_SEQUENCE_EDITOR=: git rebase -i $TARGET^; \
            }; f"
 
   ## List untracked files
   untracked = "!git ls-files --others --exclude-standard"
-
-  ## Inline diff (no side-by-side)
-  di = "!git -c delta.side-by-side=false diff"
