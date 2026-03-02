@@ -199,51 +199,22 @@ require("lazy").setup({
     build = ":TSUpdate",
   },
 
-  -- File tree (neo-tree, same keybindings as NERDTree)
+  -- File tree
   {
-    "nvim-neo-tree/neo-tree.nvim",
-    branch = "v3.x",
-    dependencies = {
-      "nvim-lua/plenary.nvim",
-      "MunifTanjim/nui.nvim",
-      "nvim-tree/nvim-web-devicons",
-    },
+    "nvim-tree/nvim-tree.lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
     opts = {
-      close_if_last_window = true,
-      popup_border_style = "single",
-      window = { width = 60 },
-      filesystem = {
-        follow_current_file = { enabled = true, leave_dirs_open = true },
-        filtered_items = { hide_dotfiles = false },
-        bind_to_cwd = false,
-        cwd_target = { sidebar = "none", current = "none" },
-        use_libuv_file_watcher = true,
+      update_focused_file = { enable = true, update_root = true },
+      view = { width = 40 },
+      filters = { dotfiles = false },
+      renderer = {
+        icons = { glyphs = { folder = { arrow_closed = "+", arrow_open = "-" } } },
       },
-      default_component_configs = {
-        indent = {
-          expander_collapsed = "+",
-          expander_expanded = "-",
-        },
-      },
+      actions = { open_file = { quit_on_open = false } },
     },
     keys = {
-      { "<Leader>nd", "<cmd>Neotree toggle<CR>", desc = "Toggle file tree" },
-      {
-        "<Leader>nf",
-        function()
-          local manager = require("neo-tree.sources.manager")
-          local state = manager.get_state("filesystem")
-          local current_root = state and state.path
-          local file_path = vim.fn.expand("%:p")
-
-          if current_root and file_path:find(current_root, 1, true) == 1 then
-            vim.cmd("Neotree reveal")
-          else
-            vim.cmd("Neotree reveal dir=" .. vim.fn.fnameescape(vim.fn.expand("%:p:h")))
-          end
-        end,
-        desc = "Reveal file in tree",
-      },
+      { "<Leader>nd", "<cmd>NvimTreeToggle<CR>", desc = "Toggle file tree" },
+      { "<Leader>nf", "<cmd>NvimTreeFindFile<CR>", desc = "Reveal file in tree" },
     },
   },
 
