@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+branch=$(git branch --show-current 2>/dev/null || echo "")
+
+pr=$(gh pr list --state all --limit 35 "$@" --json number,title,headRefName,author,state,createdAt \
+  | jq -r --arg b "$branch" '
+    sort_by(.number) | reverse | .[] |
+    (if .headRefName == $b then "B"
+     elif .state == "CLOSED" or .state == "MERGED" then "D"
+     else "-" end) as $style |
+    (if .headRefName == $b then "▶ " else "  " end) as $mark |
+    "\(.number)|\($style)|\($mark)\(.number)\t\(.author.login)\t\(.title[:60])\t\(.createdAt[:10])"' \
+  | column -t -s$'\t' \
+  | sed 's/^\([0-9]*|D|\)/\1\x1b[2m/; s/$/ \x1b[0m/' \
+  | fzf --ansi -d'|' --with-nth=3 --accept-nth=1 \
+      --header='enter: browser | ctrl-t: tig | ctrl-o: checkout | ctrl-a: open only' \
+      --expect='ctrl-o,ctrl-t,ctrl-a' \
+      --height=~50%)
+
+[[ -z "$pr" ]] && exit 0
+key=$(head -1 <<< "$pr")
+num=$(tail -1 <<< "$pr")
+[[ -z "$num" ]] && exit 0
+
+if [[ "$key" == "ctrl-a" ]]; then
+  exec gpr --state open
+elif [[ "$key" == "ctrl-o" ]]; then
+  gh pr checkout "$num"
+elif [[ "$key" == "ctrl-t" ]]; then
+  ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
+  tig "origin/$ref"
+else
+  gh pr view "$num" --web
+fi
