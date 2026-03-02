@@ -12,6 +12,8 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 # Shell options {{{
 
 bindkey -e
+# Treat -, /, . etc. as word boundaries (like oh-my-zsh)
+WORDCHARS=''
 # Do not persist commands starting with *space* in zsh history
 setopt inc_append_history extended_history hist_expire_dups_first hist_ignore_space
 setopt extendedglob
