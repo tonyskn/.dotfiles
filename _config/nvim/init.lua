@@ -232,6 +232,8 @@ require("lazy").setup({
       { "<Leader>ne", function() require("telescope.builtin").oldfiles() end, desc = "Recent files" },
       { "<Leader>nr", function() require("telescope.builtin").command_history() end, desc = "Command history" },
       { "<Leader>nc", function() require("telescope.builtin").git_bcommits() end, desc = "Buffer commits" },
+      { "<Leader>nc", function() require("telescope.builtin").git_bcommits_range() end, mode = "v", desc = "Range commits" },
+      { "<Leader>ns", function() require("telescope.builtin").git_status() end, desc = "Git status" },
       { "<Leader>ng", function() require("telescope.builtin").live_grep() end, desc = "Live grep" },
       { "<Leader>G", function() require("telescope.builtin").grep_string() end, desc = "Grep word under cursor" },
     },
@@ -269,10 +271,10 @@ require("lazy").setup({
         map("n", "<Leader>D", function()
           if vim.wo.diff then vim.cmd("normal! [czz") else gs.prev_hunk() end
         end, opts("Prev diff/hunk"))
-        map("n", "<Leader>hs", gs.stage_hunk, opts("Stage hunk"))
-        map("n", "<Leader>hr", gs.reset_hunk, opts("Reset hunk"))
-        map("v", "<Leader>hs", function() gs.stage_hunk({ vim.fn.line("v"), vim.fn.line(".") }) end, opts("Stage selection"))
-        map("v", "<Leader>hr", function() gs.reset_hunk({ vim.fn.line("v"), vim.fn.line(".") }) end, opts("Reset selection"))
+        map("n", "<Leader>gs", gs.stage_hunk, opts("Stage hunk"))
+        map("n", "<Leader>gr", gs.reset_hunk, opts("Reset hunk"))
+        map("v", "<Leader>gs", function() gs.stage_hunk({ vim.fn.line("v"), vim.fn.line(".") }) end, opts("Stage selection"))
+        map("v", "<Leader>gr", function() gs.reset_hunk({ vim.fn.line("v"), vim.fn.line(".") }) end, opts("Reset selection"))
       end,
     },
   },
