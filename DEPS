@@ -31,3 +31,4 @@ curl
 wget
 btop
 watch
+tree-sitter-cli

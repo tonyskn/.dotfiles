@@ -43,6 +43,17 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = { "vim", "lua", "zsh", "tmux" },
   callback = function() vim.opt_local.foldmethod = "marker" end,
 })
+vim.api.nvim_create_autocmd("FileType", {
+  callback = function(args) pcall(vim.treesitter.start, args.buf) end,
+})
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "markdown",
+  callback = function()
+    vim.opt_local.foldmethod = "expr"
+    vim.opt_local.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+    vim.opt_local.foldlevel = 99
+  end,
+})
 
 -- }}}
 
@@ -89,9 +100,6 @@ map("c", "<C-e>", "<End>")
 -- space toggles folding
 map("n", "<Space>", "za")
 map("v", "<Space>", "za")
--- quick fold navigation
-map("n", "zJ", "zjzmza")
-map("n", "zK", "zkzmza[z")
 -- window shortcuts
 map("n", "=", "<cmd>res<CR><cmd>vertical res<CR>", { silent = true })
 map("n", "<Leader>=", "<C-w>=")
@@ -294,6 +302,34 @@ require("lazy").setup({
       map({ "n", "x", "o" }, "s", "<Plug>(leap-forward)")
       map({ "n", "x", "o" }, "S", "<Plug>(leap-backward)")
     end,
+  },
+
+  -- Zen mode
+  {
+    "folke/zen-mode.nvim",
+    cmd = "ZenMode",
+    keys = {
+      { "<Leader>z", "<cmd>ZenMode<CR>", desc = "Toggle zen mode" },
+    },
+    opts = {
+      window = { width = 100, options = { number = false } },
+      on_open = function()
+        vim.opt_local.wrap = true
+        vim.opt_local.linebreak = true
+      end,
+      on_close = function()
+        vim.opt_local.wrap = false
+        vim.opt_local.linebreak = false
+      end,
+    },
+  },
+
+  -- Markdown rendering
+  {
+    "MeanderingProgrammer/render-markdown.nvim",
+    ft = "markdown",
+    dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
+    opts = {},
   },
 
   -- REST client
