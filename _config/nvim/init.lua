@@ -346,6 +346,17 @@ require("lazy").setup({
 
   -- REST client
   { "diepm/vim-rest-console", ft = "rest" },
+
+  -- Directional window resizing
+  {
+    "mrjones2014/smart-splits.nvim",
+    keys = {
+      { "<C-h>", function() require("smart-splits").resize_left() end },
+      { "<C-j>", function() require("smart-splits").resize_down() end },
+      { "<C-k>", function() require("smart-splits").resize_up() end },
+      { "<C-l>", function() require("smart-splits").resize_right() end },
+    },
+  },
 })
 
 -- }}}
