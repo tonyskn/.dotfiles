@@ -92,6 +92,18 @@ map("n", "N", "Nzzzv")
 -- exit terminal mode
 map("t", "<Esc>", "<C-\\><C-n>")
 
+-- tab completion (like supertab: buffer words via C-n/C-p)
+-- cycle popup if open, complete if after a word, otherwise insert real tab
+map("i", "<Tab>", function()
+  if vim.fn.pumvisible() == 1 then return "<C-n>" end
+  local col = vim.fn.col(".")
+  if col == 1 or vim.fn.getline("."):sub(col - 1, col - 1):match("%s") then return "<Tab>" end
+  return "<C-n>"
+end, { expr = true })
+map("i", "<S-Tab>", function()
+  return vim.fn.pumvisible() == 1 and "<C-p>" or "<C-d>"
+end, { expr = true })
+
 -- emacs home/end in insert/command mode
 map("i", "<C-a>", "<Esc>I")
 map("i", "<C-e>", "<Esc>A")
