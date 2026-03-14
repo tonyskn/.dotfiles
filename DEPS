@@ -18,9 +18,11 @@ neovim
 git
 git-delta
 git-lfs
+gh
 tig
 
 # CLI utilities
+tree
 coreutils
 datamash
 parallel
@@ -32,3 +34,4 @@ wget
 btop
 watch
 tree-sitter-cli
+font-fira-code-nerd-font
