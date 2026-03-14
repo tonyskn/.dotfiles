@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# git wt <branch>  — create or jump to worktree for branch
+# git wt rm        — remove current worktree, delete branch, go back to main
+# git wt list      — list all worktrees (default)
+
+cmd="${1:-list}"
+
+case "$cmd" in
+  list)
+    git worktree list >&2
+    ;;
+  rm)
+    root="$(git rev-parse --show-toplevel)"
+    main="$(git worktree list | head -1 | awk '{print $1}')"
+    if [[ "$root" == "$main" ]]; then
+      echo "Already in the main worktree, nothing to remove" >&2
+      exit 1
+    fi
+    branch="$(git branch --show-current)"
+    git worktree remove "$root" >&2
+    git -C "$main" branch -D "$branch" 2>/dev/null >&2 || true
+    echo "$main"
+    ;;
+  *)
+    branch="$cmd"
+    repo="$(basename "$(git rev-parse --show-toplevel)")"
+    slug="${branch//\//-}"
+    wtdir="$HOME/spotify/worktrees/${repo}--${slug}"
+
+    existing="$(git worktree list | awk -v b="[$branch]" '$NF == b { print $1 }')"
+    if [[ -n "$existing" ]]; then
+      echo "$existing"
+    elif git show-ref --verify --quiet "refs/heads/$branch"; then
+      git worktree add "$wtdir" "$branch" >&2
+      echo "$wtdir"
+    else
+      git worktree add "$wtdir" -b "$branch" origin/master >&2
+      echo "$wtdir"
+    fi
+    ;;
+esac

@@ -14,7 +14,7 @@ pr=$(gh pr list --state all --limit 35 "$@" --json number,title,headRefName,auth
   | column -t -s$'\t' \
   | sed 's/^\([0-9]*|D|\)/\1\x1b[2m/; s/$/ \x1b[0m/' \
   | fzf --ansi -d'|' --with-nth=3 --accept-nth=1 \
-      --header='enter: browser | ctrl-t: tig | ctrl-o: checkout | ctrl-a: open only' \
+      --header='enter: browser | ctrl-o: checkout | ctrl-t: worktree | ctrl-a: open only' \
       --expect='ctrl-o,ctrl-t,ctrl-a' \
       --height=~50%)
 
@@ -24,12 +24,12 @@ num=$(tail -1 <<< "$pr")
 [[ -z "$num" ]] && exit 0
 
 if [[ "$key" == "ctrl-a" ]]; then
-  exec gpr --state open
+  exec git pr --state open
 elif [[ "$key" == "ctrl-o" ]]; then
   gh pr checkout "$num"
 elif [[ "$key" == "ctrl-t" ]]; then
   ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
-  tig "origin/$ref"
+  echo "$(git wt "$ref")"
 else
   gh pr view "$num" --web
 fi
