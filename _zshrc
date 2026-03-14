@@ -61,13 +61,6 @@ export PATH=~/.bin:~/.local/bin:$PATH
 export LC_ALL=en_US.UTF-8
 export PARALLEL='--keep-order -j4 -C"\\\t"'
 
-# Google Cloud SDK
-source "$HOMEBREW_PREFIX/share/google-cloud-sdk/path.zsh.inc"
-source "$HOMEBREW_PREFIX/share/google-cloud-sdk/completion.zsh.inc"
-
-# JetBrains Toolbox
-export PATH="$PATH:$HOME/Library/Application Support/JetBrains/Toolbox/scripts"
-
 fpath=($HOMEBREW_PREFIX/share/zsh-completions $fpath)
 
 # }}}
