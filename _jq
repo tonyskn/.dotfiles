@@ -1,0 +1,41 @@
+# vim: ft=jq
+# ── Date/time helpers ──────────────────────────────────────────────
+
+# Tolerant ISO → epoch: handles millis (.000Z) and +00:00 suffix
+def to_epoch:
+  sub("\\.[0-9]+Z$"; "Z") | gsub("\\+00:00$"; "Z") | fromdate;
+
+# Unix timestamp → "YYYY-MM-DD"
+def to_date:
+  . as $ts | $ts - ($ts % 86400) | strftime("%Y-%m-%d");
+
+# Emit one epoch per day between two ISO timestamps
+def dates_between(from; to):
+  (from | fromdate) as $s |
+  (to | fromdate) as $e |
+  range($s; $e; 86400);
+
+# Epoch millis → epoch seconds (common in JS/Java APIs)
+def from_epoch_ms:
+  . / 1000;
+
+# ── Object/array manipulation ─────────────────────────────────────
+
+# Recursively flatten nested keys: {"a":{"b":1}} → {"a.b":1}
+def flatten_keys:
+  [ paths(scalars) as $p | { key: ($p | map(tostring) | join(".")), value: getpath($p) } ]
+  | from_entries;
+
+# Group-by with count: produces [{"key":..,"count":N}]
+def count_by(f):
+  group_by(f) | map({ key: (.[0] | f), count: length }) | sort_by(-.count);
+
+# Show the shape of a JSON value (types at each key)
+def shape:
+  if type == "object" then map_values(type)
+  elif type == "array" then
+    if length == 0 then "[]"
+    else ["[\(.[0] | type) x\(length)]"]
+    end
+  else type
+  end;
