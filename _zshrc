@@ -176,10 +176,15 @@ export SDKMAN_DIR="$HOME/.sdkman"
 # fzf keybindings: Ctrl+R (history), Ctrl+T (file picker)
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-export FZF_ALT_C_COMMAND='zoxide query -l'
 source $HOMEBREW_PREFIX/opt/fzf/shell/key-bindings.zsh
 source $HOMEBREW_PREFIX/opt/fzf/shell/completion.zsh
-# Rebind fzf cd-widget from Alt+C (unreliable in tmux) to Ctrl+F
+# fzf-cd: ctrl+g opens tmux window (handled in script), enter prints path to cd into
+fzf-cd-widget() {
+  local dir="$(fzf-cd < /dev/tty)"
+  [[ -n "$dir" ]] && builtin cd -- "$dir"
+  zle reset-prompt
+}
+zle -N fzf-cd-widget
 bindkey -rM emacs '\ec'
 bindkey -M emacs '^F' fzf-cd-widget
 

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# fzf directory picker powered by zoxide
+# Outputs: "cd <path>" or "tmux <path>" or nothing
+set -euo pipefail
+
+out="$(zoxide query -l | fzf \
+  --reverse --scheme=path +m \
+  --expect=ctrl-g \
+  --header='enter: cd | ctrl-g: tmux window')"
+
+key="${out%%$'\n'*}"
+dir="${out#*$'\n'}"
+
+[[ -z "$dir" ]] && exit 0
+
+dir="$(cd "$dir" && pwd -P)"
+
+if [[ "$key" == "ctrl-g" && -n "${TMUX:-}" ]]; then
+  tmux new-window -c "$dir"
+else
+  echo "$dir"
+fi
