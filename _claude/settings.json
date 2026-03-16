@@ -89,6 +89,7 @@
       "Bash(cd ~/spotify/* && git config*)",
       "Bash(~/spotify/toggle-sdk local*)",
       "Bash(~/spotify/toggle-sdk published*)",
+      "Bash(duckdb*)",
       "mcp__aika__spotify_internal_search",
       "mcp__aika__list_data_sources",
       "mcp__codesearch__search_code",

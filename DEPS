@@ -35,3 +35,4 @@ btop
 watch
 tree-sitter-cli
 font-fira-code-nerd-font
+duckdb
