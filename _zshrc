@@ -2,10 +2,20 @@
 
 # Completion system {{{
 
+eval $(/opt/homebrew/bin/brew shellenv)
+fpath=($HOMEBREW_PREFIX/share/zsh-completions $fpath)
 autoload -Uz compinit
-compinit -C
+if [[ -f ~/.zcompdump && $(date +'%j') == $(stat -f '%Sm' -t '%j' ~/.zcompdump) ]]; then
+  compinit -C
+else
+  compinit
+fi
 zstyle ':completion:*' menu select
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+
+# Google Cloud SDK (must be after compinit — its completion.zsh.inc runs compinit itself)
+[[ -f "$HOMEBREW_PREFIX/share/google-cloud-sdk/path.zsh.inc" ]] && source "$HOMEBREW_PREFIX/share/google-cloud-sdk/path.zsh.inc"
+[[ -f "$HOMEBREW_PREFIX/share/google-cloud-sdk/completion.zsh.inc" ]] && source "$HOMEBREW_PREFIX/share/google-cloud-sdk/completion.zsh.inc"
 
 # }}}
 
@@ -48,7 +58,6 @@ bindkey "^[[B" down-line-or-beginning-search
 
 # Environment {{{
 
-eval $(/opt/homebrew/bin/brew shellenv)
 export HOMEBREW_NO_ENV_HINTS=1
 
 export EDITOR=nvim
@@ -61,7 +70,6 @@ export PATH=~/.bin:~/.local/bin:$PATH
 export LC_ALL=en_US.UTF-8
 export PARALLEL='--keep-order -j4 -C"\\\t"'
 
-fpath=($HOMEBREW_PREFIX/share/zsh-completions $fpath)
 
 # }}}
 
