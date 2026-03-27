@@ -263,6 +263,7 @@ require("lazy").setup({
       telescope.setup({
         defaults = require("telescope.themes").get_ivy({
           layout_config = { height = 0.3 },
+          file_ignore_patterns = { "^%.git/" },
           mappings = {
             i = {
               ["<C-x>"] = actions.select_horizontal,
