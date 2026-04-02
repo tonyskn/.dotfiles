@@ -121,7 +121,12 @@
       "mcp__chrome-devtools__list_pages",
       "mcp__chrome-devtools__select_page",
       "mcp__chrome-devtools__close_page",
-      "mcp__chrome-devtools__wait_for"
+      "mcp__chrome-devtools__wait_for",
+      "Read(/tmp/multi-reviews/*)",
+      "Write(/tmp/multi-reviews/*)",
+      "Bash(openssl rand *)",
+      "Bash(codex exec *)",
+      "Bash(~/.claude/scripts/*)"
     ]
   },
   "model": "opus[1m]",
@@ -157,5 +162,6 @@
       }
     ]
   },
+  "syntaxHighlightingDisabled": false,
   "effortLevel": "medium"
 }

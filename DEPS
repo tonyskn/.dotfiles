@@ -36,3 +36,4 @@ watch
 tree-sitter-cli
 font-fira-code-nerd-font
 duckdb
+gum
