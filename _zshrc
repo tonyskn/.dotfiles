@@ -152,8 +152,14 @@ claude() {
       *) args+=("$1"); shift ;;
     esac
   done
-  [[ -z "$title" ]] && title="${PWD##*/}"
-  [[ -n "$TMUX" ]] && tmux rename-window "${title:u}"
+  if [[ -n "$TMUX" ]]; then
+    local auto
+    auto=$(tmux show-window-option -v automatic-rename 2>/dev/null)
+    if [[ "$auto" != "off" ]]; then
+      [[ -z "$title" ]] && title="${PWD##*/}"
+      tmux rename-window "${title:u}"
+    fi
+  fi
   command claude "${args[@]}"
 }
 

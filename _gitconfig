@@ -1,46 +1,48 @@
 [core]
-   autocrlf = input
-   editor = nvim
-   ignorecase = false
-   pager = delta
+	autocrlf = input
+	editor = nvim
+	ignorecase = false
+	pager = delta
 [color]
-   ui = auto
+	ui = auto
 [push]
-   default = current
+	default = simple
 [user]
-  name = Tony Elsokhon
-  userConfigOnly = true
+	name = Tony Elsokhon
+	userConfigOnly = true
 [include]
-   path = ~/.git_aliases
+	path = ~/.git_aliases
 [rebase]
-   autoStash = true
-   autoSquash = true
+	autoStash = true
+	autoSquash = true
 [status]
-   showUntrackedFiles = all
+	showUntrackedFiles = all
 [interactive]
-   diffFilter = delta --color-only
+	diffFilter = delta --color-only
 [delta]
-   navigate = true
-   line-numbers = true
-   side-by-side = true
-   syntax-theme = Nord
-   hunk-header-style = omit
-   file-style = bold yellow ul
-   file-decoration-style = none
-   line-numbers-minus-style = "#BF616A"
-   line-numbers-plus-style = "#A3BE8C"
-   line-numbers-zero-style = "#616E88"
-   minus-style = syntax "#4D2B3A"
-   minus-emph-style = syntax "#7D3B55"
-   plus-style = syntax "#2B4A3E"
-   plus-emph-style = syntax "#3D6B56"
+	navigate = true
+	line-numbers = true
+	side-by-side = true
+	syntax-theme = Nord
+	hunk-header-style = omit
+	file-style = bold yellow ul
+	file-decoration-style = none
+	line-numbers-minus-style = "#BF616A"
+	line-numbers-plus-style = "#A3BE8C"
+	line-numbers-zero-style = "#616E88"
+	minus-style = syntax "#4D2B3A"
+	minus-emph-style = syntax "#7D3B55"
+	plus-style = syntax "#2B4A3E"
+	plus-emph-style = syntax "#3D6B56"
 [diff]
-   colorMoved = default
+	colorMoved = default
 [remote "origin"]
-   prune = true
-   tagOpt = --tags
+	prune = true
+	tagOpt = --tags
 [filter "lfs"]
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
 	clean = git-lfs clean -- %f
+[include]
+	path = ~/.gitconfig.local
