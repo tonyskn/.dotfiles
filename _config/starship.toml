@@ -1,6 +1,7 @@
 # Minimal prompt emulating the old oh-my-zsh "arrow" theme
 # Shows: directory ➤  (with git branch on the right)
 
+command_timeout = 5000
 add_newline = false
 
 format = """$directory$character"""
