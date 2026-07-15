@@ -95,6 +95,7 @@ alias gwip='git commit -am "--wip--"'
 gwt() { local o; o="$(git wt "$@")" && [[ -d "$o" ]] && cd "$o"; }
 gpr() { local o; o="$(git pr "$@")" && [[ -d "$o" ]] && cd "$o"; }
 alias gprme='gpr --author=@me'
+alias claude='cl --'
 
 # }}}
 
@@ -142,26 +143,6 @@ linview() {
     return 1
   fi
   $BROWSER "$url" 2>/dev/null
-}
-
-claude() {
-  local title=""
-  local args=()
-  while [[ $# -gt 0 ]]; do
-    case $1 in
-      -t) title="$2"; shift 2 ;;
-      *) args+=("$1"); shift ;;
-    esac
-  done
-  if [[ -n "$TMUX" ]]; then
-    local auto
-    auto=$(tmux show-window-option -v automatic-rename 2>/dev/null)
-    if [[ "$auto" != "off" ]]; then
-      [[ -z "$title" ]] && title="${PWD##*/}"
-      tmux rename-window "${title:u}"
-    fi
-  fi
-  command claude "${args[@]}"
 }
 
 sample() {

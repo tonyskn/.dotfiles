@@ -3,17 +3,14 @@
     "allow": [
       "Read(~/.claude/CLAUDE.md)",
       "Edit(~/.claude/CLAUDE.md)",
-      "Write(~/.claude/CLAUDE.md)",
       "Edit(~/spotify/**)",
-      "Write(~/spotify/**)",
       "Read(~/spotify/**)",
       "Read(~/.claude/settings.json)",
       "Read(~/.dotfiles/**)",
       "Edit(~/.dotfiles/**)",
-      "Write(~/.dotfiles/**)",
-      "Glob(~/.dotfiles/**)",
+      "Read(~/.dotfiles/**)",
       "Grep(~/.dotfiles/**)",
-      "Glob(~/spotify/**)",
+      "Read(~/spotify/**)",
       "Grep(~/spotify/**)",
       "Bash(ls:*)",
       "Bash(find:*)",
@@ -126,7 +123,7 @@
       "mcp__claude_ai_Code_Search_MCP__read_file",
       "mcp__claude_ai_AiKA_Search_MCP__spotify_internal_search",
       "Read(/tmp/multi-reviews/*)",
-      "Write(/tmp/multi-reviews/*)",
+      "Edit(/tmp/multi-reviews/*)",
       "Bash(openssl rand *)",
       "Bash(codex exec *)",
       "Bash(~/.claude/scripts/*)"
@@ -166,5 +163,7 @@
     ]
   },
   "syntaxHighlightingDisabled": false,
-  "effortLevel": "medium"
+  "effortLevel": "medium",
+  "tui": "default",
+  "skipWorkflowUsageWarning": true
 }

@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+BOOKMARKS="$HOME/.claude/bookmarks.jsonl"
+
+rewrite() { local out; out=$(cat) && printf '%s\n' "$out" > "$BOOKMARKS"; }
+
+lookup() { jq -r "select(.sid == \"$1\") | .$2" "$BOOKMARKS" | head -1; }
+
+# Focus existing window by name, or return 1
+# Hooks prefix window names with "● " "○ " "◐ " so strip and compare
+focus_or_false() {
+  local name_upper="$1"
+  local idx
+  idx=$(tmux list-windows -F '#{window_index}|#{window_name}' |
+    awk -F'|' -v n="$name_upper" '{t=$2; sub(/^[●○◐] /,"",t)} t==n {print $1; exit}')
+  [[ -n "$idx" ]] && tmux select-window -t "$idx"
+}
+
+# --- "claude" alias passthrough (cl -- ...) ---
+if [[ "$1" == "--" ]]; then
+  shift
+  # bare "claude" with no args → scratch session
+  [[ $# -eq 0 ]] && exec command claude
+  # otherwise fall through to arg parsing below
+fi
+
+# --- fzf picker (no args) ---
+if [[ $# -eq 0 ]]; then
+  if [[ ! -f "$BOOKMARKS" ]]; then
+    echo "No bookmarks yet. Use: cl -n <name>"
+    exit 0
+  fi
+
+  while true; do
+    sid=$(jq -r '
+      "\(.sid)\t\(.started)  \(.name | . + " " * (20 - length) | .[:20])  \(.cwd | sub("^'$HOME'";"~") | . + " " * (40 - length) | .[:40])  \(.sid)"
+    ' "$BOOKMARKS" |
+      sort -k2 -r |
+      fzf --no-sort --expect=ctrl-d,ctrl-r --delimiter=$'\t' --with-nth=2 --accept-nth=1 \
+        --header='enter: resume · ctrl-d: delete · ctrl-r: rename') || exit 0
+
+    key=$(head -1 <<< "$sid")
+    sid=$(tail -1 <<< "$sid")
+
+    if [[ "$key" == "ctrl-d" ]]; then
+      local_name=$(lookup "$sid" name)
+      read -rp "Delete '$local_name'? [y/N] " confirm
+      [[ "$confirm" == [yY] ]] || continue
+      jq -c "select(.sid != \"$sid\")" "$BOOKMARKS" | rewrite
+      echo "Deleted."
+      continue
+    fi
+
+    if [[ "$key" == "ctrl-r" ]]; then
+      local_name=$(lookup "$sid" name)
+      read -rp "Rename '$local_name' to: " new_name
+      [[ -z "$new_name" ]] && continue
+      jq -c "if .sid == \"$sid\" then .name = \"$new_name\" else . end" "$BOOKMARKS" | rewrite
+      echo "Renamed to '$new_name'."
+      continue
+    fi
+
+    jq -c "if .sid == \"$sid\" then .started = \"$(date '+%Y-%m-%d %H:%M')\" else . end" "$BOOKMARKS" | rewrite
+    name=$(lookup "$sid" name)
+    name_upper=$(echo "$name" | tr '[:lower:]' '[:upper:]')
+
+    # Jump to existing window if already open
+    focus_or_false "$name_upper" && exit 0
+
+    cwd=$(lookup "$sid" cwd)
+    tmux new-window -c "$cwd" -n "$name_upper"
+    tmux send-keys "command claude --resume '$sid' -n '$name'" Enter
+    exit 0
+  done
+fi
+
+# --- parse args ---
+name=""
+resume_id=""
+pass_through=()
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -n)          name="$2"; shift 2 ;;
+    --resume|-r) resume_id="$2"; shift 2 ;;
+    *)           pass_through+=("$1"); shift ;;
+  esac
+done
+
+# --- no -n: plain delegation ---
+if [[ -z "$name" ]]; then
+  exec command claude ${resume_id:+--resume "$resume_id"} "${pass_through[@]}"
+fi
+
+# --- bookmarked session ---
+if [[ -n "$resume_id" ]]; then
+  sid="$resume_id"
+else
+  sid=$(uuidgen | tr '[:upper:]' '[:lower:]')
+fi
+
+[[ -f "$BOOKMARKS" ]] && jq -c "select(.sid != \"$sid\")" "$BOOKMARKS" | rewrite
+printf '{"sid":"%s","cwd":"%s","name":"%s","started":"%s"}\n' \
+  "$sid" "$PWD" "$name" "$(date '+%Y-%m-%d %H:%M')" >> "$BOOKMARKS"
+
+name_upper=$(echo "$name" | tr '[:lower:]' '[:upper:]')
+[[ -n "${TMUX:-}" ]] && tmux rename-window "$name_upper"
+
+if [[ -n "$resume_id" ]]; then
+  exec command claude --resume "$sid" -n "$name" "${pass_through[@]}"
+else
+  exec command claude --session-id "$sid" -n "$name" "${pass_through[@]}"
+fi
