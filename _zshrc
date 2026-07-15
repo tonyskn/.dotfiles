@@ -31,6 +31,7 @@ HISTFILE=${XDG_DATA_HOME:-$HOME/.local/share}/zsh/zsh_history
 [[ -d $HISTFILE:h ]] || mkdir -p $HISTFILE:h
 SAVEHIST=100000  # History file size
 HISTSIZE=20000   # Session history size
+alias history='fc -l 1'
 
 ulimit -n 2048
 
@@ -89,7 +90,8 @@ alias ggpush!='git push origin "$(current_branch)" --force-with-lease'
 alias ggpull='git pull --rebase origin $(current_branch)'
 alias gd='git diff'
 alias gdi='git -c delta.side-by-side=false diff'
-gfx() { git fixup "${1:-$(pbpaste)}"; }
+gfx() { local c; c=$(git log --oneline -30 | fzf --no-sort --header='fixup into' | awk '{print $1}') && git history fixup "$c"; }
+grw() { local c; c=$(git log --oneline -30 | fzf --no-sort --header='reword' | awk '{print $1}') && git history reword "$c"; }
 gonto() { git rebase --onto origin/master "${1:?Usage: gonto <base-branch>}"; }
 alias gwip='git commit -am "--wip--"'
 gwt() { local o; o="$(git wt "$@")" && [[ -d "$o" ]] && cd "$o"; }
