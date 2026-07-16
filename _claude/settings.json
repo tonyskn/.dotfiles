@@ -136,7 +136,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/add-attention.sh"
+            "command": "tmux-marker ◐"
           }
         ]
       }
@@ -146,7 +146,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/clear-attention.sh"
+            "command": "tmux-marker ●"
           }
         ]
       }
@@ -156,7 +156,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/hooks/add-stopped.sh"
+            "command": "tmux-marker ○"
           }
         ]
       }
