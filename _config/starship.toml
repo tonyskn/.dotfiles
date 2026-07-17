@@ -5,7 +5,7 @@ command_timeout = 5000
 add_newline = false
 
 format = """$directory$character"""
-right_format = """$git_branch$git_status"""
+right_format = """$cmd_duration$git_branch"""
 
 [character]
 success_symbol = "[➤](bold yellow)"
@@ -17,11 +17,11 @@ truncate_to_repo = false
 style = "bold yellow"
 format = "[$path]($style) "
 
+[cmd_duration]
+min_time = 3000
+format = "[$duration]($style) "
+style = "bold yellow"
+
 [git_branch]
 format = "[$branch]($style)"
 style = "bold green"
-
-[git_status]
-format = "[ $all_status$ahead_behind]($style)"
-style = "bold red"
-stashed = ""
