@@ -95,6 +95,12 @@ namespace Tmux {
       await Bun.$`tmux new-window ${flags} -c ${cwd} -n ${winName} ${cmd}`.quiet();
     }
   }
+
+  // Fork a session's history into a fresh session in a new window.
+  export async function forkSession(srcSid: string, newSid: string, name: string, cwd: string): Promise<void> {
+    const cmd = `exec command claude --resume '${srcSid}' --fork-session --session-id '${newSid}' -n '${name}'`;
+    await Bun.$`tmux new-window -c ${cwd} -n ${windowName(name)} ${cmd}`.quiet();
+  }
 }
 
 // --- bookmarks ---
@@ -261,6 +267,17 @@ switch (cmd) {
     break;
   }
 
+  case "fork": {
+    const [sid] = args;
+    if (!sid || !values.name) Output.die("Usage: _cl fork <sid> --name <name>");
+    const src = Bookmarks.find(sid);
+    if (!src) Output.die(`Bookmark not found: ${sid}`);
+    const newSid = crypto.randomUUID();
+    Bookmarks.save(newSid, values.name, src.cwd);
+    await Tmux.forkSession(sid, newSid, values.name, src.cwd);
+    break;
+  }
+
   case "close": {
     const [sid] = args;
     if (!sid) Output.die("Usage: _cl close <sid>");
@@ -286,5 +303,5 @@ switch (cmd) {
   }
 
   default:
-    Output.die("Usage: _cl <list|save|open|close|delete|search> [args]");
+    Output.die("Usage: _cl <list|save|open|fork|close|delete|search> [args]");
 }

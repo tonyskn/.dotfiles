@@ -44,9 +44,9 @@ if [[ $# -eq 0 ]]; then
   while true; do
     selection=$(_cl list \
       | fzf --no-sort \
-            --expect=ctrl-d,ctrl-f,ctrl-r,ctrl-t,ctrl-x \
+            --expect=ctrl-d,ctrl-f,ctrl-o,ctrl-r,ctrl-t,ctrl-x \
             --delimiter=$'\t' --with-nth=3 --accept-nth=1,2 \
-            --header='enter: resume · ctrl-t: send · ctrl-f: search · ctrl-x: close · ctrl-d: delete · ctrl-r: rename' \
+            --header='enter: resume · ctrl-t: send · ctrl-o: fork · ctrl-f: search · ctrl-x: close · ctrl-d: delete · ctrl-r: rename' \
     ) || exit 0
 
     key=$(head -1 <<< "$selection")
@@ -66,6 +66,10 @@ if [[ $# -eq 0 ]]; then
       ctrl-t)
         prompt=$(gum write --header "Prompt for $name" --width 80)
         [[ -n "$prompt" ]] && _cl open "$sid" --prompt "$prompt" && exit 0
+        ;;
+      ctrl-o)
+        fork_name=$(gum input --placeholder "Fork name" --value "${name}-fork")
+        [[ -n "$fork_name" ]] && _cl fork "$sid" --name "$fork_name" && exit 0
         ;;
       *)
         _cl open "$sid"
