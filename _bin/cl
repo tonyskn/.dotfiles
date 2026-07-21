@@ -24,15 +24,19 @@ fi
 if [[ "$1" == "search" ]]; then
   term="${2:?Usage: cl search <term>}"
   IFS=$'\t' read -r sid name cwd < <(
-    _cl search "$term" \
+    _cl search -- "$term" \
       | fzf --no-sort --delimiter=$'\t' --with-nth=4 --accept-nth=1,2,3 \
-            --header='enter: resume')
+            --header='enter: resume') || true
   [[ -z "$sid" ]] && exit 0
   if [[ "$name" == "unnamed" ]]; then
     name=$(gum input --placeholder "Name this session for your bookmarks")
     [[ -z "$name" ]] && exit 0
   fi
-  _cl save "$sid" --name "$name" --cwd "${cwd:-$HOME}"
+  if [[ ! -d "$cwd" ]]; then
+    cwd=$(zoxide query -l | fzf --header="Original directory is gone — where should '$name' open?") || true
+    [[ -z "$cwd" ]] && exit 0
+  fi
+  _cl save "$sid" --name "$name" --cwd "$cwd"
   _cl open "$sid"
   exit 0
 fi
@@ -87,20 +91,25 @@ pass_through=()
 while [[ $# -gt 0 ]]; do
   case $1 in
     -n)          name="$2"; shift 2 ;;
-    --resume|-r) resume_id="$2"; shift 2 ;;
+    --resume|-r)
+      # Value is optional: bare `claude -r` opens claude's interactive picker
+      if [[ -n "${2:-}" && "$2" != -* ]]; then
+        resume_id="$2"; shift 2
+      else
+        pass_through+=("$1"); shift
+      fi
+      ;;
     *)           pass_through+=("$1"); shift ;;
   esac
 done
 
-# No -n: plain delegation to claude
 if [[ -z "$name" ]]; then
   exec command claude ${resume_id:+--resume "$resume_id"} "${pass_through[@]}"
 fi
 
-# Bookmarked session: save + launch in current pane
+# --- bookmarked session in current pane ---
 sid="${resume_id:-$(uuidgen | tr '[:upper:]' '[:lower:]')}"
-_cl save "$sid" --name "$name" --cwd "$PWD"
-[[ -n "${TMUX:-}" ]] && tmux rename-window "$(echo "$name" | tr '[:lower:]' '[:upper:]')"
+_cl save "$sid" --name "$name" --cwd "$PWD" --rename-window
 
 if [[ -n "$resume_id" ]]; then
   exec command claude --resume "$sid" -n "$name" "${pass_through[@]}"
