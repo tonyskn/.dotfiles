@@ -160,8 +160,11 @@ vim.g.github_enterprise_urls = { "https://ghe.spotify.net" }
 vim.g.vrc_set_default_mapping = 0
 vim.g.vrc_allow_get_request_body = 1
 vim.g.vrc_elasticsearch_support = 1
-vim.b.vrc_response_default_content_type = "application/json"
+vim.g.vrc_response_default_content_type = "application/json"
 vim.g.vrc_output_buffer_name = "__REST.json"
+vim.g.vrc_auto_format_response_patterns = {
+  json = "jq -S .",
+}
 vim.g.vrc_curl_opts = {
   ["-b"] = vim.fn.expand("$HOME") .. "/.vim/backup/vrc_cookie_jar",
   ["-c"] = vim.fn.expand("$HOME") .. "/.vim/backup/vrc_cookie_jar",
