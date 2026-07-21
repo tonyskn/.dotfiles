@@ -23,13 +23,17 @@ key=$(head -1 <<< "$pr")
 num=$(tail -1 <<< "$pr")
 [[ -z "$num" ]] && exit 0
 
-if [[ "$key" == "ctrl-a" ]]; then
-  exec git pr --state open
-elif [[ "$key" == "ctrl-o" ]]; then
-  gh pr checkout "$num"
-elif [[ "$key" == "ctrl-t" ]]; then
-  ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
-  echo "$(git wt "$ref")"
-else
-  gh pr view "$num" --web
-fi
+case "$key" in
+  ctrl-a) exec git pr --state open ;;
+  ctrl-o)
+    ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
+    git config --add remote.origin.fetch "+refs/heads/$ref:refs/remotes/origin/$ref" \
+      && git fetch origin \
+      && git checkout -B "$ref" "origin/$ref"
+    ;;
+  ctrl-t)
+    ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
+    echo "$(git wt "$ref")"
+    ;;
+  *) gh pr view "$num" --web ;;
+esac
