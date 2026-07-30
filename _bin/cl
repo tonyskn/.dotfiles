@@ -47,7 +47,7 @@ if [[ $# -eq 0 ]]; then
 
   while true; do
     selection=$(_cl list \
-      | fzf --no-sort \
+      | fzf --no-sort --ansi \
             --expect=ctrl-d,ctrl-f,ctrl-o,ctrl-r,ctrl-t,ctrl-x \
             --delimiter=$'\t' --with-nth=3 --accept-nth=1,2 \
             --header='enter: resume · ctrl-t: send · ctrl-o: fork · ctrl-f: search · ctrl-x: close · ctrl-d: delete · ctrl-r: rename' \
@@ -62,7 +62,10 @@ if [[ $# -eq 0 ]]; then
         [[ -n "$term" ]] && exec cl search "$term"
         ;;
       ctrl-x)  _cl close "$sid" ;;
-      ctrl-d)  gum confirm "Delete '$name'?" && _cl delete "$sid" || true ;;
+      ctrl-d)
+        gum confirm "Delete '$name'?" || continue
+        _cl delete "$sid"
+        ;;
       ctrl-r)
         new_name=$(gum input --placeholder "New name" --value "$name")
         [[ -n "$new_name" ]] && _cl save "$sid" --name "$new_name"
