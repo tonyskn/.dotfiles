@@ -1,121 +1,79 @@
 #!/usr/bin/env bash
 # vim:ft=bash
 #
-# cl — Claude session bookmark helper.
-# Wraps `claude` with named bookmarks, tmux window management, and session search.
+# cl — Claude session manager.
+# Picker for all Claude sessions: bookmarked and live. Search across history.
 #
 # Usage:
-#   cl                              fzf bookmark picker (or scratch session if no bookmarks)
-#   cl -n <name>                    new bookmarked session in current pane
-#   cl -n <name> --resume <sid>     resume + bookmark an existing session
-#   cl search <term>                search all Claude session history
-#   claude ...                      plain delegation (via alias claude='cl --')
+#   cl                  fzf session picker
+#   cl search <term>    search all Claude session history
 #
 set -eo pipefail
-
-# --- alias passthrough ---
-# `alias claude='cl --'` routes here. Bare `claude` starts a scratch session.
-if [[ "$1" == "--" ]]; then
-  shift
-  [[ $# -eq 0 ]] && exec command claude
-fi
 
 # --- search ---
 if [[ "$1" == "search" ]]; then
   term="${2:?Usage: cl search <term>}"
-  IFS=$'\t' read -r sid name cwd < <(
+  IFS=$'\t' read -r sid _ cwd < <(
     _cl search -- "$term" \
       | fzf --no-sort --delimiter=$'\t' --with-nth=4 --accept-nth=1,2,3 \
-            --header='enter: resume') || true
+            --header='enter: open') || true
   [[ -z "$sid" ]] && exit 0
-  if [[ "$name" == "unnamed" ]]; then
-    name=$(gum input --placeholder "Name this session for your bookmarks")
-    [[ -z "$name" ]] && exit 0
-  fi
   if [[ ! -d "$cwd" ]]; then
-    cwd=$(zoxide query -l | fzf --header="Original directory is gone — where should '$name' open?") || true
+    cwd=$(zoxide query -l | fzf --header="Original directory gone — pick a new one") || true
     [[ -z "$cwd" ]] && exit 0
   fi
-  _cl save "$sid" --name "$name" --cwd "$cwd"
-  _cl open "$sid"
+  _cl open "$sid" --cwd "$cwd"
   exit 0
 fi
 
-# --- bookmark picker ---
-if [[ $# -eq 0 ]]; then
-  [[ ! -f "$HOME/.claude/bookmarks.jsonl" ]] && exec command claude
+# --- session picker ---
+filter=$(tmux show-option -sv @cl_filter 2>/dev/null || echo "all")
 
-  while true; do
-    selection=$(_cl list \
-      | fzf --no-sort --ansi \
-            --expect=ctrl-d,ctrl-f,ctrl-o,ctrl-r,ctrl-t,ctrl-x \
-            --delimiter=$'\t' --with-nth=3 --accept-nth=1,2 \
-            --header='enter: resume · ctrl-t: send · ctrl-o: fork · ctrl-f: search · ctrl-x: close · ctrl-d: delete · ctrl-r: rename' \
-    ) || exit 0
+header() {
+  printf "[%s]  enter:open  ctrl-t:send  ctrl-g:filter  ctrl-f:search\n" "$filter"
+  printf "ctrl-s:save  ctrl-o:fork  ctrl-x:close  ctrl-d:delete"
+}
 
-    key=$(head -1 <<< "$selection")
-    IFS=$'\t' read -r sid name <<< "$(tail -1 <<< "$selection")"
+while true; do
+  selection=$(_cl list --filter "$filter" \
+    | fzf --no-sort --ansi \
+          --expect=ctrl-d,ctrl-f,ctrl-g,ctrl-o,ctrl-s,ctrl-t,ctrl-x \
+          --delimiter=$'\t' --with-nth=3 --accept-nth=1,2 \
+          --header="$(header)" \
+  ) || exit 0
 
-    case "$key" in
-      ctrl-f)
-        term=$(gum input --placeholder "Search sessions...")
-        [[ -n "$term" ]] && exec cl search "$term"
-        ;;
-      ctrl-x)  _cl close "$sid" ;;
-      ctrl-d)
-        gum confirm "Delete '$name'?" || continue
-        _cl delete "$sid"
-        ;;
-      ctrl-r)
-        new_name=$(gum input --placeholder "New name" --value "$name")
-        [[ -n "$new_name" ]] && _cl save "$sid" --name "$new_name"
-        ;;
-      ctrl-t)
-        prompt=$(gum write --header "Prompt for $name" --width 80)
-        [[ -n "$prompt" ]] && _cl open "$sid" --prompt "$prompt" && exit 0
-        ;;
-      ctrl-o)
-        fork_name=$(gum input --placeholder "Fork name" --value "${name}-fork")
-        [[ -n "$fork_name" ]] && _cl fork "$sid" --name "$fork_name" && exit 0
-        ;;
-      *)
-        _cl open "$sid"
-        exit 0
-        ;;
-    esac
-  done
-fi
+  key=$(head -1 <<< "$selection")
+  IFS=$'\t' read -r sid name <<< "$(tail -1 <<< "$selection")"
 
-# --- arg parsing ---
-name=""
-resume_id=""
-pass_through=()
-
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    -n)          name="$2"; shift 2 ;;
-    --resume|-r)
-      # Value is optional: bare `claude -r` opens claude's interactive picker
-      if [[ -n "${2:-}" && "$2" != -* ]]; then
-        resume_id="$2"; shift 2
-      else
-        pass_through+=("$1"); shift
-      fi
+  case "$key" in
+    ctrl-g)
+      case "$filter" in
+        all) filter=live ;; live) filter=today ;; today) filter=week ;; *) filter=all ;;
+      esac
+      tmux set-option -s @cl_filter "$filter" 2>/dev/null
+      continue
       ;;
-    *)           pass_through+=("$1"); shift ;;
+    ctrl-f)
+      term=$(gum input --placeholder "Search sessions...")
+      [[ -n "$term" ]] && exec cl search "$term"
+      ;;
+    ctrl-s)
+      new_name=$(gum input --placeholder "Name" --value "$name")
+      [[ -n "$new_name" ]] && _cl save "$sid" --name "$new_name"
+      ;;
+    ctrl-o)  _cl fork "$sid" && exit 0 ;;
+    ctrl-x)  _cl close "$sid" ;;
+    ctrl-d)
+      gum confirm "Delete '$name'?" || continue
+      _cl delete "$sid"
+      ;;
+    ctrl-t)
+      prompt=$(gum write --header "Prompt for $name" --width 80)
+      [[ -n "$prompt" ]] && _cl open "$sid" --prompt "$prompt" && exit 0
+      ;;
+    *)
+      _cl open "$sid"
+      exit 0
+      ;;
   esac
 done
-
-if [[ -z "$name" ]]; then
-  exec command claude ${resume_id:+--resume "$resume_id"} "${pass_through[@]}"
-fi
-
-# --- bookmarked session in current pane ---
-sid="${resume_id:-$(uuidgen | tr '[:upper:]' '[:lower:]')}"
-_cl save "$sid" --name "$name" --cwd "$PWD" --rename-window
-
-if [[ -n "$resume_id" ]]; then
-  exec command claude --resume "$sid" -n "$name" "${pass_through[@]}"
-else
-  exec command claude --session-id "$sid" -n "$name" "${pass_through[@]}"
-fi

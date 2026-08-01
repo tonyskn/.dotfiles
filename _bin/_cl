@@ -1,8 +1,8 @@
 #!/usr/bin/env bun
 // vim:ft=typescript
 //
-// _cl — data backend for the `cl` Claude session bookmark helper.
-// Manages bookmark JSONL, searches Claude session history, and drives tmux windows.
+// _cl — data backend for the `cl` Claude session manager.
+// Manages bookmark JSONL, discovers live sessions, searches history, and drives tmux.
 // No interactive UI — stdout is structured for fzf consumption.
 
 import { exists, rename } from "fs/promises";
@@ -11,6 +11,10 @@ import { basename, join } from "path";
 import { parseArgs } from "util";
 
 const HOME = homedir();
+
+function $(strings: TemplateStringsArray, ...exprs: unknown[]) {
+  return Bun.$(strings, ...exprs).nothrow().quiet();
+}
 
 // --- output ---
 
@@ -36,11 +40,11 @@ namespace Output {
     return `${Math.round(mins / 10080)}w ago`;
   }
 
-  // Escape codes must wrap the joined row: col() pads by raw length, so dimming
+  // Escape codes must wrap the joined row: col() pads by raw length, so coloring
   // individual columns before padding would break alignment.
-  export function fzfRow(hidden: string[], display: string[], dim = false): void {
+  export function fzfRow(hidden: string[], display: string[], muted = false): void {
     const row = display.join("  ");
-    process.stdout.write(hidden.join("\t") + "\t" + (dim ? `\x1b[2m${row}\x1b[0m` : row) + "\n");
+    process.stdout.write(hidden.join("\t") + "\t" + (muted ? `\x1b[38;5;245m${row}\x1b[0m` : row) + "\n");
   }
 
   // Also posts to the tmux status line so the message outlives popups.
@@ -53,128 +57,145 @@ namespace Output {
 
 // --- tmux ---
 
+// Claude sessions identify themselves through tmux user options:
+//
+//   @cl_sid        window   the claude session id
+//   @cl_icon       window   status glyph (● working, ○ idle, ◐ waiting, ↻ loop, ⚠ attention)
+//   @cl_active_at  window   epoch seconds of the last claude event
+//   @cl_pane       pane     marks which pane actually runs claude
+//
+// Window options are visible from every pane in the window, pane options are not —
+// which is what makes @cl_pane a usable selector for the claude pane specifically.
+//
+// tmux-marker sets these on every Claude hook, making sessions self-registering.
 namespace Tmux {
-  interface Window {
-    name: string;
-    id: string; // stable #{window_id} (@N) — indices shift under renumber-windows
-    icon: string; // one of ●○◐, or "-" for an open window with no marker
+  export interface Window {
+    sid: string;
+    id: string;
+    paneId: string;
+    icon: string;
+    activeAt: number;
+    cwd: string;
   }
 
-  export function windowName(name: string): string {
-    return name.toUpperCase();
+  const FORMAT = [
+    "#{@cl_pane}",
+    "#{@cl_sid}",
+    "#{window_id}",
+    "#{pane_id}",
+    "#{@cl_icon}",
+    "#{@cl_active_at}",
+    "#{pane_current_command}",
+    "#{pane_current_path}",
+  ].join("|");
+
+  function isClaude(cmd: string): boolean {
+    return /^\d+\.\d+\.\d+$/.test(cmd) || ["claude", "node", "bun"].includes(cmd);
   }
 
-  async function windows(): Promise<Window[]> {
-    const wins: Window[] = [];
-    for await (const line of Bun.$`tmux list-windows -F '#{window_id}|#{window_name}'`.nothrow().quiet().lines()) {
-      // Rejoin after the first "|": window names may contain one.
-      const [id, ...rest] = line.split("|");
-      if (!id || !rest.length) continue;
-      const raw = rest.join("|");
-      const [, icon, name] = raw.match(/^([●○◐]) (.+)$/) ?? [];
-      wins.push({ id, name: name ?? raw, icon: icon ?? "-" });
-    }
-    return wins;
-  }
+  export async function windows(): Promise<Window[]> {
+    const found: Window[] = [];
 
-  export async function iconMap(): Promise<Record<string, string>> {
-    return Object.fromEntries((await windows()).map((w) => [w.name, w.icon]));
-  }
+    for await (const line of $`tmux list-panes -a -F ${FORMAT}`.lines()) {
+      const [marked, sid, id, paneId, icon, activeAt, cmd, cwd] = line.split("|");
+      if (marked !== "1" || !sid || !id) continue;
+      if (!isClaude(cmd ?? "")) continue;
 
-  async function findWindow(name: string): Promise<Window | null> {
-    return (await windows()).find((w) => w.name === windowName(name)) ?? null;
-  }
-
-  export async function closeWindow(name: string): Promise<void> {
-    const win = await findWindow(name);
-    if (win) await Bun.$`tmux kill-window -t ${win.id}`.nothrow().quiet();
-  }
-
-  // With oldName: rename that window, keeping its status icon. Without: rename the current window.
-  export async function renameWindow(newName: string, oldName?: string): Promise<void> {
-    if (!oldName) {
-      if (!process.env.TMUX) return;
-      await Bun.$`tmux rename-window -- ${windowName(newName)}`.nothrow().quiet();
-      return;
-    }
-    const win = await findWindow(oldName);
-    if (!win) return;
-    const prefix = win.icon === "-" ? "" : win.icon + " ";
-    await Bun.$`tmux rename-window -t ${win.id} -- ${prefix + windowName(newName)}`.nothrow().quiet();
-  }
-
-  async function sendPrompt(paneTarget: string, prompt: string): Promise<void> {
-    // Claude's binary is named after its version (e.g. "2.1.212"), and running
-    // sessions keep old versions alive — so accept any bare-version process name.
-    const fg = (await Bun.$`tmux display-message -p -t ${paneTarget} '#{pane_current_command}'`.nothrow().quiet().text()).trim();
-    const isClaude = /^\d+\.\d+\.\d+$/.test(fg) || ["claude", "node", "bun"].includes(fg);
-    if (!isClaude) Output.die(`Pane is running '${fg}', not claude — refusing to send prompt`);
-
-    // -p: bracketed paste, so multiline prompts don't submit line by line
-    await Bun.$`tmux load-buffer -b cl-prompt - < ${new Response(prompt)}`.nothrow().quiet();
-    await Bun.$`tmux paste-buffer -p -d -b cl-prompt -t ${paneTarget}`.nothrow().quiet();
-    await Bun.$`tmux send-keys -t ${paneTarget} Enter`.nothrow().quiet();
-  }
-
-  // argv passes straight through tmux (no shell), so names/prompts need no quoting.
-  export async function openSession(sid: string, name: string, cwd: string, prompt?: string): Promise<void> {
-    const winName = windowName(name);
-    const win = await findWindow(name);
-
-    if (win) {
-      if (!prompt) await Bun.$`tmux select-window -t ${win.id}`.nothrow().quiet();
-      await Bun.$`tmux select-pane -t ${win.id}.0`.nothrow().quiet();
-      if (prompt) await sendPrompt(`${win.id}.0`, prompt);
-      return;
+      found.push({
+        sid,
+        id,
+        paneId: paneId ?? "",
+        icon: icon ?? "",
+        activeAt: Number(activeAt) || 0,
+        cwd: cwd ?? "",
+      });
     }
 
-    const claudeArgs = ["--resume", sid, "-n", name, ...(prompt ? [prompt] : [])];
-    const background = prompt ? ["-d"] : []; // don't steal focus when only sending a prompt
-    await Bun.$`tmux new-window ${background} -c ${cwd} -n ${winName} -- claude ${claudeArgs}`.nothrow().quiet();
+    return found;
   }
 
-  export async function forkSession(srcSid: string, newSid: string, name: string, cwd: string): Promise<void> {
-    const claudeArgs = ["--resume", srcSid, "--fork-session", "--session-id", newSid, "-n", name];
-    await Bun.$`tmux new-window -c ${cwd} -n ${windowName(name)} -- claude ${claudeArgs}`.nothrow().quiet();
+  export async function close(win: Window): Promise<void> {
+    await $`tmux kill-window -t ${win.id}`;
+  }
+
+  export async function rename(sid: string, name: string): Promise<void> {
+    const win = (await windows()).find((w) => w.sid === sid);
+    if (win) await $`tmux rename-window -t ${win.id} -- ${name.toUpperCase()}`;
+  }
+
+  async function focus(win: Window): Promise<void> {
+    await $`tmux select-window -t ${win.id}`;
+    await $`tmux select-pane -t ${win.paneId}`;
+  }
+
+  async function paste(win: Window, prompt: string): Promise<void> {
+    await $`tmux load-buffer -b cl-prompt - < ${new Response(prompt)}`;
+    await $`tmux paste-buffer -p -d -b cl-prompt -t ${win.paneId}`;
+    await $`tmux send-keys -t ${win.paneId} Enter`;
+  }
+
+  async function launch(sid: string, name: string, cwd: string, claudeArgs: string[]): Promise<Window> {
+    const id = (await $`tmux new-window -d -c ${cwd} -n ${name.toUpperCase()} -PF ${"#{window_id}"} -- claude ${claudeArgs}`
+      .text()).trim();
+
+    const paneId = (await $`tmux list-panes -t ${id} -F ${"#{pane_id}"}`.text()).trim().split("\n")[0] ?? "";
+    await $`tmux set-option -w -t ${id} @cl_sid ${sid} ${";"} set-option -p -t ${paneId || id + ".0"} @cl_pane 1`;
+
+    return { sid, id, paneId, icon: "", activeAt: 0, cwd };
+  }
+
+  export async function fork(srcSid: string, newSid: string, name: string, cwd: string): Promise<void> {
+    const win = await launch(newSid, name, cwd,
+      ["--resume", srcSid, "--fork-session", "--session-id", newSid, "-n", name]);
+    await focus(win);
+  }
+
+  // Ensure a session has a running window, then focus or send a prompt.
+  export async function open(sid: string, name: string, cwd: string, win?: Window, prompt?: string): Promise<void> {
+    if (!win) {
+      win = await launch(sid, name, cwd, ["--resume", sid, "-n", name, ...(prompt ? [prompt] : [])]);
+    }
+
+    if (prompt) await paste(win, prompt);
+    else await focus(win);
   }
 }
 
 // --- bookmarks ---
 
 namespace Bookmarks {
-  export interface Entry {
+  export interface Bookmark {
     sid: string;
     name: string;
     cwd: string;
     started: string;
-    accessed: string;
-    icon?: string;
+    lastActive: string;
+    window?: Tmux.Window;
   }
 
-  const STALE_MIN = 7 * 1440;
-
-  export function print(bm: Entry): void {
-    const age = ageMin(bm.accessed);
-    Output.fzfRow([bm.sid, bm.name], [
-      Output.col(bm.icon ?? "", 1),
+  export function print(s: Bookmark): void {
+    const live = s.window !== undefined;
+    const age = ageMins(s.lastActive);
+    Output.fzfRow([s.sid, s.name], [
+      Output.col(live ? (s.window!.icon || "-") : "", 1),
       Output.colRight(Output.relTime(age), 8),
-      Output.col(bm.name, 30),
-      Output.formatPath(bm.cwd),
-      bm.sid,
-    ], age > STALE_MIN);
+      Output.col(s.name, 30),
+      Output.formatPath(s.cwd),
+      s.sid,
+    ], !live);
   }
 
   const PATH = join(HOME, ".claude", "bookmarks.jsonl");
-  let entries: Entry[] = [];
+  let entries: Bookmark[] = [];
   let dirty = false;
 
-  // Stored as UTC "YYYY-MM-DD HH:MM" — timestamp() and ageMin() are a pair.
-  function timestamp(): string {
-    return new Date().toISOString().replace("T", " ").slice(0, 16);
+  // ISO 8601 UTC: parses back with no massaging, and sorts lexicographically.
+  function timestamp(ms = Date.now()): string {
+    return new Date(ms).toISOString();
   }
 
-  function ageMin(ts: string): number {
-    return (Date.now() - new Date(ts.replace(" ", "T") + "Z").getTime()) / 60_000;
+  export function ageMins(ts: string): number {
+    return (Date.now() - new Date(ts).getTime()) / 60_000;
   }
 
   async function load(): Promise<void> {
@@ -195,44 +216,42 @@ namespace Bookmarks {
 
   export const ready = load();
 
-  // Atomic write: temp file + rename so a crash can't truncate the store.
   export async function flush(): Promise<void> {
     if (!dirty) return;
     dirty = false;
-    const clean = entries.map(({ icon, ...rest }) => rest);
     const tmp = PATH + ".tmp";
-    await Bun.write(tmp, clean.map((e) => JSON.stringify(e)).join("\n") + "\n");
+    await Bun.write(tmp, entries.map(({ window, ...rest }) => JSON.stringify(rest)).join("\n") + "\n");
     await rename(tmp, PATH);
   }
 
-  export function find(sid: string): Entry | undefined {
+  export function find(sid: string): Bookmark | undefined {
     return entries.find((b) => b.sid === sid);
   }
 
-  // Unlike find(), dies rather than returning undefined.
-  export function get(sid: string): Entry {
-    return find(sid) ?? Output.die(`Bookmark not found: ${sid}`);
-  }
-
   // A bookmark is only resumable while its directory and session file survive.
-  export async function ensureLaunchable(bm: Entry): Promise<void> {
+  export async function ensureLaunchable(bm: Bookmark): Promise<void> {
     if (!(await exists(bm.cwd))) Output.die(`Directory no longer exists: ${bm.cwd}`);
     if (!(await Sessions.fileExists(bm.sid))) {
       Output.die(`No Claude session file for '${bm.name}' — deleted or rotated by /clear`);
     }
   }
 
-  // No name/cwd: bumps accessed. With name/cwd: creates or updates.
-  export function save(sid: string, name?: string, cwd?: string): void {
+  // No name/cwd: just marks it active. With name/cwd: creates or updates.
+  export async function save(sid: string, name?: string, cwd?: string): Promise<void> {
+    await ready;
     const existing = find(sid);
-    const now = timestamp();
     if (existing) {
       if (name) existing.name = name;
       if (cwd) existing.cwd = cwd;
-      existing.accessed = now;
     } else {
-      if (!name || !cwd) Output.die("New bookmark requires --name and --cwd");
-      entries.push({ sid, cwd, name, started: now, accessed: now });
+      if (!name) Output.die("New bookmark requires --name");
+      if (!cwd) {
+        const win = (await Tmux.windows()).find((w) => w.sid === sid);
+        cwd = win?.cwd;
+      }
+      if (!cwd) Output.die("New bookmark requires --cwd (no live window to infer from)");
+      const now = timestamp();
+      entries.push({ sid, cwd, name, started: now, lastActive: now });
     }
     dirty = true;
   }
@@ -242,12 +261,40 @@ namespace Bookmarks {
     dirty = true;
   }
 
-  export async function list(): Promise<Entry[]> {
-    if (!entries.length) return [];
-    const icons = await Tmux.iconMap();
-    return entries
-      .map((bm) => ({ ...bm, icon: icons[Tmux.windowName(bm.name)] }))
-      .sort((a, b) => b.accessed.localeCompare(a.accessed));
+  export async function list(): Promise<Bookmark[]> {
+    await ready;
+    const windows = await Tmux.windows();
+    const windowBySid = new Map(windows.map((w) => [w.sid, w]));
+    const bookmarkedSids = new Set(entries.map((e) => e.sid));
+
+    const bookmarked = entries.map((bm) => {
+      const window = windowBySid.get(bm.sid);
+      if (window?.activeAt) {
+        const seen = timestamp(window.activeAt * 1000);
+        if (seen > bm.lastActive) {
+          bm.lastActive = seen;
+          dirty = true;
+        }
+      }
+      return { ...bm, window };
+    });
+
+    const orphans = windows
+      .filter((w) => !bookmarkedSids.has(w.sid))
+      .map((window) => {
+        const now = timestamp(window.activeAt ? window.activeAt * 1000 : undefined);
+        return {
+          sid: window.sid,
+          name: "unnamed",
+          cwd: window.cwd,
+          started: now,
+          lastActive: now,
+          window,
+        };
+      });
+
+    return [...bookmarked, ...orphans]
+      .sort((a, b) => b.lastActive.localeCompare(a.lastActive));
   }
 }
 
@@ -292,14 +339,14 @@ namespace Sessions {
 
   export async function search(term: string): Promise<Record[]> {
     // -F: literal term; -e: terms starting with "-"; nothrow: grep exits 1 on no match
-    const result = await Bun.$`grep -rilF ${"--include=*.jsonl"} --exclude-dir=subagents -e ${term} ${DIR}`.nothrow().quiet().text();
+    const result = await $`grep -rilF ${"--include=*.jsonl"} --exclude-dir=subagents -e ${term} ${DIR}`.text();
     const files = result.trim().split("\n").filter(Boolean);
     files.sort((a, b) => Bun.file(b).lastModified - Bun.file(a).lastModified);
     return Promise.all(files.map(parse));
   }
 
   export async function fileExists(sid: string): Promise<boolean> {
-    const result = await Bun.$`find ${DIR} -name ${sid + ".jsonl"} -print -quit`.nothrow().quiet().text();
+    const result = await $`find ${DIR} -name ${sid + ".jsonl"} -print -quit`.text();
     return result.trim().length > 0;
   }
 }
@@ -308,10 +355,10 @@ namespace Sessions {
 
 namespace Cli {
   const USAGE: Record<string, string> = {
-    list:   "_cl list",
-    save:   "_cl save <sid> [--name <name>] [--cwd <dir>] [--rename-window]",
+    list:   "_cl list [--filter all|live|today|week]",
+    save:   "_cl save <sid> [--name <name>] [--cwd <dir>]",
     open:   "_cl open <sid> [--prompt <text>]",
-    fork:   "_cl fork <sid> --name <name>",
+    fork:   "_cl fork <sid>",
     close:  "_cl close <sid>",
     delete: "_cl delete <sid>",
     search: "_cl search <term>",
@@ -323,7 +370,7 @@ namespace Cli {
       prompt: { type: "string" },
       name:   { type: "string" },
       cwd:    { type: "string" },
-      "rename-window": { type: "boolean" },
+      filter: { type: "string" },
     },
   });
   const [cmd, ...args] = positionals;
@@ -341,52 +388,68 @@ namespace Cli {
     return args[0] ?? die();
   }
 
+  async function bookmark(sid = arg()): Promise<Bookmarks.Bookmark | undefined> {
+    return (await Bookmarks.list()).find((s) => s.sid === sid);
+  }
+
+  async function bookmarkOrDie(): Promise<Bookmarks.Bookmark> {
+    return await bookmark() ?? Output.die("Session not found");
+  }
+
   export async function run(): Promise<void> {
     switch (cmd) {
       case "list": {
-        for (const bm of await Bookmarks.list()) Bookmarks.print(bm);
+        const sessions = (await Bookmarks.list()).filter((s) => {
+          switch (flags.filter) {
+            case "today": return Bookmarks.ageMins(s.lastActive) < 1440;
+            case "week":  return Bookmarks.ageMins(s.lastActive) < 10080;
+            case "live":  return s.window !== undefined;
+            default:      return true;
+          }
+        });
+        for (const s of sessions) Bookmarks.print(s);
         break;
       }
 
       case "save": {
         const sid = arg();
-        const oldName = Bookmarks.find(sid)?.name;
-        Bookmarks.save(sid, flags.name, flags.cwd);
-        if (flags.name && oldName && oldName !== flags.name) {
-          await Tmux.renameWindow(flags.name, oldName);
-        }
-        if (flags["rename-window"] && flags.name) await Tmux.renameWindow(flags.name);
+        const renamed = flags.name && Bookmarks.find(sid)?.name !== flags.name;
+        await Bookmarks.save(sid, flags.name, flags.cwd);
+        if (renamed && flags.name) await Tmux.rename(sid, flags.name);
         break;
       }
 
       case "open": {
         const sid = arg();
-        const bm = Bookmarks.get(sid);
-        await Bookmarks.ensureLaunchable(bm);
-        Bookmarks.save(sid);
-        await Tmux.openSession(sid, bm.name, bm.cwd, flags.prompt);
+        const bm = await bookmark(sid);
+        if (bm && !bm.window) await Bookmarks.ensureLaunchable(bm);
+        await Tmux.open(
+          sid,
+          bm?.name ?? "unnamed",
+          bm?.cwd ?? flags.cwd ?? Output.die("Need --cwd for unbookmarked session"),
+          bm?.window,
+          flags.prompt,
+        );
         break;
       }
 
       case "fork": {
-        const src = Bookmarks.get(arg());
+        const src = await bookmarkOrDie();
         await Bookmarks.ensureLaunchable(src);
-        const name = flags.name ?? die();
-        const newSid = crypto.randomUUID();
-        Bookmarks.save(newSid, name, src.cwd);
-        await Tmux.forkSession(src.sid, newSid, name, src.cwd);
+        await Tmux.fork(src.sid, crypto.randomUUID(), "unnamed", src.cwd);
         break;
       }
 
       case "close": {
-        await Tmux.closeWindow(Bookmarks.get(arg()).name);
+        const s = await bookmarkOrDie();
+        if (s.window) await Tmux.close(s.window);
         break;
       }
 
       case "delete": {
-        const bm = Bookmarks.get(arg());
-        Bookmarks.remove(bm.sid); // remove first so a tmux failure can't strand the bookmark
-        await Tmux.closeWindow(bm.name);
+        const s = await bookmarkOrDie();
+        Bookmarks.remove(s.sid); // remove first so a tmux failure can't strand the bookmark
+        if (s.window) await Tmux.close(s.window);
         break;
       }
 
