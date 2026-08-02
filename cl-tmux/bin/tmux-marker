@@ -29,7 +29,7 @@ case "$state" in
   working)   icon="●" ;;
   idle)      icon="○" ;;
   waiting)   icon="◐" ;;
-  loop)      icon="↻" ;;
+  loop)      icon="∞" ;;
   attention) icon="⚠" ;;
   *)         icon=""  ;;
 esac

@@ -1,0 +1,5 @@
+brew "oven-sh/bun/bun"
+brew "fzf"
+brew "gum"
+brew "jq"
+brew "ripgrep"

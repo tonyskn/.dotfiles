@@ -131,9 +131,9 @@
   },
   "model": "claude-opus-5[1m]",
   "hooks": {
-    "Notification":     [{ "hooks": [{ "type": "command", "command": "tmux-marker" }] }],
-    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "tmux-marker" }] }],
-    "Stop":             [{ "hooks": [{ "type": "command", "command": "tmux-marker" }] }]
+    "Notification":     [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker" }] }],
+    "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker" }] }],
+    "Stop":             [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker" }] }]
   },
   "syntaxHighlightingDisabled": false,
   "effortLevel": "medium",
