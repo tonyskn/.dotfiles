@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
-  aggregateIcon,
+  AgentState,
   buildSessionRows,
+  collapseHistoryMatches,
   type BookmarkRecord,
+  type HistoryEntry,
   type LivePane,
 } from "./index";
 
@@ -28,24 +30,27 @@ function pane(overrides: Partial<LivePane> = {}): LivePane {
   };
 }
 
-describe("aggregateIcon", () => {
+describe("AgentState.aggregate", () => {
   test("uses deterministic state priority", () => {
-    expect(aggregateIcon(["attention", "working"])).toBe("⚠");
+    expect(AgentState.aggregate(["attention", "working"])).toBe("⚠");
   });
 
   test("prioritizes loop over ordinary working", () => {
-    expect(aggregateIcon(["working", "loop"])).toBe("∞");
+    expect(AgentState.aggregate(["working", "loop"])).toBe("∞");
   });
 
   test("returns an empty presentation for no pane state", () => {
-    expect(aggregateIcon([undefined])).toBe("");
+    expect(AgentState.aggregate([undefined])).toBe("");
   });
 });
 
 describe("buildSessionRows", () => {
   test("joins a live pane to its bookmark and uses live activity", () => {
     expect(buildSessionRows([bookmark], [pane()])).toEqual([{
-      ...bookmark,
+      harness: bookmark.harness,
+      sid: bookmark.sid,
+      name: bookmark.name,
+      cwd: bookmark.cwd,
       lastActive: 300,
       saved: true,
       pane: pane(),
@@ -61,4 +66,31 @@ describe("buildSessionRows", () => {
       { sid: "saved", saved: true, paneId: undefined },
     ]);
   });
+
+  test("uses fallback activity for a newly discovered live session", () => {
+    const orphan = pane({ sid: "orphan", activeAt: 0 });
+    expect(buildSessionRows([bookmark], [orphan], 500)[0].lastActive).toBe(500);
+  });
+});
+
+test("collapseHistoryMatches removes duplicate files and inherited fork matches", () => {
+  const entry = (sid: string, forkedFromSid?: string): HistoryEntry => ({
+    harness: "codex",
+    sid,
+    forkedFromSid,
+    title: sid,
+    name: "repo",
+    cwd: "/repo",
+    cwdExists: true,
+  });
+
+  expect(collapseHistoryMatches([
+    entry("fork", "parent"),
+    entry("parent"),
+    entry("parent"),
+    entry("independent-fork", "missing-parent"),
+  ])).toEqual([
+    entry("parent"),
+    entry("independent-fork", "missing-parent"),
+  ]);
 });

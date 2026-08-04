@@ -5,11 +5,8 @@
 //   tmux-marker [--harness <id>] [state]
 
 import {
-  aggregateIcon,
-  getHarness,
-  isAgentState,
-  isHarnessId,
-  type AgentState,
+  AgentState,
+  Harness,
 } from "./model";
 import { parseArgs } from "util";
 
@@ -32,6 +29,14 @@ function tmux(args: string[]): { ok: boolean; stdout: string } {
   };
 }
 
+function flushPane(options: ReadonlyArray<readonly [string, string]>): boolean {
+  const args = options.flatMap(([option, value], index) => [
+    ...(index ? [";"] : []),
+    "set-option", "-p", "-t", paneId, option, value,
+  ]);
+  return tmux(args).ok;
+}
+
 async function hookPayload(): Promise<HookPayload | undefined> {
   if (process.stdin.isTTY) return undefined;
   try {
@@ -46,35 +51,33 @@ const { positionals, values } = parseArgs({
   allowPositionals: true,
   options: { harness: { type: "string" } },
 });
-if (values.harness !== undefined && !isHarnessId(values.harness)) process.exit(0);
+if (values.harness !== undefined && !Harness.isId(values.harness)) process.exit(0);
 
-const explicitState = positionals[0] ?? "";
+const payload = await hookPayload();
 const taggedHarness = tmux([
   "display-message", "-p", "-t", paneId, "#{@cl_harness}",
 ]).stdout;
 const harnessId = values.harness ?? taggedHarness;
-if (!isHarnessId(harnessId)) process.exit(0);
+if (!Harness.isId(harnessId)) process.exit(0);
 
-const harness = getHarness(harnessId);
-let state = isAgentState(explicitState) ? explicitState : undefined;
-let sid = "";
+const harness = Harness.get(harnessId);
+const requestedState = positionals[0] ?? "";
+const hookState = typeof payload?.hook_event_name === "string"
+  ? harness.stateForHook(payload.hook_event_name)
+  : undefined;
+const state = AgentState.is(requestedState) ? requestedState : hookState;
+const sid = typeof payload?.session_id === "string" ? payload.session_id : undefined;
 
-const payload = await hookPayload();
-if (payload) {
-  if (typeof payload.session_id === "string") sid = payload.session_id;
-  if (!explicitState && typeof payload.hook_event_name === "string") {
-    state = harness.stateForHook(payload.hook_event_name);
-  }
-}
-
-const activeAt = Math.floor(Date.now() / 1000);
-const setPane = [
-  "set-option", "-p", "-t", paneId, "@cl_harness", harness.id,
-  ";", "set-option", "-p", "-t", paneId, "@cl_state", state ?? "",
-  ";", "set-option", "-p", "-t", paneId, "@cl_active_at", String(activeAt),
+const paneOptions: Array<[string, string]> = [
+  ["@cl_harness", harness.id],
+  ["@cl_state", state ?? ""],
 ];
-if (sid) setPane.push(";", "set-option", "-p", "-t", paneId, "@cl_sid", sid);
-if (!tmux(setPane).ok) process.exit(0);
+if (state) {
+  paneOptions.push(["@cl_active_at", String(Math.floor(Date.now() / 1000))]);
+}
+if (sid) paneOptions.push(["@cl_sid", sid]);
+
+if (!flushPane(paneOptions)) process.exit(0);
 
 const listed = tmux([
   "list-panes", "-a", "-F",
@@ -88,10 +91,10 @@ for (const line of listed.stdout.split("\n")) {
   if (!windowId) continue;
 
   const states = statesByWindow.get(windowId) ?? [];
-  if (isHarnessId(paneHarness) && isAgentState(paneState)) states.push(paneState);
+  if (Harness.isId(paneHarness) && AgentState.is(paneState)) states.push(paneState);
   statesByWindow.set(windowId, states);
 }
 
 for (const [windowId, states] of statesByWindow) {
-  tmux(["set-option", "-w", "-t", windowId, "@cl_icon", aggregateIcon(states)]);
+  tmux(["set-option", "-w", "-t", windowId, "@cl_icon", AgentState.aggregate(states)]);
 }

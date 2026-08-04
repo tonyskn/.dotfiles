@@ -10,20 +10,14 @@ import { homedir } from "os";
 import { dirname, join } from "path";
 import { parseArgs } from "util";
 import {
-  buildHistoryRows,
+  AgentState,
+  Harness,
+  SessionRef,
   buildSessionRows,
-  getHarness,
-  harnesses,
-  iconForState,
-  isAgentState,
-  isHarnessId,
-  sameSession,
-  sessionKey,
+  collapseHistoryMatches,
   type BookmarkRecord,
-  type Harness,
   type HistoryEntry,
   type LivePane,
-  type SessionRef,
   type SessionRow,
 } from "./model";
 
@@ -33,23 +27,34 @@ function run(strings: TemplateStringsArray, ...exprs: unknown[]) {
   return Bun.$(strings, ...exprs).nothrow().quiet();
 }
 
+function minutesSince(timestamp: number): number {
+  return (Date.now() / 1000 - timestamp) / 60;
+}
+
+// Also posts to the tmux status line so the message outlives popups.
+function fail(message: string): never {
+  console.error(message);
+  if (process.env.TMUX) Bun.spawnSync(["tmux", "display-message", `cl: ${message}`]);
+  process.exit(1);
+}
+
 // --- output ---
 
 namespace Output {
-  export function formatPath(path: string, marker = "", width = 40): string {
+  function formatPath(path: string, marker = "", width = 40): string {
     const short = path.startsWith(HOME) ? "~" + path.slice(HOME.length) : path;
     return col(marker + short, width);
   }
 
-  export function col(s: string, n: number): string {
+  function col(s: string, n: number): string {
     return s.padEnd(n).slice(0, n);
   }
 
-  export function colRight(s: string, n: number): string {
+  function colRight(s: string, n: number): string {
     return s.padStart(n).slice(-n);
   }
 
-  export function relTime(mins: number): string {
+  function relTime(mins: number): string {
     if (mins < 1) return "just now";
     if (mins < 60) return `${Math.round(mins)}m ago`;
     if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
@@ -59,18 +64,37 @@ namespace Output {
 
   // Escape codes must wrap the joined row: col() pads by raw length, so coloring
   // individual columns before padding would break alignment.
-  export function fzfRow(hidden: string[], display: string[], muted = false): void {
+  function fzfRow(hidden: string[], display: string[], muted = false): void {
     const hiddenFields = hidden.join("\t");
     const displayFields = display.join("  ");
     const rendered = muted ? `\x1b[38;5;245m${displayFields}\x1b[0m` : displayFields;
     process.stdout.write(`${hiddenFields}\t${rendered}\n`);
   }
 
-  // Also posts to the tmux status line so the message outlives popups.
-  export function die(message: string): never {
-    console.error(message);
-    if (process.env.TMUX) Bun.spawnSync(["tmux", "display-message", `cl: ${message}`]);
-    process.exit(1);
+  export function printSession(row: SessionRow): void {
+    const live = row.pane !== undefined;
+    const icon = live ? AgentState.icon(row.pane?.state) || "-" : "";
+    const savedMarker = row.saved ? "" : "* ";
+
+    fzfRow([row.harness, row.sid, row.name, row.pane?.paneId ?? ""], [
+      col(icon, 1),
+      colRight(relTime(minutesSince(row.lastActive)), 8),
+      col(savedMarker + row.name, 30),
+      formatPath(row.cwd),
+      col(row.harness, 6),
+      row.sid,
+    ], !live);
+  }
+
+  export function printHistory(entry: HistoryEntry): void {
+    const pathMarker = entry.cwdExists ? "" : "✗ ";
+    fzfRow([entry.harness, entry.sid, entry.name, entry.cwd], [
+      col(entry.title, 50),
+      col(entry.name, 30),
+      formatPath(entry.cwd, pathMarker),
+      col(entry.harness, 6),
+      entry.sid,
+    ]);
   }
 }
 
@@ -113,15 +137,15 @@ namespace Tmux {
         cwd,
       ] = line.split("\t");
 
-      if (!isHarnessId(harness) || !sid || !windowId || !paneId) continue;
-      if (!getHarness(harness).isProcess(cmd ?? "")) continue;
+      if (!Harness.isId(harness) || !sid || !windowId || !paneId) continue;
+      if (!Harness.get(harness).isProcess(cmd ?? "")) continue;
 
       found.push({
         harness,
         sid,
         windowId,
         paneId,
-        state: isAgentState(state) ? state : undefined,
+        state: AgentState.is(state) ? state : undefined,
         activeAt: Number(activeAt) || 0,
         cwd: cwd ?? "",
       });
@@ -131,10 +155,10 @@ namespace Tmux {
   }
 
   export async function find(ref: SessionRef): Promise<LivePane | undefined> {
-    return (await panes()).find((pane) => sameSession(pane, ref));
+    return (await panes()).find((pane) => SessionRef.equals(pane, ref));
   }
 
-  export async function close(pane: LivePane): Promise<void> {
+  export async function close(pane: PaneTarget): Promise<void> {
     await run`tmux kill-pane -t ${pane.paneId}`;
   }
 
@@ -148,7 +172,7 @@ namespace Tmux {
     await run`tmux select-pane -t ${pane.paneId}`;
   }
 
-  async function paste(pane: LivePane, prompt: string): Promise<void> {
+  async function paste(pane: PaneTarget, prompt: string): Promise<void> {
     await run`tmux load-buffer -b cl-prompt - < ${new Response(prompt)}`;
     await run`tmux paste-buffer -p -d -b cl-prompt -t ${pane.paneId}`;
     await run`tmux send-keys -t ${pane.paneId} Enter`;
@@ -184,8 +208,6 @@ namespace Tmux {
       if (knownSid) {
         paneOptions.push(
           ";", "set-option", "-p", "-t", paneId, "@cl_sid", knownSid,
-          ";", "set-option", "-p", "-t", paneId,
-          "@cl_active_at", String(Math.floor(Date.now() / 1000)),
         );
       }
       await run`tmux ${paneOptions}`;
@@ -199,7 +221,7 @@ namespace Tmux {
     name: string,
     cwd: string,
   ): Promise<void> {
-    const harness = getHarness(source.harness);
+    const harness = Harness.get(source.harness);
     const command = harness.fork({ sourceSid: source.sid, name });
     const pane = await launch(harness, name, cwd, command);
     await focus(pane);
@@ -208,13 +230,16 @@ namespace Tmux {
   // Ensure a session has a running window, then focus or send a prompt.
   export async function open(
     ref: SessionRef,
-    name: string,
-    cwd: string,
-    pane?: LivePane,
-    prompt?: string,
+    options: {
+      name: string;
+      cwd: string;
+      pane?: PaneTarget;
+      prompt?: string;
+    },
   ): Promise<void> {
+    const { name, cwd, pane, prompt } = options;
     if (!pane) {
-      const harness = getHarness(ref.harness);
+      const harness = Harness.get(ref.harness);
       const command = harness.resume({ sid: ref.sid, name, prompt });
       const launchedPane = await launch(harness, name, cwd, command, ref.sid);
       if (!prompt) await focus(launchedPane);
@@ -229,35 +254,12 @@ namespace Tmux {
 // --- bookmarks ---
 
 namespace Bookmarks {
-  export function print(row: SessionRow): void {
-    const live = row.pane !== undefined;
-    const icon = live ? iconForState(row.pane?.state) || "-" : "";
-    const savedMarker = row.saved ? "" : "* ";
-
-    Output.fzfRow([row.harness, row.sid, row.name, row.pane?.paneId ?? ""], [
-      Output.col(icon, 1),
-      Output.colRight(Output.relTime(ageMins(row.lastActive)), 8),
-      Output.col(savedMarker + row.name, 30),
-      Output.formatPath(row.cwd),
-      Output.col(row.harness, 6),
-      row.sid,
-    ], !live);
-  }
-
   const STATE_HOME = process.env.XDG_STATE_HOME || join(HOME, ".local", "state");
   const BOOKMARKS_PATH = join(STATE_HOME, "cl-tmux", "bookmarks.jsonl");
   let entries: BookmarkRecord[] = [];
   let dirty = false;
 
-  function now(): number {
-    return Math.floor(Date.now() / 1000);
-  }
-
-  export function ageMins(ts: number): number {
-    return (now() - ts) / 60;
-  }
-
-  async function load(): Promise<void> {
+  export async function load(): Promise<void> {
     const file = Bun.file(BOOKMARKS_PATH);
     if (!(await file.exists())) return;
 
@@ -269,32 +271,26 @@ namespace Bookmarks {
       .map((line) => JSON.parse(line) as BookmarkRecord);
   }
 
-  export const ready = load();
-
   export async function flush(): Promise<void> {
     if (!dirty) return;
-    dirty = false;
 
     const contents = entries.map((entry) => JSON.stringify(entry)).join("\n") + "\n";
     const temporaryPath = BOOKMARKS_PATH + ".tmp";
     await mkdir(dirname(BOOKMARKS_PATH), { recursive: true });
     await Bun.write(temporaryPath, contents);
     await rename(temporaryPath, BOOKMARKS_PATH);
+    dirty = false;
+  }
+
+  export function all(): ReadonlyArray<BookmarkRecord> {
+    return entries;
   }
 
   export function find(ref: SessionRef): BookmarkRecord | undefined {
-    return entries.find((bookmark) => sameSession(bookmark, ref));
+    return entries.find((bookmark) => SessionRef.equals(bookmark, ref));
   }
 
-  // A bookmark is only resumable while its directory and session file survive.
-  export async function ensureLaunchable(bm: BookmarkRecord): Promise<void> {
-    if (!(await exists(bm.cwd))) Output.die(`Directory no longer exists: ${bm.cwd}`);
-    if (!(await History.get(bm))) Output.die(`No session history for '${bm.name}'`);
-  }
-
-  // No name/cwd: just marks it active. With name/cwd: creates or updates.
   export async function save(ref: SessionRef, name?: string, cwd?: string): Promise<void> {
-    await ready;
     const existing = find(ref);
 
     if (existing) {
@@ -304,14 +300,14 @@ namespace Bookmarks {
       return;
     }
 
-    if (!name) Output.die("New bookmark requires --name");
+    if (!name) fail("New bookmark requires --name");
     if (!cwd) {
       const pane = await Tmux.find(ref);
       cwd = pane?.cwd;
     }
-    if (!cwd) Output.die("New bookmark requires --cwd (no live pane to infer from)");
+    if (!cwd) fail("New bookmark requires --cwd (no live pane to infer from)");
 
-    const timestamp = now();
+    const timestamp = Math.floor(Date.now() / 1000);
     entries.push({
       ...ref,
       name,
@@ -323,59 +319,43 @@ namespace Bookmarks {
   }
 
   export function remove(ref: SessionRef): void {
-    entries = entries.filter((bookmark) => !sameSession(bookmark, ref));
+    entries = entries.filter((bookmark) => !SessionRef.equals(bookmark, ref));
     dirty = true;
   }
 
-  export async function list(): Promise<SessionRow[]> {
-    await ready;
-    const panes = await Tmux.panes();
-    const rows = buildSessionRows(entries, panes);
-    const bookmarkBySession = new Map(entries.map((entry) => [sessionKey(entry), entry]));
+  export function updateActivity(rows: ReadonlyArray<SessionRow>): void {
+    const bookmarkBySession = SessionRef.index(entries);
 
     for (const row of rows) {
-      const bookmark = bookmarkBySession.get(sessionKey(row));
+      const bookmark = bookmarkBySession.get(SessionRef.key(row));
       if (bookmark && row.lastActive > bookmark.lastActive) {
         bookmark.lastActive = row.lastActive;
         dirty = true;
       }
     }
-
-    return Promise.all(
-      rows.map(async (row) => {
-        if (row.saved) return row;
-        const history = await History.get(row);
-        return { ...row, name: history?.name ?? row.name };
-      }),
-    );
   }
 }
 
 // --- history ---
 
 namespace History {
-  export function print(entry: HistoryEntry): void {
-    const pathMarker = entry.cwdExists ? "" : "✗ ";
-    Output.fzfRow([entry.harness, entry.sid, entry.name, entry.cwd], [
-      Output.col(entry.title, 50),
-      Output.col(entry.name, 30),
-      Output.formatPath(entry.cwd, pathMarker),
-      Output.col(entry.harness, 6),
-      entry.sid,
-    ]);
-  }
-
   async function parse(harness: Harness, file: string): Promise<HistoryEntry | undefined> {
     const parsed = harness.parseHistory(file, await Bun.file(file).text());
     if (!parsed) return undefined;
     const cwdExists = Boolean(parsed.cwd) && await exists(parsed.cwd);
-    return { harness: harness.id, ...parsed, cwdExists };
+    return {
+      harness: harness.id,
+      ...parsed,
+      title: parsed.title || "untitled",
+      name: parsed.name || "unnamed",
+      cwdExists,
+    };
   }
 
   export async function search(term: string): Promise<HistoryEntry[]> {
     const matches: Array<{ harness: Harness; file: string }> = [];
 
-    for (const harness of harnesses()) {
+    for (const harness of Harness.all()) {
       const globArgs = harness.historyGlobs.flatMap((glob) => ["-g", glob]);
       const directory = join(HOME, harness.historyDir);
       const args = ["-ilF", ...globArgs, "--", term, directory];
@@ -388,19 +368,51 @@ namespace History {
     matches.sort((a, b) => Bun.file(b.file).lastModified - Bun.file(a.file).lastModified);
     const parsed = await Promise.all(matches.map(({ harness, file }) => parse(harness, file)));
     const entries = parsed.filter((entry): entry is HistoryEntry => entry !== undefined);
-    return buildHistoryRows(entries);
+    return collapseHistoryMatches(entries);
   }
 
   export async function get(ref: SessionRef): Promise<HistoryEntry | undefined> {
-    const harness = getHarness(ref.harness);
+    const harness = Harness.get(ref.harness);
     const directory = join(HOME, harness.historyDir);
     const args = ["--files", "-g", harness.sessionGlob(ref.sid), directory];
     const file = (await run`rg ${args}`.text()).trim();
     if (!file) return undefined;
 
-    const entry = await parse(harness, file);
-    if (!entry) return undefined;
-    return buildHistoryRows([entry])[0];
+    return parse(harness, file);
+  }
+}
+
+// --- sessions ---
+
+namespace Sessions {
+  export async function list(): Promise<SessionRow[]> {
+    const rows = buildSessionRows(Bookmarks.all(), await Tmux.panes());
+    Bookmarks.updateActivity(rows);
+
+    return Promise.all(
+      rows.map(async (row) => {
+        if (row.saved) return row;
+        const history = await History.get(row);
+        return { ...row, name: history?.name ?? row.name };
+      }),
+    );
+  }
+
+  export async function find(ref: SessionRef): Promise<SessionRow | undefined> {
+    return (await list()).find((row) => SessionRef.equals(row, ref));
+  }
+
+  export async function require(ref: SessionRef): Promise<SessionRow> {
+    return (await find(ref)) ?? fail("Session not found");
+  }
+
+  export async function ensureLaunchable(session: SessionRow): Promise<void> {
+    if (!(await exists(session.cwd))) {
+      fail(`Directory no longer exists: ${session.cwd}`);
+    }
+    if (!(await History.get(session))) {
+      fail(`No session history for '${session.name}'`);
+    }
   }
 }
 
@@ -426,53 +438,45 @@ namespace Cli {
       filter: { type: "string" },
     },
   });
-  const [cmd, ...args] = positionals;
+  const [cmd, ...operands] = positionals;
 
   // Prints the command's own usage if we recognise it, otherwise the full list.
   function die(): never {
     const lines = USAGE[cmd]
       ? [`Usage: ${USAGE[cmd]}`]
       : ["Usage:", ...Object.values(USAGE).map((u) => "  " + u)];
-    Output.die(lines.join("\n"));
+    fail(lines.join("\n"));
   }
 
-  function arg(): string {
-    return args[0] ?? die();
+  function searchTerm(): string {
+    return operands[0] ?? die();
   }
 
-  function ref(): SessionRef {
-    const [harness, sid] = args;
-    if (!harness || !isHarnessId(harness) || !sid) die();
+  function sessionRef(): SessionRef {
+    const [harness, sid] = operands;
+    if (!harness || !Harness.isId(harness) || !sid) die();
     return { harness, sid };
-  }
-
-  async function session(target = ref()): Promise<SessionRow | undefined> {
-    return (await Bookmarks.list()).find((row) => sameSession(row, target));
-  }
-
-  async function sessionOrDie(): Promise<SessionRow> {
-    return (await session()) ?? Output.die("Session not found");
   }
 
   function matchesFilter(row: SessionRow): boolean {
     switch (flags.filter) {
-      case "today": return Bookmarks.ageMins(row.lastActive) < 1440;
-      case "week":  return Bookmarks.ageMins(row.lastActive) < 10080;
+      case "today": return minutesSince(row.lastActive) < 1440;
+      case "week":  return minutesSince(row.lastActive) < 10080;
       case "live":  return row.pane !== undefined;
       default:      return true;
     }
   }
 
-  export async function run(): Promise<void> {
+  export async function main(): Promise<void> {
     switch (cmd) {
       case "list": {
-        const sessions = (await Bookmarks.list()).filter(matchesFilter);
-        for (const row of sessions) Bookmarks.print(row);
+        const sessions = (await Sessions.list()).filter(matchesFilter);
+        for (const row of sessions) Output.printSession(row);
         break;
       }
 
       case "save": {
-        const target = ref();
+        const target = sessionRef();
         const renamed = flags.name !== undefined && Bookmarks.find(target)?.name !== flags.name;
         await Bookmarks.save(target, flags.name, flags.cwd);
         if (renamed && flags.name) await Tmux.rename(target, flags.name);
@@ -480,27 +484,26 @@ namespace Cli {
       }
 
       case "open": {
-        const target = ref();
-        const existing = await session(target);
-        if (existing?.saved && !existing.pane) await Bookmarks.ensureLaunchable(existing);
+        const target = sessionRef();
+        const existing = await Sessions.find(target);
+        if (existing?.saved && !existing.pane) await Sessions.ensureLaunchable(existing);
 
         const name = existing?.name ?? flags.name ?? "unnamed";
         const cwd = existing?.cwd ?? flags.cwd;
-        if (!cwd) Output.die("Need --cwd for unbookmarked session");
+        if (!cwd) fail("Need --cwd for unbookmarked session");
 
-        await Tmux.open(
-          target,
+        await Tmux.open(target, {
           name,
           cwd,
-          existing?.pane,
-          flags.prompt,
-        );
+          pane: existing?.pane,
+          prompt: flags.prompt,
+        });
         break;
       }
 
       case "fork": {
-        const source = await sessionOrDie();
-        await Bookmarks.ensureLaunchable(source);
+        const source = await Sessions.require(sessionRef());
+        await Sessions.ensureLaunchable(source);
         await Tmux.fork(
           source,
           source.name + "-fork",
@@ -510,13 +513,13 @@ namespace Cli {
       }
 
       case "close": {
-        const selected = await sessionOrDie();
+        const selected = await Sessions.require(sessionRef());
         if (selected.pane) await Tmux.close(selected.pane);
         break;
       }
 
       case "delete": {
-        const selected = await sessionOrDie();
+        const selected = await Sessions.require(sessionRef());
         // Remove first so a tmux failure cannot strand the bookmark.
         Bookmarks.remove(selected);
         if (selected.pane) await Tmux.close(selected.pane);
@@ -524,8 +527,8 @@ namespace Cli {
       }
 
       case "search": {
-        const results = await History.search(arg());
-        for (const entry of results) History.print(entry);
+        const results = await History.search(searchTerm());
+        for (const entry of results) Output.printHistory(entry);
         break;
       }
 
@@ -535,7 +538,9 @@ namespace Cli {
   }
 }
 
-await Bookmarks.ready;
-process.once("beforeExit", () => Bookmarks.flush()); // backstop; the flush below is the primary path
-await Cli.run();
-await Bookmarks.flush();
+await Bookmarks.load();
+try {
+  await Cli.main();
+} finally {
+  await Bookmarks.flush();
+}

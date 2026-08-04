@@ -1,5 +1,3 @@
-export type HarnessId = "claude" | "codex";
-
 const STATES = {
   idle: { priority: 1, icon: "○" },
   working: { priority: 2, icon: "●" },
@@ -10,9 +8,51 @@ const STATES = {
 
 export type AgentState = keyof typeof STATES;
 
+export const AgentState = {
+  is(value: string): value is AgentState {
+    return Object.hasOwn(STATES, value);
+  },
+
+  icon(state?: AgentState): string {
+    return state ? STATES[state].icon : "";
+  },
+
+  aggregate(states: ReadonlyArray<AgentState | undefined>): string {
+    let selected: AgentState | undefined;
+
+    for (const state of states) {
+      if (!state) continue;
+      const priority = STATES[state].priority;
+      const selectedPriority = selected ? STATES[selected].priority : -1;
+      if (priority > selectedPriority) selected = state;
+    }
+
+    return selected ? STATES[selected].icon : "";
+  },
+};
+
 export type SessionRef = {
   harness: HarnessId;
   sid: string;
+};
+
+export const SessionRef = {
+  key(ref: SessionRef): string {
+    return `${ref.harness}\0${ref.sid}`;
+  },
+
+  index<T extends SessionRef>(items: ReadonlyArray<T>): Map<string, T> {
+    const indexed = new Map<string, T>();
+    for (const item of items) {
+      const key = this.key(item);
+      if (!indexed.has(key)) indexed.set(key, item);
+    }
+    return indexed;
+  },
+
+  equals(a: SessionRef, b: SessionRef): boolean {
+    return a.harness === b.harness && a.sid === b.sid;
+  },
 };
 
 export type BookmarkRecord = SessionRef & {
@@ -35,23 +75,74 @@ export type HistoryEntry = SessionRef & {
   name: string;
   cwd: string;
   cwdExists: boolean;
+  forkedFromSid?: string;
 };
+
+// Collapse duplicate files and inherited fork matches to one row per relevant session.
+export function collapseHistoryMatches(entries: ReadonlyArray<HistoryEntry>): HistoryEntry[] {
+  const unique = SessionRef.index(entries);
+  const matchedSessions = new Set(unique.keys());
+  return [...unique.values()].filter((entry) => {
+    if (!entry.forkedFromSid) return true;
+    const parent = SessionRef.key({ harness: entry.harness, sid: entry.forkedFromSid });
+    return !matchedSessions.has(parent);
+  });
+}
 
 export type SessionRow = SessionRef & {
   name: string;
   cwd: string;
-  started: number;
   lastActive: number;
   saved: boolean;
   pane?: LivePane;
 };
+
+// Join persisted bookmarks and live panes into the picker's flat session model.
+export function buildSessionRows(
+  bookmarks: ReadonlyArray<BookmarkRecord>,
+  panes: ReadonlyArray<LivePane>,
+  fallbackActiveAt = Math.floor(Date.now() / 1000),
+): SessionRow[] {
+  const paneBySession = SessionRef.index(panes);
+  const savedSessions = new Set(bookmarks.map(SessionRef.key));
+
+  const saved = bookmarks.map((bookmark): SessionRow => {
+    const pane = paneBySession.get(SessionRef.key(bookmark));
+    return {
+      harness: bookmark.harness,
+      sid: bookmark.sid,
+      name: bookmark.name,
+      cwd: bookmark.cwd,
+      lastActive: Math.max(bookmark.lastActive, pane?.activeAt ?? 0),
+      saved: true,
+      pane,
+    };
+  });
+
+  const live = panes
+    .filter((pane) => !savedSessions.has(SessionRef.key(pane)))
+    .map((pane): SessionRow => ({
+      harness: pane.harness,
+      sid: pane.sid,
+      name: "unnamed",
+      cwd: pane.cwd,
+      lastActive: pane.activeAt || fallbackActiveAt,
+      saved: false,
+      pane,
+    }));
+
+  return [...saved, ...live].sort((a, b) => b.lastActive - a.lastActive);
+}
 
 export type ParsedHistory = {
   sid: string;
   title: string;
   name: string;
   cwd: string;
+  forkedFromSid?: string;
 };
+
+export type HarnessId = "claude" | "codex";
 
 export type Harness = {
   id: HarnessId;
@@ -64,6 +155,20 @@ export type Harness = {
   fork(args: { sourceSid: string; name: string }): string[];
   sessionGlob(sid: string): string;
   parseHistory(file: string, contents: string): ParsedHistory | undefined;
+};
+
+export const Harness = {
+  isId(value: string): value is HarnessId {
+    return Object.hasOwn(HARNESSES, value);
+  },
+
+  get(id: HarnessId): Harness {
+    return HARNESSES[id];
+  },
+
+  all(): Harness[] {
+    return Object.values(HARNESSES);
+  },
 };
 
 function* jsonRecords(contents: string): Generator<Record<string, unknown>> {
@@ -181,6 +286,9 @@ const codex: Harness = {
     if (!sid) return undefined;
 
     const cwd = typeof metadata.cwd === "string" ? metadata.cwd : "";
+    const forkedFromSid = typeof metadata.forked_from_id === "string"
+      ? metadata.forked_from_id
+      : undefined;
     let title = "";
     for (const record of records) {
       const payload = record.payload as Record<string, unknown> | undefined;
@@ -196,92 +304,8 @@ const codex: Harness = {
 
     const normalizedCwd = cwd.replace(/\/+$/, "");
     const name = normalizedCwd.slice(normalizedCwd.lastIndexOf("/") + 1);
-    return { sid, title, name, cwd };
+    return { sid, title, name, cwd, forkedFromSid };
   },
 };
 
 const HARNESSES: Record<HarnessId, Harness> = { claude, codex };
-
-export function isAgentState(value: string): value is AgentState {
-  return Object.hasOwn(STATES, value);
-}
-
-export function isHarnessId(value: string): value is HarnessId {
-  return Object.hasOwn(HARNESSES, value);
-}
-
-export function getHarness(id: HarnessId): Harness {
-  return HARNESSES[id];
-}
-
-export function harnesses(): Harness[] {
-  return Object.values(HARNESSES);
-}
-
-export function iconForState(state?: AgentState): string {
-  return state ? STATES[state].icon : "";
-}
-
-export function sessionKey(ref: SessionRef): string {
-  return `${ref.harness}\0${ref.sid}`;
-}
-
-export function sameSession(a: SessionRef, b: SessionRef): boolean {
-  return a.harness === b.harness && a.sid === b.sid;
-}
-
-export function aggregateIcon(
-  states: ReadonlyArray<AgentState | undefined>,
-): string {
-  let state: AgentState | undefined;
-
-  for (const candidate of states) {
-    if (!candidate) continue;
-    const priority = STATES[candidate].priority;
-    const selectedPriority = state ? STATES[state].priority : -1;
-    if (priority > selectedPriority) state = candidate;
-  }
-
-  return iconForState(state);
-}
-
-export function buildSessionRows(
-  bookmarks: ReadonlyArray<BookmarkRecord>,
-  panes: ReadonlyArray<LivePane>,
-): SessionRow[] {
-  const paneBySession = new Map(panes.map((pane) => [sessionKey(pane), pane]));
-  const savedSessions = new Set(bookmarks.map(sessionKey));
-
-  const saved = bookmarks.map((bookmark): SessionRow => {
-    const pane = paneBySession.get(sessionKey(bookmark));
-    return {
-      ...bookmark,
-      lastActive: Math.max(bookmark.lastActive, pane?.activeAt ?? 0),
-      saved: true,
-      pane,
-    };
-  });
-
-  const live = panes
-    .filter((pane) => !savedSessions.has(sessionKey(pane)))
-    .map((pane): SessionRow => ({
-      harness: pane.harness,
-      sid: pane.sid,
-      name: "unnamed",
-      cwd: pane.cwd,
-      started: pane.activeAt,
-      lastActive: pane.activeAt,
-      saved: false,
-      pane,
-    }));
-
-  return [...saved, ...live].sort((a, b) => b.lastActive - a.lastActive);
-}
-
-export function buildHistoryRows(entries: ReadonlyArray<HistoryEntry>): HistoryEntry[] {
-  return entries.map((entry) => ({
-    ...entry,
-    title: entry.title || "untitled",
-    name: entry.name || "unnamed",
-  }));
-}
