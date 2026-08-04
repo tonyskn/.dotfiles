@@ -1,52 +1,97 @@
-#!/usr/bin/env bash
-# Publishes Claude session state into tmux options, where _cl and the status bar read it.
-#
-#   tmux-marker [state]     working | idle | waiting | loop | attention | (none = clear)
-#
-# Claude hooks pipe event JSON on stdin, which carries session_id — that is what lets a
-# session register itself, including ones started as plain `claude` rather than via cl.
-# Invoked from a key binding there is no stdin, and only the marker is cleared.
-[ -n "$TMUX_PANE" ] || exit 0
+#!/usr/bin/env bun
+// vim:ft=typescript
+// Publishes agent session state to pane options and derives window status options.
+//
+//   tmux-marker [--harness <id>] [state]
 
-state="${1:-}"
-sid=""
+import {
+  aggregateIcon,
+  getHarness,
+  isAgentState,
+  isHarnessId,
+  type AgentState,
+} from "./model";
+import { parseArgs } from "util";
 
-if [ ! -t 0 ]; then
-  payload=$(cat)
-  if [ -n "$payload" ]; then
-    IFS=$'\t' read -r sid event < <(
-      jq -r '[.session_id // "", .hook_event_name // ""] | @tsv' <<<"$payload" 2>/dev/null
-    )
-    [ -n "$state" ] || case "$event" in
-      UserPromptSubmit) state=working ;;
-      Stop)             state=idle    ;;
-      Notification)     state=waiting ;;
-    esac
-  fi
-fi
+const paneId = process.env.TMUX_PANE;
+if (!paneId) process.exit(0);
 
-case "$state" in
-  working)   icon="●" ;;
-  idle)      icon="○" ;;
-  waiting)   icon="◐" ;;
-  loop)      icon="∞" ;;
-  attention) icon="⚠" ;;
-  *)         icon=""  ;;
-esac
+type HookPayload = {
+  session_id?: unknown;
+  hook_event_name?: unknown;
+};
 
-win=$(tmux display-message -t "$TMUX_PANE" -p '#{window_id}' 2>/dev/null) || exit 0
-[ -n "$win" ] || exit 0
+function tmux(args: string[]): { ok: boolean; stdout: string } {
+  const result = Bun.spawnSync(["tmux", ...args], {
+    stdout: "pipe",
+    stderr: "ignore",
+  });
+  return {
+    ok: result.exitCode === 0,
+    stdout: result.stdout.toString().trim(),
+  };
+}
 
-# One tmux invocation for every write.
-set -- set-option -w -t "$win" @cl_icon "$icon" \
-    ";" set-option -w -t "$win" @cl_active_at "$(date +%s)" \
-    ";" set-option -p -t "$TMUX_PANE" @cl_pane 1
+async function hookPayload(): Promise<HookPayload | undefined> {
+  if (process.stdin.isTTY) return undefined;
+  try {
+    return await Bun.stdin.json();
+  } catch {
+    return undefined;
+  }
+}
 
-# Identity is write-once: /clear rotates the session id, and overwriting here would
-# orphan a session _cl already owns. Only sessions cl didn't launch get tagged.
-if [ -n "$sid" ] && [ -z "$(tmux display-message -t "$win" -p '#{@cl_sid}' 2>/dev/null)" ]; then
-  set -- "$@" ";" set-option -w -t "$win" @cl_sid "$sid"
-fi
+const { positionals, values } = parseArgs({
+  args: process.argv.slice(2),
+  allowPositionals: true,
+  options: { harness: { type: "string" } },
+});
+if (values.harness !== undefined && !isHarnessId(values.harness)) process.exit(0);
 
-tmux "$@" 2>/dev/null
-exit 0
+const explicitState = positionals[0] ?? "";
+const taggedHarness = tmux([
+  "display-message", "-p", "-t", paneId, "#{@cl_harness}",
+]).stdout;
+const harnessId = values.harness ?? taggedHarness;
+if (!isHarnessId(harnessId)) process.exit(0);
+
+const harness = getHarness(harnessId);
+let state = isAgentState(explicitState) ? explicitState : undefined;
+let sid = "";
+
+const payload = await hookPayload();
+if (payload) {
+  if (typeof payload.session_id === "string") sid = payload.session_id;
+  if (!explicitState && typeof payload.hook_event_name === "string") {
+    state = harness.stateForHook(payload.hook_event_name);
+  }
+}
+
+const activeAt = Math.floor(Date.now() / 1000);
+const setPane = [
+  "set-option", "-p", "-t", paneId, "@cl_harness", harness.id,
+  ";", "set-option", "-p", "-t", paneId, "@cl_state", state ?? "",
+  ";", "set-option", "-p", "-t", paneId, "@cl_active_at", String(activeAt),
+];
+if (sid) setPane.push(";", "set-option", "-p", "-t", paneId, "@cl_sid", sid);
+if (!tmux(setPane).ok) process.exit(0);
+
+const listed = tmux([
+  "list-panes", "-a", "-F",
+  "#{window_id}\t#{@cl_harness}\t#{@cl_state}",
+]);
+if (!listed.ok) process.exit(0);
+
+const statesByWindow = new Map<string, AgentState[]>();
+for (const line of listed.stdout.split("\n")) {
+  const [windowId, paneHarness, paneState] = line.split("\t");
+  if (!windowId) continue;
+
+  const states = statesByWindow.get(windowId) ?? [];
+  if (isHarnessId(paneHarness) && isAgentState(paneState)) states.push(paneState);
+  statesByWindow.set(windowId, states);
+}
+
+for (const [windowId, states] of statesByWindow) {
+  tmux(["set-option", "-w", "-t", windowId, "@cl_icon", aggregateIcon(states)]);
+}

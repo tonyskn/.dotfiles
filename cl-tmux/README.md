@@ -1,6 +1,7 @@
 # cl-tmux
 
-tmux session manager for Claude Code.
+A tmux session picker and bookmark manager for Claude Code. It can resume,
+fork, search, rename, and send prompts to Claude sessions.
 
 ## Install
 
@@ -20,8 +21,9 @@ Add to `~/.claude/settings.json`:
 
 ```json
 "hooks": {
-  "Notification":     [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker" }] }],
-  "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker" }] }],
-  "Stop":             [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker" }] }]
+  "SessionStart":     [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker --harness claude" }] }],
+  "Notification":     [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker --harness claude" }] }],
+  "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker --harness claude" }] }],
+  "Stop":             [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker --harness claude" }] }]
 }
 ```

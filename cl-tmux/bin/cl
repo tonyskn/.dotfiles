@@ -16,16 +16,16 @@ _cl() { "$DIR/_cl" "$@"; }
 # --- search ---
 if [[ "$1" == "search" ]]; then
   term="${2:?Usage: cl search <term>}"
-  IFS=$'\t' read -r sid name cwd < <(
+  IFS=$'\t' read -r harness sid name cwd < <(
     _cl search -- "$term" \
-      | fzf --no-sort --delimiter=$'\t' --with-nth=4 --accept-nth=1,2,3 \
+      | fzf --no-sort --delimiter=$'\t' --with-nth=5 --accept-nth=1,2,3,4 \
             --header='enter: open') || true
   [[ -z "$sid" ]] && exit 0
   if [[ ! -d "$cwd" ]]; then
     cwd=$(zoxide query -l | fzf --header="Original directory gone — pick a new one") || true
     [[ -z "$cwd" ]] && exit 0
   fi
-  _cl open "$sid" --name "$name" --cwd "$cwd"
+  _cl open "$harness" "$sid" --name "$name" --cwd "$cwd"
   exit 0
 fi
 
@@ -41,15 +41,15 @@ while true; do
   selection=$(_cl list --filter "$filter" \
     | fzf --no-sort --ansi \
           --expect=ctrl-d,ctrl-f,ctrl-g,ctrl-o,ctrl-s,ctrl-t,ctrl-x \
-          --delimiter=$'\t' --with-nth=4 --accept-nth=1,2 \
+          --delimiter=$'\t' --with-nth=5 --accept-nth=1,2,3 \
           --header="$(header)" \
-          --preview='[[ -n {3} ]] && tmux capture-pane -ept {3} 2>/dev/null' \
+          --preview='[[ -n {4} ]] && tmux capture-pane -ept {4} 2>/dev/null' \
           --preview-window='right,80%,follow,hidden' \
           --bind='ctrl-u:toggle-preview' \
   ) || exit 0
 
   key=$(head -1 <<< "$selection")
-  IFS=$'\t' read -r sid name <<< "$(tail -1 <<< "$selection")"
+  IFS=$'\t' read -r harness sid name <<< "$(tail -1 <<< "$selection")"
 
   case "$key" in
     ctrl-g)
@@ -61,24 +61,24 @@ while true; do
       ;;
     ctrl-f)
       term=$(gum input --placeholder "Search sessions...")
-      [[ -n "$term" ]] && exec cl search "$term"
+      [[ -n "$term" ]] && exec "$0" search "$term"
       ;;
     ctrl-s)
       new_name=$(gum input --placeholder "Name" --value "$name")
-      [[ -n "$new_name" ]] && _cl save "$sid" --name "$new_name"
+      [[ -n "$new_name" ]] && _cl save "$harness" "$sid" --name "$new_name"
       ;;
-    ctrl-o)  _cl fork "$sid" && exit 0 ;;
-    ctrl-x)  _cl close "$sid" ;;
+    ctrl-o)  _cl fork "$harness" "$sid" && exit 0 ;;
+    ctrl-x)  _cl close "$harness" "$sid" ;;
     ctrl-d)
       gum confirm "Delete '$name'?" || continue
-      _cl delete "$sid"
+      _cl delete "$harness" "$sid"
       ;;
     ctrl-t)
       prompt=$(gum write --header "Prompt for $name" --width 80)
-      [[ -n "$prompt" ]] && _cl open "$sid" --prompt "$prompt" && exit 0
+      [[ -n "$prompt" ]] && _cl open "$harness" "$sid" --prompt "$prompt" && exit 0
       ;;
     *)
-      _cl open "$sid"
+      _cl open "$harness" "$sid"
       exit 0
       ;;
   esac
