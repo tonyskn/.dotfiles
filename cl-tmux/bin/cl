@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # vim:ft=bash
 #
-# cl — Claude session manager.
-# Picker for all Claude sessions: bookmarked and live. Search across history.
+# cl — agent session manager.
+# Picker for bookmarked and live sessions. Search across harness history.
 #
 # Usage:
 #   cl                  fzf session picker
-#   cl search <term>    search all Claude session history
+#   cl search <term>    search all configured harness history
 #
 set -eo pipefail
 

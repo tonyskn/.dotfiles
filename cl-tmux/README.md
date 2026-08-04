@@ -1,7 +1,10 @@
 # cl-tmux
 
-A tmux session picker and bookmark manager for Claude Code. It can resume,
-fork, search, rename, and send prompts to Claude sessions.
+A tmux session picker and bookmark manager for Claude Code and Codex. It can
+resume, fork, search, rename, and send prompts to agent sessions.
+
+Harnesses are opt-in. The picker only sees sessions from harnesses whose hooks
+you configure.
 
 ## Install
 
@@ -17,7 +20,7 @@ Add to `~/.tmux.conf`:
 run-shell ~/.dotfiles/cl-tmux/cl.tmux
 ```
 
-Add to `~/.claude/settings.json`:
+To enable Claude Code, add to `~/.claude/settings.json`:
 
 ```json
 "hooks": {
@@ -26,4 +29,11 @@ Add to `~/.claude/settings.json`:
   "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker --harness claude" }] }],
   "Stop":             [{ "hooks": [{ "type": "command", "command": "~/.dotfiles/cl-tmux/bin/tmux-marker --harness claude" }] }]
 }
+```
+
+To enable Codex, link the included hooks and approve them with `/hooks` on the
+next Codex launch:
+
+```bash
+ln -s ~/.dotfiles/_codex/hooks.json ~/.codex/hooks.json
 ```

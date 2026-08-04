@@ -1,4 +1,4 @@
-export type HarnessId = "claude";
+export type HarnessId = "claude" | "codex";
 
 const STATES = {
   idle: { priority: 1, icon: "○" },
@@ -63,8 +63,17 @@ export type Harness = {
   resume(args: { sid: string; name: string; prompt?: string }): string[];
   fork(args: { sourceSid: string; name: string }): string[];
   sessionGlob(sid: string): string;
-  parseHistory(file: string, contents: string): ParsedHistory;
+  parseHistory(file: string, contents: string): ParsedHistory | undefined;
 };
+
+function* jsonRecords(contents: string): Generator<Record<string, unknown>> {
+  for (const line of contents.trim().split("\n")) {
+    try {
+      const record = JSON.parse(line);
+      if (record && typeof record === "object" && !Array.isArray(record)) yield record;
+    } catch {}
+  }
+}
 
 const claude: Harness = {
   id: "claude",
@@ -111,27 +120,87 @@ const claude: Harness = {
     let name = "";
     let cwd = "";
 
-    for (const line of contents.trim().split("\n")) {
-      try {
-        const record = JSON.parse(line) as Record<string, unknown>;
-        if (record.type === "ai-title" && !title && typeof record.aiTitle === "string") {
-          title = record.aiTitle;
-        }
-        if (record.type === "custom-title" && !name && typeof record.customTitle === "string") {
-          name = record.customTitle;
-        }
-        if (record.type === "user" && !cwd && typeof record.cwd === "string") {
-          cwd = record.cwd;
-        }
-        if (title && name && cwd) break;
-      } catch {}
+    for (const record of jsonRecords(contents)) {
+      if (record.type === "ai-title" && !title && typeof record.aiTitle === "string") {
+        title = record.aiTitle;
+      }
+      if (record.type === "custom-title" && !name && typeof record.customTitle === "string") {
+        name = record.customTitle;
+      }
+      if (record.type === "user" && !cwd && typeof record.cwd === "string") {
+        cwd = record.cwd;
+      }
+      if (title && name && cwd) break;
     }
 
     return { sid, title, name, cwd };
   },
 };
 
-const HARNESSES: Record<HarnessId, Harness> = { claude };
+const codex: Harness = {
+  id: "codex",
+  binary: "codex",
+  historyDir: ".codex/sessions",
+  historyGlobs: ["*.jsonl"],
+
+  isProcess(command) {
+    return command === this.binary;
+  },
+
+  stateForHook(event) {
+    switch (event) {
+      case "UserPromptSubmit": return "working";
+      case "Stop": return "idle";
+      default: return undefined;
+    }
+  },
+
+  resume({ sid, prompt }) {
+    const args = [this.binary, "resume", sid];
+    if (prompt) args.push(prompt);
+    return args;
+  },
+
+  fork({ sourceSid }) {
+    // The initial turn triggers UserPromptSubmit, which reports the fork's generated SID.
+    return [this.binary, "fork", sourceSid, "Wait for further instructions."];
+  },
+
+  sessionGlob(sid) {
+    return `*${sid}.jsonl`;
+  },
+
+  parseHistory(_file, contents) {
+    const records = jsonRecords(contents);
+    const metadata = records.next().value?.payload as Record<string, unknown> | undefined;
+    if (metadata?.source !== "cli") return undefined;
+
+    const sid = typeof metadata.session_id === "string"
+      ? metadata.session_id
+      : typeof metadata.id === "string" ? metadata.id : "";
+    if (!sid) return undefined;
+
+    const cwd = typeof metadata.cwd === "string" ? metadata.cwd : "";
+    let title = "";
+    for (const record of records) {
+      const payload = record.payload as Record<string, unknown> | undefined;
+      if (
+        record.type === "event_msg"
+        && payload?.type === "user_message"
+        && typeof payload.message === "string"
+      ) {
+        title = payload.message.replace(/\s+/g, " ").trim();
+        break;
+      }
+    }
+
+    const normalizedCwd = cwd.replace(/\/+$/, "");
+    const name = normalizedCwd.slice(normalizedCwd.lastIndexOf("/") + 1);
+    return { sid, title, name, cwd };
+  },
+};
+
+const HARNESSES: Record<HarnessId, Harness> = { claude, codex };
 
 export function isAgentState(value: string): value is AgentState {
   return Object.hasOwn(STATES, value);

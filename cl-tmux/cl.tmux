@@ -14,4 +14,4 @@ for opt in window-status-format window-status-current-format; do
 done
 
 # Session picker popup.
-tmux bind-key u display-popup -E -w 80% -h 60% -T ' Claude Sessions ' "$BIN/cl"
+tmux bind-key u display-popup -E -w 80% -h 60% -T ' Agent Sessions ' "$BIN/cl"

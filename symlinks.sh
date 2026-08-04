@@ -36,3 +36,6 @@ link _config/nvim/init.lua  .config/nvim/init.lua
 # Claude Code
 link _claude/settings.json  .claude/settings.json
 link _claude/hooks          .claude/hooks
+
+# Codex
+link _codex/hooks.json      .codex/hooks.json
