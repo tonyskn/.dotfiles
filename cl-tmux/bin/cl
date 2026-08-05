@@ -10,22 +10,41 @@
 #
 set -eo pipefail
 
-DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
-_cl() { "$DIR/_cl" "$@"; }
+dir="$(dirname "$(readlink -f "$0")")"
+_cl() { "$dir/_cl" "$@"; }
+gum_ui() {
+  gum "$@" && return
+  clear >&2
+  return 1
+}
 
 # --- search ---
-if [[ "$1" == "search" ]]; then
-  term="${2:?Usage: cl search <term>}"
+search_history() {
+  local term="${1:?Usage: cl search <term>}"
+  local harness sid name cwd
+
   IFS=$'\t' read -r harness sid name cwd < <(
-    _cl search -- "$term" \
-      | fzf --no-sort --delimiter=$'\t' --with-nth=5 --accept-nth=1,2,3,4 \
-            --header='enter: open') || true
+    _cl search -- "$term" |
+      fzf \
+        --no-sort \
+        --delimiter=$'\t' \
+        --with-nth=5 \
+        --accept-nth=1,2,3,4 \
+        --header='enter: open'
+  ) || true
+
   [[ -z "$sid" ]] && exit 0
+
   if [[ ! -d "$cwd" ]]; then
     cwd=$(zoxide query -l | fzf --header="Original directory gone — pick a new one") || true
     [[ -z "$cwd" ]] && exit 0
   fi
+
   _cl open "$harness" "$sid" --name "$name" --cwd "$cwd"
+}
+
+if [[ "${1:-}" == "search" ]]; then
+  search_history "${2:-}"
   exit 0
 fi
 
@@ -37,44 +56,66 @@ header() {
   printf "ctrl-s:save  ctrl-o:fork  ctrl-u:preview  ctrl-x:close  ctrl-d:delete"
 }
 
+session_rows() {
+  local rows
+  rows=$(_cl list --filter "$filter")
+  if [[ -n "$rows" ]]; then
+    printf '%s\n' "$rows"
+  else
+    printf '\t\t\t\tNo sessions found\n'
+  fi
+}
+
 while true; do
-  selection=$(_cl list --filter "$filter" \
-    | fzf --no-sort --ansi \
-          --expect=ctrl-d,ctrl-f,ctrl-g,ctrl-o,ctrl-s,ctrl-t,ctrl-x \
-          --delimiter=$'\t' --with-nth=5 --accept-nth=1,2,3 \
-          --header="$(header)" \
-          --preview='[[ -n {4} ]] && tmux capture-pane -ept {4} 2>/dev/null' \
-          --preview-window='right,80%,follow,hidden' \
-          --bind='ctrl-u:toggle-preview' \
+  selection=$(
+    session_rows |
+      fzf \
+        --no-sort \
+        --ansi \
+        --expect=ctrl-d,ctrl-f,ctrl-g,ctrl-o,ctrl-s,ctrl-t,ctrl-x \
+        --delimiter=$'\t' \
+        --with-nth=5 \
+        --accept-nth=1,2,3 \
+        --header="$(header)" \
+        --preview='[[ -n {4} ]] && tmux capture-pane -ept {4} 2>/dev/null' \
+        --preview-window='right,80%,follow,hidden' \
+        --bind='ctrl-u:toggle-preview'
   ) || exit 0
 
-  key=$(head -1 <<< "$selection")
-  IFS=$'\t' read -r harness sid name <<< "$(tail -1 <<< "$selection")"
+  key=$(head -n 1 <<< "$selection")
+  IFS=$'\t' read -r harness sid name <<< "$(tail -n 1 <<< "$selection")"
+
+  if [[ -z "$sid" && "$key" != ctrl-f && "$key" != ctrl-g ]]; then
+    continue
+  fi
 
   case "$key" in
     ctrl-g)
       case "$filter" in
-        all) filter=live ;; live) filter=today ;; today) filter=week ;; *) filter=all ;;
+        all) filter=live ;;
+        live) filter=today ;;
+        today) filter=week ;;
+        *) filter=all ;;
       esac
       tmux set-option -s @cl_filter "$filter" 2>/dev/null
       continue
       ;;
     ctrl-f)
-      term=$(gum input --placeholder "Search sessions...")
+      term=$(gum_ui input --placeholder "Search sessions...") || continue
       [[ -n "$term" ]] && exec "$0" search "$term"
       ;;
     ctrl-s)
-      new_name=$(gum input --placeholder "Name" --value "$name")
+      new_name=$(gum_ui input --placeholder "Name" --value "$name") || continue
       [[ -n "$new_name" ]] && _cl save "$harness" "$sid" --name "$new_name"
       ;;
-    ctrl-o)  _cl fork "$harness" "$sid" && exit 0 ;;
-    ctrl-x)  _cl close "$harness" "$sid" ;;
+    ctrl-o) _cl fork "$harness" "$sid" && exit 0 ;;
+    ctrl-x) _cl close "$harness" "$sid" ;;
     ctrl-d)
-      gum confirm "Delete '$name'?" || continue
+      gum_ui confirm "Delete '$name'?" || continue
       _cl delete "$harness" "$sid"
       ;;
     ctrl-t)
-      prompt=$(gum write --header "Prompt for $name" --width 80)
+      prompt=$(gum_ui write --header "Prompt for $name" --width 80) || continue
       [[ -n "$prompt" ]] && _cl open "$harness" "$sid" --prompt "$prompt" && exit 0
       ;;
     *)

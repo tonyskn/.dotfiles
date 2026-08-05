@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import {
-  AgentState,
+  AgentStatus,
   buildSessionRows,
   collapseHistoryMatches,
   type BookmarkRecord,
   type HistoryEntry,
   type LivePane,
-} from "./index";
+} from "../src/model";
 
 const bookmark: BookmarkRecord = {
   harness: "claude",
@@ -30,38 +30,46 @@ function pane(overrides: Partial<LivePane> = {}): LivePane {
   };
 }
 
-describe("AgentState.aggregate", () => {
+describe("AgentStatus.aggregateIcon", () => {
   test("uses deterministic state priority", () => {
-    expect(AgentState.aggregate(["attention", "working"])).toBe("⚠");
+    expect(AgentStatus.aggregateIcon(["attention", "working"])).toBe("⚠");
   });
 
   test("prioritizes loop over ordinary working", () => {
-    expect(AgentState.aggregate(["working", "loop"])).toBe("∞");
+    expect(AgentStatus.aggregateIcon(["working", "loop"])).toBe("∞");
   });
 
   test("returns an empty presentation for no pane state", () => {
-    expect(AgentState.aggregate([undefined])).toBe("");
+    expect(AgentStatus.aggregateIcon([undefined])).toBe("");
   });
 });
 
 describe("buildSessionRows", () => {
   test("joins a live pane to its bookmark and uses live activity", () => {
-    expect(buildSessionRows([bookmark], [pane()])).toEqual([{
-      harness: bookmark.harness,
-      sid: bookmark.sid,
-      name: bookmark.name,
-      cwd: bookmark.cwd,
-      lastActive: 300,
-      saved: true,
-      pane: pane(),
-    }]);
+    expect(buildSessionRows([bookmark], [pane()])).toEqual([
+      {
+        harness: bookmark.harness,
+        sid: bookmark.sid,
+        name: bookmark.name,
+        cwd: bookmark.cwd,
+        lastActive: 300,
+        saved: true,
+        pane: pane(),
+      },
+    ]);
   });
 
   test("keeps dormant bookmarks and unbookmarked live sessions flat", () => {
     const orphan = pane({ sid: "orphan", paneId: "%2", activeAt: 400 });
     const rows = buildSessionRows([bookmark], [orphan]);
 
-    expect(rows.map(({ sid, saved, pane }) => ({ sid, saved, paneId: pane?.paneId }))).toEqual([
+    expect(
+      rows.map(({ sid, saved, pane }) => ({
+        sid,
+        saved,
+        paneId: pane?.paneId,
+      })),
+    ).toEqual([
       { sid: "orphan", saved: false, paneId: "%2" },
       { sid: "saved", saved: true, paneId: undefined },
     ]);
@@ -82,15 +90,15 @@ test("collapseHistoryMatches removes duplicate files and inherited fork matches"
     name: "repo",
     cwd: "/repo",
     cwdExists: true,
+    modifiedAt: 100,
   });
 
-  expect(collapseHistoryMatches([
-    entry("fork", "parent"),
-    entry("parent"),
-    entry("parent"),
-    entry("independent-fork", "missing-parent"),
-  ])).toEqual([
-    entry("parent"),
-    entry("independent-fork", "missing-parent"),
-  ]);
+  expect(
+    collapseHistoryMatches([
+      entry("fork", "parent"),
+      entry("parent"),
+      entry("parent"),
+      entry("independent-fork", "missing-parent"),
+    ]),
+  ).toEqual([entry("parent"), entry("independent-fork", "missing-parent")]);
 });
