@@ -3,9 +3,9 @@
 //   tmux-marker [--harness <id>] [state | mode]
 
 import { parseArgs } from "util";
-import { Harness } from "../harnesses";
-import { AgentMode, AgentState, AgentStatus } from "../model";
-import { Tmux } from "../tmux";
+import * as Harness from "../harnesses";
+import { AgentMode, AgentState } from "../model";
+import * as Tmux from "../tmux";
 
 const paneId = process.env.TMUX_PANE;
 if (!paneId) process.exit(0);
@@ -28,9 +28,9 @@ if (values.harness !== undefined && !Harness.isId(values.harness))
   process.exit(0);
 
 const payload = await hookPayload();
-const taggedHarness = await Tmux.paneOption(paneId, "@cl_harness");
-const harnessId = values.harness ?? taggedHarness;
-if (!Harness.isId(harnessId)) process.exit(0);
+const tagged = await Tmux.paneIdentity(paneId);
+const harnessId = values.harness ?? tagged.harness;
+if (!harnessId || !Harness.isId(harnessId)) process.exit(0);
 
 const harness = Harness.get(harnessId);
 const requested = positionals[0] ?? "";
@@ -38,6 +38,11 @@ const update = harness.hookUpdate(payload);
 const requestedMode = AgentMode.is(requested) ? requested : undefined;
 const requestedState = AgentState.is(requested) ? requested : undefined;
 const state = requestedState ?? update.state;
+// Keep the bookmarked identity across repeated replacements until the picker reconciles it.
+const previousSid =
+  update.sid && tagged.sid && update.sid !== tagged.sid
+    ? (tagged.previousSid ?? tagged.sid)
+    : undefined;
 
 // Hook state is transient; only an explicit idle command exits a sticky mode.
 const mode = requestedState === "idle" ? "" : requestedMode;
@@ -46,6 +51,7 @@ if (
     "@cl_harness": harness.id,
     "@cl_state": state,
     "@cl_mode": mode,
+    "@cl_previous_sid": previousSid,
     "@cl_active_at":
       state || requestedMode ? Math.floor(Date.now() / 1000) : undefined,
     "@cl_sid": update.sid,
@@ -53,17 +59,4 @@ if (
 )
   process.exit(0);
 
-const panes = await Tmux.panes();
-for (const [windowId, windowPanes] of Map.groupBy(
-  panes,
-  (pane) => pane.windowId,
-)) {
-  const statuses: AgentStatus[] = [];
-  for (const { state, mode } of windowPanes) {
-    if (state) statuses.push(state);
-    if (mode) statuses.push(mode);
-  }
-  await Tmux.setWindowOptions(windowId, {
-    "@cl_icon": AgentStatus.aggregateIcon(statuses),
-  });
-}
+await Tmux.reconcileWindowIcons();

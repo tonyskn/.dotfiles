@@ -10,7 +10,7 @@ const BOOKMARKS_PATH = join(STATE_HOME, "cl-tmux", "bookmarks.jsonl");
 let entries: BookmarkRecord[] = [];
 let dirty = false;
 
-async function load(): Promise<void> {
+export async function load(): Promise<void> {
   const file = Bun.file(BOOKMARKS_PATH);
   if (!(await file.exists())) return;
 
@@ -21,7 +21,7 @@ async function load(): Promise<void> {
     .map((line) => JSON.parse(line) as BookmarkRecord);
 }
 
-async function flush(): Promise<void> {
+export async function flush(): Promise<void> {
   if (!dirty) return;
 
   const contents =
@@ -33,15 +33,15 @@ async function flush(): Promise<void> {
   dirty = false;
 }
 
-function all(): ReadonlyArray<BookmarkRecord> {
+export function all(): ReadonlyArray<BookmarkRecord> {
   return entries;
 }
 
-function find(ref: SessionRef): BookmarkRecord | undefined {
+export function find(ref: SessionRef): BookmarkRecord | undefined {
   return entries.find((bookmark) => SessionRef.equals(bookmark, ref));
 }
 
-function addOrSave(ref: SessionRef, name: string, cwd: string): void {
+export function addOrSave(ref: SessionRef, name: string, cwd: string): void {
   const bookmark = find(ref);
   if (bookmark) {
     bookmark.name = name;
@@ -59,12 +59,21 @@ function addOrSave(ref: SessionRef, name: string, cwd: string): void {
   dirty = true;
 }
 
-function remove(ref: SessionRef): void {
+export function remove(ref: SessionRef): void {
   entries = entries.filter((bookmark) => !SessionRef.equals(bookmark, ref));
   dirty = true;
 }
 
-function updateActivity(rows: ReadonlyArray<SessionRow>): void {
+export function rebind(from: SessionRef, to: SessionRef): void {
+  const bookmark = find(from);
+  if (!bookmark || find(to)) return;
+
+  bookmark.harness = to.harness;
+  bookmark.sid = to.sid;
+  dirty = true;
+}
+
+export function updateActivity(rows: ReadonlyArray<SessionRow>): void {
   const bookmarkBySession = SessionRef.index(entries);
 
   for (const row of rows) {
@@ -75,13 +84,3 @@ function updateActivity(rows: ReadonlyArray<SessionRow>): void {
     }
   }
 }
-
-export const Bookmarks = {
-  load,
-  flush,
-  all,
-  find,
-  addOrSave,
-  remove,
-  updateActivity,
-};

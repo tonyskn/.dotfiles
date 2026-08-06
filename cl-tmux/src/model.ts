@@ -83,13 +83,14 @@ export type BookmarkRecord = SessionRef & {
 export type LivePane = SessionRef & {
   windowId: string;
   paneId: string;
+  previousSid?: string;
   state?: AgentState;
   mode?: AgentMode;
-  activeAt: number;
+  lastActive: number;
   cwd: string;
 };
 
-export type HistoryEntry = SessionRef & {
+export type SessionMetadata = SessionRef & {
   title: string;
   name: string;
   cwd: string;
@@ -97,22 +98,6 @@ export type HistoryEntry = SessionRef & {
   modifiedAt: number;
   forkedFromSid?: string;
 };
-
-// Collapse duplicate files and inherited fork matches to one row per relevant session.
-export function collapseHistoryMatches(
-  entries: ReadonlyArray<HistoryEntry>,
-): HistoryEntry[] {
-  const unique = SessionRef.index(entries);
-  const matchedSessions = new Set(unique.keys());
-  return [...unique.values()].filter((entry) => {
-    if (!entry.forkedFromSid) return true;
-    const parent = SessionRef.key({
-      harness: entry.harness,
-      sid: entry.forkedFromSid,
-    });
-    return !matchedSessions.has(parent);
-  });
-}
 
 export type SessionRow = SessionRef & {
   name: string;
@@ -138,7 +123,7 @@ export function buildSessionRows(
       sid: bookmark.sid,
       name: bookmark.name,
       cwd: bookmark.cwd,
-      lastActive: Math.max(bookmark.lastActive, pane?.activeAt ?? 0),
+      lastActive: Math.max(bookmark.lastActive, pane?.lastActive ?? 0),
       saved: true,
       pane,
     };
@@ -151,7 +136,7 @@ export function buildSessionRows(
       sid: pane.sid,
       name: "unnamed",
       cwd: pane.cwd,
-      lastActive: pane.activeAt || fallbackActiveAt,
+      lastActive: pane.lastActive || fallbackActiveAt,
       saved: false,
       pane,
     }));

@@ -5,16 +5,14 @@ import type { Harness as HarnessAdapter } from "./types";
 
 const HARNESSES: Record<HarnessId, HarnessAdapter> = { claude, codex };
 
-export const Harness = {
-  isId(value: string): value is HarnessId {
-    return Object.hasOwn(HARNESSES, value);
-  },
+export function isId(value: string): value is HarnessId {
+  return Object.hasOwn(HARNESSES, value);
+}
 
-  get(id: HarnessId): HarnessAdapter {
-    return HARNESSES[id];
-  },
+export function get(id: HarnessId): HarnessAdapter {
+  return HARNESSES[id];
+}
 
-  all(): HarnessAdapter[] {
-    return Object.values(HARNESSES);
-  },
-};
+export function all(): HarnessAdapter[] {
+  return Object.values(HARNESSES);
+}

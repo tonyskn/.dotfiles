@@ -2,9 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   AgentStatus,
   buildSessionRows,
-  collapseHistoryMatches,
   type BookmarkRecord,
-  type HistoryEntry,
   type LivePane,
 } from "../src/model";
 
@@ -24,7 +22,7 @@ function pane(overrides: Partial<LivePane> = {}): LivePane {
     windowId: "@1",
     paneId: "%1",
     state: "idle",
-    activeAt: 300,
+    lastActive: 300,
     cwd: "/repo",
     ...overrides,
   };
@@ -60,7 +58,7 @@ describe("buildSessionRows", () => {
   });
 
   test("keeps dormant bookmarks and unbookmarked live sessions flat", () => {
-    const orphan = pane({ sid: "orphan", paneId: "%2", activeAt: 400 });
+    const orphan = pane({ sid: "orphan", paneId: "%2", lastActive: 400 });
     const rows = buildSessionRows([bookmark], [orphan]);
 
     expect(
@@ -76,29 +74,7 @@ describe("buildSessionRows", () => {
   });
 
   test("uses fallback activity for a newly discovered live session", () => {
-    const orphan = pane({ sid: "orphan", activeAt: 0 });
+    const orphan = pane({ sid: "orphan", lastActive: 0 });
     expect(buildSessionRows([bookmark], [orphan], 500)[0].lastActive).toBe(500);
   });
-});
-
-test("collapseHistoryMatches removes duplicate files and inherited fork matches", () => {
-  const entry = (sid: string, forkedFromSid?: string): HistoryEntry => ({
-    harness: "codex",
-    sid,
-    forkedFromSid,
-    title: sid,
-    name: "repo",
-    cwd: "/repo",
-    cwdExists: true,
-    modifiedAt: 100,
-  });
-
-  expect(
-    collapseHistoryMatches([
-      entry("fork", "parent"),
-      entry("parent"),
-      entry("parent"),
-      entry("independent-fork", "missing-parent"),
-    ]),
-  ).toEqual([entry("parent"), entry("independent-fork", "missing-parent")]);
 });

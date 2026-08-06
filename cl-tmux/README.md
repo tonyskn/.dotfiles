@@ -3,6 +3,8 @@
 A tmux session picker and bookmark manager for Claude Code and Codex. It can
 resume, fork, search, rename, and send prompts to agent sessions.
 
+Hooks store live agent state on tmux panes; cl-tmux runs no background process or daemon.
+
 Harnesses are opt-in. The picker only sees sessions from harnesses whose hooks
 you configure.
 
@@ -19,6 +21,9 @@ Add to `~/.tmux.conf`:
 ```tmux
 run-shell ~/.dotfiles/cl-tmux/cl.tmux
 ```
+
+Open the picker with `prefix + u`. Window icons show `○` idle, `●` working,
+`◐` waiting, `∞` looping, and `⚠` attention.
 
 To enable Claude Code, add to `~/.claude/settings.json`:
 

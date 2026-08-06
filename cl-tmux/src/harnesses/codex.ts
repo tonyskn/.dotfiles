@@ -1,3 +1,4 @@
+import { exists } from "fs/promises";
 import type { AgentState } from "../model";
 import { asRecord, jsonRecords } from "./json";
 import type { Harness } from "./types";
@@ -5,8 +6,16 @@ import type { Harness } from "./types";
 export const codex: Harness = {
   id: "codex",
   binary: "codex",
-  historyDir: ".codex/sessions",
-  historyGlobs: ["*.jsonl"],
+  sessionsDir: ".codex/sessions",
+  searchGlobs: ["*.jsonl"],
+
+  isConversationRecord(record) {
+    const payload = asRecord(record.payload);
+    return (
+      record.type === "event_msg" &&
+      (payload?.type === "user_message" || payload?.type === "agent_message")
+    );
+  },
 
   isProcess(command) {
     return command === this.binary;
@@ -49,8 +58,9 @@ export const codex: Harness = {
     return `*${sid}.jsonl`;
   },
 
-  parseHistory(_file, contents) {
-    const records = jsonRecords(contents);
+  async readMetadata(path) {
+    const file = Bun.file(path);
+    const records = jsonRecords(await file.text());
     const metadata = records.next().value?.payload as
       Record<string, unknown> | undefined;
     if (metadata?.source !== "cli") return undefined;
@@ -68,21 +78,30 @@ export const codex: Harness = {
       typeof metadata.forked_from_id === "string"
         ? metadata.forked_from_id
         : undefined;
-    let title = "";
-    for (const record of records) {
-      const payload = record.payload as Record<string, unknown> | undefined;
-      if (
-        record.type === "event_msg" &&
-        payload?.type === "user_message" &&
-        typeof payload.message === "string"
-      ) {
-        title = payload.message.replace(/\s+/g, " ").trim();
-        break;
-      }
-    }
+    const userMessage = records
+      .filter((record) => record.type === "event_msg")
+      .map((record) => asRecord(record.payload))
+      .find(
+        (payload) =>
+          payload?.type === "user_message" &&
+          typeof payload.message === "string",
+      );
+    const title =
+      typeof userMessage?.message === "string"
+        ? userMessage.message.replace(/\s+/g, " ").trim()
+        : "";
 
     const normalizedCwd = cwd.replace(/\/+$/, "");
     const name = normalizedCwd.slice(normalizedCwd.lastIndexOf("/") + 1);
-    return { sid, title, name, cwd, forkedFromSid };
+    return {
+      harness: this.id,
+      sid,
+      title: title || "untitled",
+      name: name || "unnamed",
+      cwd,
+      cwdExists: Boolean(cwd) && (await exists(cwd)),
+      modifiedAt: Math.floor(file.lastModified / 1000),
+      forkedFromSid,
+    };
   },
 };

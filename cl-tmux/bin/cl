@@ -2,15 +2,16 @@
 # vim:ft=bash
 #
 # cl — agent session manager.
-# Picker for bookmarked and live sessions. Search across harness history.
+# Picker for bookmarked and live sessions. Search across harness session files.
 #
 # Usage:
 #   cl                  fzf session picker
-#   cl search <term>    search all configured harness history
+#   cl search <term>    search all configured harness session files
 #
 set -eo pipefail
 
 dir="$(dirname "$(readlink -f "$0")")"
+current_pane="$(tmux display-message -p '#{pane_id}' 2>/dev/null)"
 _cl() { "$dir/_cl" "$@"; }
 gum_ui() {
   gum "$@" && return
@@ -19,7 +20,7 @@ gum_ui() {
 }
 
 # --- search ---
-search_history() {
+search_sessions() {
   local term="${1:?Usage: cl search <term>}"
   local harness sid name cwd
 
@@ -27,24 +28,25 @@ search_history() {
     _cl search -- "$term" |
       fzf \
         --no-sort \
+        --ansi \
         --delimiter=$'\t' \
         --with-nth=5 \
         --accept-nth=1,2,3,4 \
         --header='enter: open'
   ) || true
 
-  [[ -z "$sid" ]] && exit 0
+  [[ -z "$sid" ]] && return 1
 
   if [[ ! -d "$cwd" ]]; then
     cwd=$(zoxide query -l | fzf --header="Original directory gone — pick a new one") || true
-    [[ -z "$cwd" ]] && exit 0
+    [[ -z "$cwd" ]] && return 1
   fi
 
   _cl open "$harness" "$sid" --name "$name" --cwd "$cwd"
 }
 
 if [[ "${1:-}" == "search" ]]; then
-  search_history "${2:-}"
+  search_sessions "${2:-}" || true
   exit 0
 fi
 
@@ -53,7 +55,7 @@ filter=$(tmux show-option -sv @cl_filter 2>/dev/null || echo "all")
 
 header() {
   printf "[%s]  enter:open  ctrl-t:send  ctrl-g:filter  ctrl-f:search\n" "$filter"
-  printf "ctrl-s:save  ctrl-o:fork  ctrl-u:preview  ctrl-x:close  ctrl-d:delete"
+  printf "ctrl-s:save  ctrl-o:fork  ctrl-u:preview  ctrl-x:close  ctrl-d:remove"
 }
 
 session_rows() {
@@ -67,15 +69,21 @@ session_rows() {
 }
 
 while true; do
+  rows=$(session_rows)
+  position=$(awk -F $'\t' -v pane="$current_pane" '$4 == pane { print NR; exit }' <<< "$rows")
+  position=${position:-1}
+
   selection=$(
-    session_rows |
+    printf '%s\n' "$rows" |
       fzf \
         --no-sort \
+        --sync \
         --ansi \
         --expect=ctrl-d,ctrl-f,ctrl-g,ctrl-o,ctrl-s,ctrl-t,ctrl-x \
         --delimiter=$'\t' \
         --with-nth=5 \
         --accept-nth=1,2,3 \
+        --bind="start:pos($position)" \
         --header="$(header)" \
         --preview='[[ -n {4} ]] && tmux capture-pane -ept {4} 2>/dev/null' \
         --preview-window='right,80%,follow,hidden' \
@@ -102,7 +110,9 @@ while true; do
       ;;
     ctrl-f)
       term=$(gum_ui input --placeholder "Search sessions...") || continue
-      [[ -n "$term" ]] && exec "$0" search "$term"
+      if [[ -n "$term" ]] && search_sessions "$term"; then
+        exit 0
+      fi
       ;;
     ctrl-s)
       new_name=$(gum_ui input --placeholder "Name" --value "$name") || continue
@@ -111,8 +121,8 @@ while true; do
     ctrl-o) _cl fork "$harness" "$sid" && exit 0 ;;
     ctrl-x) _cl close "$harness" "$sid" ;;
     ctrl-d)
-      gum_ui confirm "Delete '$name'?" || continue
-      _cl delete "$harness" "$sid"
+      gum_ui confirm "Remove '$name' from cl-tmux?" || continue
+      _cl remove "$harness" "$sid"
       ;;
     ctrl-t)
       prompt=$(gum_ui write --header "Prompt for $name" --width 80) || continue

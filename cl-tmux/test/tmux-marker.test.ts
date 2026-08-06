@@ -8,6 +8,7 @@ type TmuxFixture = {
   paneId: string;
   tmux(args: string[]): string;
   mark(paneId: string, args?: string[], payload?: unknown): Promise<void>;
+  close(windowId: string, paneId: string): Promise<void>;
   format(target: string, format: string): string;
 };
 
@@ -67,10 +68,33 @@ async function withTmux(
       if (exitCode !== 0) throw new Error(await child.stderr.text());
     }
 
+    async function close(
+      windowId: string,
+      targetPaneId: string,
+    ): Promise<void> {
+      const module = JSON.stringify(join(ROOT, "src", "tmux.ts"));
+      const target = JSON.stringify({ windowId, paneId: targetPaneId });
+      const child = Bun.spawn(
+        [
+          "bun",
+          "-e",
+          `import * as Tmux from ${module}; await Tmux.close(${target})`,
+        ],
+        {
+          env: { ...process.env, TMUX: `${socket},0,0` },
+          stdout: "pipe",
+          stderr: "pipe",
+        },
+      );
+      if ((await child.exited) !== 0)
+        throw new Error(await child.stderr.text());
+    }
+
     await run({
       paneId,
       tmux,
       mark,
+      close,
       format(target, format) {
         return tmux(["display-message", "-p", "-t", target, format]);
       },
@@ -130,6 +154,20 @@ test("tags a session without inventing activity", () =>
     ).toBe("started-session||123");
   }));
 
+test("preserves the first SID replaced within a pane", () =>
+  withTmux(async (fixture) => {
+    for (const sessionId of ["original", "replacement", "latest"]) {
+      await fixture.mark(fixture.paneId, [], {
+        session_id: sessionId,
+        hook_event_name: "SessionStart",
+      });
+    }
+
+    expect(
+      fixture.format(fixture.paneId, "#{@cl_sid}|#{@cl_previous_sid}"),
+    ).toBe("latest|original");
+  }));
+
 test("reconciles window icons after moving a marked pane", () =>
   withTmux(async (fixture) => {
     const secondPaneId = fixture.tmux([
@@ -158,4 +196,29 @@ test("reconciles window icons after moving a marked pane", () =>
 
     expect(fixture.format(fixture.paneId, "#{@cl_icon}")).toBe("●");
     expect(fixture.format(secondPaneId, "#{@cl_icon}")).toBe("⚠");
+  }));
+
+test("reconciles the window icon after closing a marked pane", () =>
+  withTmux(async (fixture) => {
+    const secondPaneId = fixture.tmux([
+      "split-window",
+      "-d",
+      "-t",
+      fixture.paneId,
+      "-P",
+      "-F",
+      "#{pane_id}",
+      "bun -e 'setInterval(() => {}, 1000)'",
+    ]);
+    const windowId = fixture.format(fixture.paneId, "#{window_id}");
+
+    await fixture.mark(fixture.paneId, [], {
+      session_id: "working-session",
+      hook_event_name: "UserPromptSubmit",
+    });
+    expect(fixture.format(secondPaneId, "#{@cl_icon}")).toBe("●");
+
+    await fixture.close(windowId, fixture.paneId);
+
+    expect(fixture.format(secondPaneId, "#{@cl_icon}")).toBe("");
   }));

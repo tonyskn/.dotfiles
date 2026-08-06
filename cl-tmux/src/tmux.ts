@@ -1,8 +1,9 @@
-import { Harness } from "./harnesses";
+import * as Harness from "./harnesses";
 import type { Harness as HarnessAdapter } from "./harnesses/types";
 import {
   AgentMode,
   AgentState,
+  AgentStatus,
   SessionRef,
   type HarnessId,
   type LivePane,
@@ -16,6 +17,7 @@ type PaneTarget = Pick<Pane, "windowId" | "paneId">;
 type PaneOptions = {
   "@cl_harness": HarnessId;
   "@cl_sid": string;
+  "@cl_previous_sid": string;
   "@cl_state": AgentState | "";
   "@cl_mode": AgentMode | "";
   "@cl_active_at": number;
@@ -59,6 +61,7 @@ async function run(args: string[], stdin?: string): Promise<CommandResult> {
 const PANE_FORMAT = [
   "#{@cl_harness}",
   "#{@cl_sid}",
+  "#{@cl_previous_sid}",
   "#{window_id}",
   "#{pane_id}",
   "#{@cl_state}",
@@ -77,6 +80,7 @@ async function panes(): Promise<Pane[]> {
     const [
       harness,
       sid,
+      previousSid,
       windowId,
       paneId,
       state,
@@ -97,9 +101,10 @@ async function panes(): Promise<Pane[]> {
       paneId,
       harness: harnessId,
       sid: harnessId && sid ? sid : undefined,
+      previousSid: harnessId && previousSid ? previousSid : undefined,
       state: harnessId && AgentState.is(state) ? state : undefined,
       mode: harnessId && AgentMode.is(mode) ? mode : undefined,
-      activeAt: Number(activeAt) || 0,
+      lastActive: Number(activeAt) || 0,
       cwd: cwd ?? "",
     });
   }
@@ -107,22 +112,23 @@ async function panes(): Promise<Pane[]> {
   return found;
 }
 
-async function livePanes(): Promise<LivePane[]> {
+export async function livePanes(): Promise<LivePane[]> {
   return (await panes()).filter(
     (pane): pane is Pane & LivePane =>
       pane.harness !== undefined && pane.sid !== undefined,
   );
 }
 
-async function find(ref: SessionRef): Promise<LivePane | undefined> {
+export async function find(ref: SessionRef): Promise<LivePane | undefined> {
   return (await livePanes()).find((pane) => SessionRef.equals(pane, ref));
 }
 
-async function close(pane: PaneTarget): Promise<void> {
+export async function close(pane: PaneTarget): Promise<void> {
   await run(["kill-pane", "-t", pane.paneId]);
+  await reconcileWindowIcons([pane.windowId]);
 }
 
-async function rename(ref: SessionRef, name: string): Promise<void> {
+export async function rename(ref: SessionRef, name: string): Promise<void> {
   const pane = await find(ref);
   if (pane)
     await run(["rename-window", "-t", pane.windowId, "--", name.toUpperCase()]);
@@ -156,7 +162,7 @@ async function setOptions(update: OptionUpdate): Promise<boolean> {
   return (await run(args)).ok;
 }
 
-async function setPaneOptions(
+export async function setPaneOptions(
   paneId: string,
   options: Partial<PaneOptions>,
 ): Promise<boolean> {
@@ -196,7 +202,7 @@ async function launch(
   return { windowId, paneId };
 }
 
-async function fork(
+export async function fork(
   source: SessionRef,
   name: string,
   cwd: string,
@@ -208,7 +214,7 @@ async function fork(
 }
 
 // Ensure a session has a running window, then focus or send a prompt.
-async function open(
+export async function open(
   ref: SessionRef,
   options: {
     name: string;
@@ -230,12 +236,21 @@ async function open(
   else await focus(pane);
 }
 
-async function paneOption(
-  paneId: string,
-  option: keyof PaneOptions,
-): Promise<string> {
-  return (await run(["display-message", "-p", "-t", paneId, `#{${option}}`]))
-    .stdout;
+export async function paneIdentity(paneId: string): Promise<{
+  harness?: string;
+  sid?: string;
+  previousSid?: string;
+}> {
+  const format = ["#{@cl_harness}", "#{@cl_sid}", "#{@cl_previous_sid}"].join(
+    "\t",
+  );
+  const result = await run(["display-message", "-p", "-t", paneId, format]);
+  const [harness, sid, previousSid] = result.stdout.split("\t");
+  return {
+    harness: harness || undefined,
+    sid: sid || undefined,
+    previousSid: previousSid || undefined,
+  };
 }
 
 async function setWindowOptions(
@@ -245,23 +260,27 @@ async function setWindowOptions(
   await setOptions({ type: "window", id: windowId, options });
 }
 
-function showMessage(message: string): void {
+export async function reconcileWindowIcons(
+  windowIds?: Iterable<string>,
+): Promise<void> {
+  const panesByWindow = Map.groupBy(await panes(), (pane) => pane.windowId);
+  const targets = windowIds ? new Set(windowIds) : panesByWindow.keys();
+
+  for (const windowId of targets) {
+    const statuses: AgentStatus[] = [];
+    for (const { state, mode } of panesByWindow.get(windowId) ?? []) {
+      if (state) statuses.push(state);
+      if (mode) statuses.push(mode);
+    }
+    await setWindowOptions(windowId, {
+      "@cl_icon": AgentStatus.aggregateIcon(statuses),
+    });
+  }
+}
+
+export function showMessage(message: string): void {
   Bun.spawnSync(["tmux", "display-message", message], {
     stdout: "ignore",
     stderr: "ignore",
   });
 }
-
-export const Tmux = {
-  panes,
-  livePanes,
-  find,
-  close,
-  rename,
-  open,
-  fork,
-  paneOption,
-  setPaneOptions,
-  setWindowOptions,
-  showMessage,
-};

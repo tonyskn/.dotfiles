@@ -1,3 +1,4 @@
+import { exists } from "fs/promises";
 import type { AgentState } from "../model";
 import { asRecord, jsonRecords } from "./json";
 import type { Harness } from "./types";
@@ -5,8 +6,21 @@ import type { Harness } from "./types";
 export const claude: Harness = {
   id: "claude",
   binary: "claude",
-  historyDir: ".claude/projects",
-  historyGlobs: ["*.jsonl", "!subagents"],
+  sessionsDir: ".claude/projects",
+  searchGlobs: ["*.jsonl", "!subagents"],
+
+  isConversationRecord(record) {
+    const content = asRecord(record.message)?.content;
+    const hasUserText =
+      typeof content === "string" ||
+      (Array.isArray(content) &&
+        content.some((block) => asRecord(block)?.type === "text"));
+
+    return (
+      record.type === "assistant" ||
+      (record.type === "user" && record.isMeta !== true && hasUserText)
+    );
+  },
 
   isProcess(command) {
     return (
@@ -54,14 +68,16 @@ export const claude: Harness = {
     return `${sid}.jsonl`;
   },
 
-  parseHistory(file, contents) {
-    const filename = file.slice(file.lastIndexOf("/") + 1);
+  async readMetadata(path) {
+    const file = Bun.file(path);
+    const filename = path.slice(path.lastIndexOf("/") + 1);
+
     const sid = filename.replace(/\.jsonl$/, "");
     let title = "";
     let name = "";
     let cwd = "";
 
-    for (const record of jsonRecords(contents)) {
+    for (const record of jsonRecords(await file.text())) {
       if (
         record.type === "ai-title" &&
         !title &&
@@ -82,6 +98,14 @@ export const claude: Harness = {
       if (title && name && cwd) break;
     }
 
-    return { sid, title, name, cwd };
+    return {
+      harness: this.id,
+      sid,
+      title: title || "untitled",
+      name: name || "unnamed",
+      cwd,
+      cwdExists: Boolean(cwd) && (await exists(cwd)),
+      modifiedAt: Math.floor(file.lastModified / 1000),
+    };
   },
 };

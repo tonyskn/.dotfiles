@@ -1,21 +1,21 @@
 // _cl — data backend for the `cl` agent session manager.
-// Manages bookmark JSONL, discovers live sessions, searches history, and drives tmux.
+// Manages bookmark JSONL, discovers live sessions, searches session files, and drives tmux.
 // No interactive UI — stdout is structured for fzf consumption.
 
 import { exists } from "fs/promises";
 import { homedir } from "os";
 import { parseArgs } from "util";
-import { Bookmarks } from "../bookmarks";
-import { Harness } from "../harnesses";
-import { History } from "../history";
+import * as Bookmarks from "../bookmarks";
+import * as Harness from "../harnesses";
 import {
   AgentStatus,
   SessionRef,
   buildSessionRows,
-  type HistoryEntry,
+  type SessionMetadata,
   type SessionRow,
 } from "../model";
-import { Tmux } from "../tmux";
+import * as SessionFiles from "../session-files";
+import * as Tmux from "../tmux";
 
 const HOME = homedir();
 
@@ -33,6 +33,15 @@ function fail(message: string): never {
 // --- output ---
 
 namespace Output {
+  function icon(row?: SessionRow): string {
+    if (!row?.pane) return "";
+    return AgentStatus.aggregateIcon([row.pane.state, row.pane.mode]) || "-";
+  }
+
+  function displayName(name: string, row?: SessionRow): string {
+    return row && !row.saved ? `* ${name}` : name;
+  }
+
   function formatPath(path: string, marker = "", width = 40): string {
     const short = path.startsWith(HOME) ? "~" + path.slice(HOME.length) : path;
     return col(marker + short, width);
@@ -67,17 +76,13 @@ namespace Output {
 
   export function printSession(row: SessionRow): void {
     const live = row.pane !== undefined;
-    const icon = live
-      ? AgentStatus.aggregateIcon([row.pane?.state, row.pane?.mode]) || "-"
-      : "";
-    const savedMarker = row.saved ? "" : "* ";
 
     fzfRow(
       [row.harness, row.sid, row.name, row.pane?.paneId ?? ""],
       [
-        col(icon, 1),
+        col(icon(row), 1),
         colRight(relTime(minutesSince(row.lastActive)), 8),
-        col(savedMarker + row.name, 30),
+        col(displayName(row.name, row), 30),
         formatPath(row.cwd),
         col(row.harness, 6),
         row.sid,
@@ -86,18 +91,23 @@ namespace Output {
     );
   }
 
-  export function printHistory(entry: HistoryEntry): void {
+  export function printSearchResult(
+    entry: SessionMetadata,
+    row?: SessionRow,
+  ): void {
+    const name = row?.name ?? entry.name;
     const pathMarker = entry.cwdExists ? "" : "✗ ";
     fzfRow(
-      [entry.harness, entry.sid, entry.name, entry.cwd],
+      [entry.harness, entry.sid, name, entry.cwd],
       [
+        col(icon(row), 1),
         colRight(relTime(minutesSince(entry.modifiedAt)), 8),
         col(entry.title, 50),
-        col(entry.name, 30),
+        col(displayName(name, row), 30),
         formatPath(entry.cwd, pathMarker),
         col(entry.harness, 6),
-        entry.sid,
       ],
+      row === undefined,
     );
   }
 }
@@ -106,14 +116,23 @@ namespace Output {
 
 namespace Sessions {
   export async function list(): Promise<SessionRow[]> {
-    const rows = buildSessionRows(Bookmarks.all(), await Tmux.livePanes());
+    const panes = await Tmux.livePanes();
+    // Hooks publish identity changes on panes; the picker owns persisted bookmark updates.
+    for (const pane of panes) {
+      if (!pane.previousSid) continue;
+
+      Bookmarks.rebind({ harness: pane.harness, sid: pane.previousSid }, pane);
+      await Tmux.setPaneOptions(pane.paneId, { "@cl_previous_sid": "" });
+    }
+
+    const rows = buildSessionRows(Bookmarks.all(), panes);
     Bookmarks.updateActivity(rows);
 
     return Promise.all(
       rows.map(async (row) => {
         if (row.saved) return row;
-        const history = await History.get(row);
-        return { ...row, name: history?.name ?? row.name };
+        const metadata = await SessionFiles.metadata(row);
+        return { ...row, name: metadata?.name ?? row.name };
       }),
     );
   }
@@ -130,8 +149,8 @@ namespace Sessions {
     if (!(await exists(session.cwd))) {
       fail(`Directory no longer exists: ${session.cwd}`);
     }
-    if (!(await History.get(session))) {
-      fail(`No session history for '${session.name}'`);
+    if (!(await SessionFiles.metadata(session))) {
+      fail(`No session file for '${session.name}'`);
     }
   }
 }
@@ -145,7 +164,7 @@ namespace Cli {
     open: "_cl open <harness> <sid> [--prompt <text>]",
     fork: "_cl fork <harness> <sid>",
     close: "_cl close <harness> <sid>",
-    delete: "_cl delete <harness> <sid>",
+    remove: "_cl remove <harness> <sid>",
     search: "_cl search <term>",
   };
 
@@ -249,7 +268,7 @@ namespace Cli {
         break;
       }
 
-      case "delete": {
+      case "remove": {
         const selected = await Sessions.require(sessionRef());
         // Remove first so a tmux failure cannot strand the bookmark.
         Bookmarks.remove(selected);
@@ -258,8 +277,17 @@ namespace Cli {
       }
 
       case "search": {
-        const results = await History.search(searchTerm());
-        for (const entry of results) Output.printHistory(entry);
+        const [results, sessions] = await Promise.all([
+          SessionFiles.search(searchTerm()),
+          Sessions.list(),
+        ]);
+        const sessionsByRef = SessionRef.index(sessions);
+        for (const entry of results) {
+          Output.printSearchResult(
+            entry,
+            sessionsByRef.get(SessionRef.key(entry)),
+          );
+        }
         break;
       }
 
