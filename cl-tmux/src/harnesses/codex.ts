@@ -11,10 +11,14 @@ export const codex: Harness = {
 
   isConversationRecord(record) {
     const payload = asRecord(record.payload);
-    return (
+    const eventMessage =
       record.type === "event_msg" &&
-      (payload?.type === "user_message" || payload?.type === "agent_message")
-    );
+      (payload?.type === "user_message" || payload?.type === "agent_message");
+    const responseMessage =
+      record.type === "response_item" &&
+      payload?.type === "message" &&
+      (payload.role === "user" || payload.role === "assistant");
+    return eventMessage || responseMessage;
   },
 
   isProcess(command) {
