@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+main="$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -n 1)"
+position="$(git worktree list | grep -Fnm 1 "$root" | cut -d: -f1)"
+rows="$(
+  git worktree list |
+    sed "s|^$HOME/|~/|" |
+    column -t
+)"
+
+selection="$(
+  printf '%s\n' "$rows" |
+    fzf \
+      --no-sort \
+      --sync \
+      --expect=ctrl-d \
+      --bind="start:pos($position)" \
+      --header='enter: go to | ctrl-d: remove'
+)" || exit 0
+
+key="$(head -n 1 <<< "$selection")"
+row="$(tail -n 1 <<< "$selection")"
+read -r path _ <<< "$row"
+path="${path/#\~/$HOME}"
+[[ -n "$path" ]] || exit 0
+
+if [[ "$key" == "ctrl-d" ]]; then
+  git -C "$path" wt rm >/dev/null
+  if [[ "$path" == "$root" ]]; then
+    echo "$main"
+  else
+    echo "$root"
+  fi
+else
+  echo "$path"
+fi
