@@ -29,6 +29,11 @@ if (values.harness !== undefined && !Harness.isId(values.harness))
 
 const payload = await hookPayload();
 const tagged = await Tmux.paneIdentity(paneId);
+if (!tagged) {
+  console.error(`tmux-marker: cannot access pane ${paneId}`);
+  process.exit(1);
+}
+
 const harnessId = values.harness ?? tagged.harness;
 if (!harnessId || !Harness.isId(harnessId)) process.exit(0);
 
@@ -56,7 +61,9 @@ if (
       state || requestedMode ? Math.floor(Date.now() / 1000) : undefined,
     "@cl_sid": update.sid,
   }))
-)
-  process.exit(0);
+) {
+  console.error(`tmux-marker: cannot update pane ${paneId}`);
+  process.exit(1);
+}
 
 await Tmux.reconcileWindowIcons();

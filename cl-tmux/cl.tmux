@@ -15,3 +15,6 @@ done
 
 # Session picker popup.
 tmux bind-key u display-popup -E -w 80% -h 60% -T ' Agent Sessions ' "$BIN/cl"
+
+# Clear a sticky loop or attention marker on the active pane.
+tmux bind-key C-b run-shell "TMUX_PANE=#{pane_id} '$BIN/tmux-marker' idle"

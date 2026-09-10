@@ -236,15 +236,20 @@ export async function open(
   else await focus(pane);
 }
 
-export async function paneIdentity(paneId: string): Promise<{
-  harness?: string;
-  sid?: string;
-  previousSid?: string;
-}> {
+export async function paneIdentity(paneId: string): Promise<
+  | {
+      harness?: string;
+      sid?: string;
+      previousSid?: string;
+    }
+  | undefined
+> {
   const format = ["#{@cl_harness}", "#{@cl_sid}", "#{@cl_previous_sid}"].join(
     "\t",
   );
   const result = await run(["display-message", "-p", "-t", paneId, format]);
+  if (!result.ok) return undefined;
+
   const [harness, sid, previousSid] = result.stdout.split("\t");
   return {
     harness: harness || undefined,

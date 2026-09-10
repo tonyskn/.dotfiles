@@ -221,9 +221,9 @@ namespace Cli {
       case "save": {
         const target = sessionRef();
         const bookmark = Bookmarks.find(target);
+        const livePane = await Tmux.find(target);
         const name = flags.name ?? bookmark?.name;
-        const cwd =
-          flags.cwd ?? bookmark?.cwd ?? (await Tmux.find(target))?.cwd;
+        const cwd = flags.cwd ?? livePane?.cwd ?? bookmark?.cwd;
         const renamed =
           flags.name !== undefined && bookmark?.name !== flags.name;
 
