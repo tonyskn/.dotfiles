@@ -2,38 +2,89 @@
 set -euo pipefail
 
 branch=$(git branch --show-current 2>/dev/null || echo "")
+state=all
+author=""
+args=()
 
-pr=$(gh pr list --state all --limit 35 "$@" --json number,title,headRefName,author,state,createdAt \
-  | jq -r --arg b "$branch" '
-    sort_by(.number) | reverse | .[] |
-    (if .headRefName == $b then "B"
-     elif .state == "CLOSED" or .state == "MERGED" then "D"
-     else "-" end) as $style |
-    (if .headRefName == $b then "▶ " else "  " end) as $mark |
-    "\(.number)|\($style)|\($mark)\(.number)\t\(.author.login)\t\(.title[:60])\t\(.createdAt[:10])"' \
-  | column -t -s$'\t' \
-  | sed 's/^\([0-9]*|D|\)/\1\x1b[2m/; s/$/ \x1b[0m/' \
-  | fzf --ansi -d'|' --with-nth=3 --accept-nth=1 \
-      --header='enter: browser | ctrl-o: checkout | ctrl-t: worktree | ctrl-a: open only' \
-      --expect='ctrl-o,ctrl-t,ctrl-a' \
-      --height=~50%)
+while (($#)); do
+  case "$1" in
+    --state|-s)
+      state="$2"
+      shift 2
+      ;;
+    --state=*)
+      state="${1#*=}"
+      shift
+      ;;
+    --author|-A)
+      author="$2"
+      shift 2
+      ;;
+    --author=*)
+      author="${1#*=}"
+      shift
+      ;;
+    *)
+      args+=("$1")
+      shift
+      ;;
+  esac
+done
 
-[[ -z "$pr" ]] && exit 0
-key=$(head -1 <<< "$pr")
-num=$(tail -1 <<< "$pr")
-[[ -z "$num" ]] && exit 0
+gum_ui() {
+  gum "$@" && return
+  clear >&2
+  return 1
+}
 
-case "$key" in
-  ctrl-a) exec git pr --state open ;;
-  ctrl-o)
-    ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
-    git config --add remote.origin.fetch "+refs/heads/$ref:refs/remotes/origin/$ref" \
-      && git fetch origin \
-      && git checkout -B "$ref" "origin/$ref"
-    ;;
-  ctrl-t)
-    ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
-    echo "$(git wt "$ref")"
-    ;;
-  *) gh pr view "$num" --web ;;
-esac
+while true; do
+  gh_args=(--state "$state")
+  ((${#args[@]})) && gh_args=("${args[@]}" "${gh_args[@]}")
+  [[ -n "$author" ]] && gh_args+=(--author "$author")
+
+  pr=$(gh pr list --limit 100 "${gh_args[@]}" --json number,title,headRefName,author,state,createdAt \
+    | jq -r --arg b "$branch" '
+      sort_by(.number) | reverse | .[] |
+      (if .headRefName == $b then "B"
+       elif .state == "CLOSED" or .state == "MERGED" then "D"
+       else "-" end) as $style |
+      (if .headRefName == $b then "▶ " else "  " end) as $mark |
+      "\(.number)|\($style)|\($mark)\(.number)\t\(.author.login)\t\(.title[:60])\t\(.createdAt[:10])"' \
+    | column -t -s$'\t' \
+    | sed 's/^\([0-9]*|D|\)/\1\x1b[2m/; s/$/ \x1b[0m/' \
+    | fzf --ansi -d'|' --with-nth=3 --accept-nth=1 \
+        --header="[$state | author: ${author:-any}] enter: browser | ctrl-o: checkout | ctrl-t: worktree | ctrl-a: toggle open | ctrl-u: author" \
+        --expect='ctrl-o,ctrl-t,ctrl-a,ctrl-u' \
+        --height=~50%) || exit 0
+
+  key=$(head -1 <<< "$pr")
+
+  case "$key" in
+    ctrl-a)
+      [[ "$state" == open ]] && state=all || state=open
+      continue
+      ;;
+    ctrl-u)
+      author=$(gum_ui input --placeholder "Author (empty for any)" --value "$author") || continue
+      continue
+      ;;
+  esac
+
+  num=$(tail -1 <<< "$pr")
+  [[ -z "$num" ]] && exit 0
+
+  case "$key" in
+    ctrl-o)
+      ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
+      git config --add remote.origin.fetch "+refs/heads/$ref:refs/remotes/origin/$ref" \
+        && git fetch origin \
+        && git checkout -B "$ref" "origin/$ref"
+      ;;
+    ctrl-t)
+      ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
+      echo "$(git wt "$ref")"
+      ;;
+    *) gh pr view "$num" --web ;;
+  esac
+  exit 0
+done
