@@ -15,9 +15,9 @@ selection="$(
     fzf \
       --no-sort \
       --sync \
-      --expect=ctrl-d \
+      --expect=ctrl-d,ctrl-o \
       --bind="start:pos($position)" \
-      --header='enter: go to | ctrl-d: remove'
+      --header='enter: go to | ctrl-o: open PR | ctrl-d: remove'
 )" || exit 0
 
 key="$(head -n 1 <<< "$selection")"
@@ -26,13 +26,20 @@ read -r path _ <<< "$row"
 path="${path/#\~/$HOME}"
 [[ -n "$path" ]] || exit 0
 
-if [[ "$key" == "ctrl-d" ]]; then
-  git -C "$path" wt rm >/dev/null
-  if [[ "$path" == "$root" ]]; then
-    echo "$main"
-  else
-    echo "$root"
-  fi
-else
-  echo "$path"
-fi
+case "$key" in
+  ctrl-d)
+    git -C "$path" wt rm >/dev/null
+    if [[ "$path" == "$root" ]]; then
+      echo "$main"
+    else
+      echo "$root"
+    fi
+    ;;
+  ctrl-o)
+    (
+      cd "$path"
+      gh pr view --web
+    ) >&2
+    ;;
+  *) echo "$path" ;;
+esac
