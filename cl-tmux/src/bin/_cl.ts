@@ -76,13 +76,14 @@ namespace Output {
 
   export function printSession(row: SessionRow): void {
     const live = row.pane !== undefined;
+    const name = !row.saved && row.title ? row.title : row.name;
 
     fzfRow(
-      [row.harness, row.sid, row.name, row.pane?.paneId ?? ""],
+      [row.harness, row.sid, name, row.pane?.paneId ?? ""],
       [
         col(icon(row), 1),
         colRight(relTime(minutesSince(row.lastActive)), 8),
-        col(displayName(row.name, row), 30),
+        col(displayName(name, row), 50),
         formatPath(row.cwd),
         col(row.harness, 6),
         row.sid,
@@ -132,7 +133,11 @@ namespace Sessions {
       rows.map(async (row) => {
         if (row.saved) return row;
         const metadata = await SessionFiles.metadata(row);
-        return { ...row, name: metadata?.name ?? row.name };
+        return {
+          ...row,
+          name: metadata?.name ?? row.name,
+          title: metadata?.title === "untitled" ? undefined : metadata?.title,
+        };
       }),
     );
   }

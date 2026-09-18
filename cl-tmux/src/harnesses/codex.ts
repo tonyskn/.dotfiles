@@ -3,6 +3,25 @@ import type { AgentState } from "../model";
 import { asRecord, jsonRecords } from "./json";
 import type { Harness } from "./types";
 
+function userMessage(record: Record<string, unknown>): string | undefined {
+  const payload = asRecord(record.payload);
+  if (record.type !== "event_msg") return undefined;
+  if (payload?.type === "user_message" && typeof payload.message === "string")
+    return payload.message;
+
+  const item = asRecord(payload?.item);
+  if (payload?.type !== "item_completed" || item?.type !== "UserMessage")
+    return undefined;
+  if (!Array.isArray(item.content)) return undefined;
+
+  return item.content
+    .map(asRecord)
+    .filter((content) => content?.type === "text")
+    .map((content) => content?.text)
+    .filter((text): text is string => typeof text === "string")
+    .join(" ");
+}
+
 export const codex: Harness = {
   id: "codex",
   binary: "codex",
@@ -82,18 +101,11 @@ export const codex: Harness = {
       typeof metadata.forked_from_id === "string"
         ? metadata.forked_from_id
         : undefined;
-    const userMessage = records
-      .filter((record) => record.type === "event_msg")
-      .map((record) => asRecord(record.payload))
-      .find(
-        (payload) =>
-          payload?.type === "user_message" &&
-          typeof payload.message === "string",
-      );
-    const title =
-      typeof userMessage?.message === "string"
-        ? userMessage.message.replace(/\s+/g, " ").trim()
-        : "";
+    const title = records
+      .map(userMessage)
+      .find((message) => message !== undefined)
+      ?.replace(/\s+/g, " ")
+      .trim();
 
     const normalizedCwd = cwd.replace(/\/+$/, "");
     const name = normalizedCwd.slice(normalizedCwd.lastIndexOf("/") + 1);

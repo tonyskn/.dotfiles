@@ -101,6 +101,7 @@ export type SessionMetadata = SessionRef & {
 
 export type SessionRow = SessionRef & {
   name: string;
+  title?: string;
   cwd: string;
   lastActive: number;
   saved: boolean;
