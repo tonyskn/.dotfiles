@@ -6,12 +6,10 @@
 #
 # Usage:
 #   cl                  fzf session picker
-#   cl search <term>    search all configured harness session files
 #
 set -eo pipefail
 
 dir="$(dirname "$(readlink -f "$0")")"
-current_pane="$(tmux display-message -p '#{pane_id}' 2>/dev/null)"
 _cl() { "$dir/_cl" "$@"; }
 gum_ui() {
   gum "$@" && return
@@ -21,18 +19,24 @@ gum_ui() {
 
 # --- search ---
 search_sessions() {
-  local term="${1:?Usage: cl search <term>}"
+  local term="${1:-}"
   local harness sid name cwd
 
   IFS=$'\t' read -r harness sid name cwd < <(
     _cl search -- "$term" |
       fzf \
         --no-sort \
+        --disabled \
         --ansi \
+        --query="$term" \
         --delimiter=$'\t' \
-        --with-nth=5 \
+        --with-nth=6 \
         --accept-nth=1,2,3,4 \
-        --header='enter: open'
+        --bind="change:reload('$dir/_cl' search -- {q})" \
+        --bind='ctrl-u:half-page-up,ctrl-f:half-page-down' \
+        --bind="focus:transform-footer:printf '%s' {5} | fold -s -w 80" \
+        --footer=' ' \
+        --header='type: search | enter: open'
   ) || true
 
   [[ -z "$sid" ]] && return 1
@@ -45,17 +49,13 @@ search_sessions() {
   _cl open "$harness" "$sid" --name "$name" --cwd "$cwd"
 }
 
-if [[ "${1:-}" == "search" ]]; then
-  search_sessions "${2:-}" || true
-  exit 0
-fi
-
 # --- session picker ---
+current_pane="$(tmux display-message -p '#{pane_id}' 2>/dev/null)"
 filter=$(tmux show-option -sv @cl_filter 2>/dev/null || echo "all")
 
 header() {
-  printf "[%s]  enter:open  ctrl-t:send  ctrl-g:filter  ctrl-f:search\n" "$filter"
-  printf "ctrl-s:save  ctrl-o:fork  ctrl-u:preview  ctrl-x:close  ctrl-d:remove"
+  printf "[%s]  enter:open  ctrl-t:send  ctrl-g:filter  ctrl-r:search\n" "$filter"
+  printf "ctrl-s:save  ctrl-o:fork  ctrl-y:preview  ctrl-x:close  ctrl-d:remove"
 }
 
 session_rows() {
@@ -64,7 +64,7 @@ session_rows() {
   if [[ -n "$rows" ]]; then
     printf '%s\n' "$rows"
   else
-    printf '\t\t\t\tNo sessions found\n'
+    printf '\t\t\t\t\tNo sessions found\n'
   fi
 }
 
@@ -79,21 +79,24 @@ while true; do
         --no-sort \
         --sync \
         --ansi \
-        --expect=ctrl-d,ctrl-f,ctrl-g,ctrl-o,ctrl-s,ctrl-t,ctrl-x \
+        --expect=ctrl-d,ctrl-g,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x \
         --delimiter=$'\t' \
-        --with-nth=5 \
+        --with-nth=6 \
         --accept-nth=1,2,3 \
         --bind="start:pos($position)" \
+        --bind='ctrl-u:half-page-up,ctrl-f:half-page-down' \
+        --bind="focus:transform-footer:printf '%s' {5} | fold -s -w 80" \
+        --footer=' ' \
         --header="$(header)" \
         --preview='[[ -n {4} ]] && tmux capture-pane -ept {4} 2>/dev/null' \
         --preview-window='right,80%,follow,hidden' \
-        --bind='ctrl-u:toggle-preview'
+        --bind='ctrl-y:toggle-preview'
   ) || exit 0
 
   key=$(head -n 1 <<< "$selection")
   IFS=$'\t' read -r harness sid name <<< "$(tail -n 1 <<< "$selection")"
 
-  if [[ -z "$sid" && "$key" != ctrl-f && "$key" != ctrl-g ]]; then
+  if [[ -z "$sid" && "$key" != ctrl-r && "$key" != ctrl-g ]]; then
     continue
   fi
 
@@ -108,9 +111,8 @@ while true; do
       tmux set-option -s @cl_filter "$filter" 2>/dev/null
       continue
       ;;
-    ctrl-f)
-      term=$(gum_ui input --placeholder "Search sessions...") || continue
-      if [[ -n "$term" ]] && search_sessions "$term"; then
+    ctrl-r)
+      if search_sessions; then
         exit 0
       fi
       ;;

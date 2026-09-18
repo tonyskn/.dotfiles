@@ -6,6 +6,13 @@ import { asRecord, jsonRecords } from "./harnesses/json";
 import { SessionRef, type SessionMetadata } from "./model";
 
 const HOME = homedir();
+const RECENT_LIMIT = 50;
+
+type SessionFile = {
+  harness: HarnessAdapter;
+  path: string;
+  modifiedAt: number;
+};
 
 async function ripgrep(args: string[]): Promise<string> {
   const process = Bun.spawn(["rg", ...args], {
@@ -74,6 +81,20 @@ async function searchHarness(
   return deduplicateForkMatches(matches);
 }
 
+async function sessionFiles(harness: HarnessAdapter): Promise<SessionFile[]> {
+  const directory = join(HOME, harness.sessionsDir);
+  const globs = harness.searchGlobs.flatMap((glob) => ["-g", glob]);
+  const paths = (await ripgrep(["--files", ...globs, directory]))
+    .split("\n")
+    .filter(Boolean);
+
+  return paths.map((path) => ({
+    harness,
+    path,
+    modifiedAt: Bun.file(path).lastModified,
+  }));
+}
+
 // Group matching forks by their oldest matching ancestor, then keep the most recently modified.
 function deduplicateForkMatches(
   entries: ReadonlyArray<SessionMetadata>,
@@ -106,12 +127,35 @@ function rootSid(
 // Find sessions containing every whole-word query term in conversation records.
 export async function search(query: string): Promise<SessionMetadata[]> {
   const terms = query.trim().split(/\s+/).filter(Boolean);
-  if (!terms.length) return [];
+  if (!terms.length) return recent();
 
   const matchesByHarness = await Promise.all(
     Harness.all().map((harness) => searchHarness(harness, terms)),
   );
   return matchesByHarness.flat().sort((a, b) => b.modifiedAt - a.modifiedAt);
+}
+
+async function recent(): Promise<SessionMetadata[]> {
+  const pendingFiles = (await Promise.all(Harness.all().map(sessionFiles)))
+    .flat()
+    .sort((a, b) => b.modifiedAt - a.modifiedAt);
+  const sessions: SessionMetadata[] = [];
+
+  // Codex subagent rollouts have the same filename shape, so keep going until
+  // adapters accept enough user sessions or there are no files left.
+  while (sessions.length < RECENT_LIMIT && pendingFiles.length) {
+    const batch = pendingFiles.splice(0, RECENT_LIMIT - sessions.length);
+    const metadata = await Promise.all(
+      batch.map(({ harness, path }) => harness.readMetadata(path)),
+    );
+    sessions.push(
+      ...metadata.filter(
+        (entry): entry is SessionMetadata => entry !== undefined,
+      ),
+    );
+  }
+
+  return sessions;
 }
 
 export async function metadata(

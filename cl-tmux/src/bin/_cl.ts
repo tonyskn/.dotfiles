@@ -18,6 +18,7 @@ import * as SessionFiles from "../session-files";
 import * as Tmux from "../tmux";
 
 const HOME = homedir();
+const TITLE_WIDTH = 60;
 
 function minutesSince(timestamp: number): number {
   return (Date.now() / 1000 - timestamp) / 60;
@@ -79,11 +80,17 @@ namespace Output {
     const name = !row.saved && row.title ? row.title : row.name;
 
     fzfRow(
-      [row.harness, row.sid, name, row.pane?.paneId ?? ""],
+      [
+        row.harness,
+        row.sid,
+        row.saved ? row.name : "",
+        row.pane?.paneId ?? "",
+        name,
+      ],
       [
         col(icon(row), 1),
         colRight(relTime(minutesSince(row.lastActive)), 8),
-        col(displayName(name, row), 50),
+        col(displayName(name, row), TITLE_WIDTH),
         formatPath(row.cwd),
         col(row.harness, 6),
         row.sid,
@@ -99,11 +106,11 @@ namespace Output {
     const name = row?.name ?? entry.name;
     const pathMarker = entry.cwdExists ? "" : "✗ ";
     fzfRow(
-      [entry.harness, entry.sid, name, entry.cwd],
+      [entry.harness, entry.sid, name, entry.cwd, entry.title],
       [
         col(icon(row), 1),
         colRight(relTime(minutesSince(entry.modifiedAt)), 8),
-        col(entry.title, 50),
+        col(entry.title, TITLE_WIDTH),
         col(displayName(name, row), 30),
         formatPath(entry.cwd, pathMarker),
         col(entry.harness, 6),
@@ -170,7 +177,7 @@ namespace Cli {
     fork: "_cl fork <harness> <sid>",
     close: "_cl close <harness> <sid>",
     remove: "_cl remove <harness> <sid>",
-    search: "_cl search <term>",
+    search: "_cl search [term]",
   };
 
   const { positionals, values: flags } = parseArgs({
@@ -192,14 +199,20 @@ namespace Cli {
     fail(lines.join("\n"));
   }
 
-  function searchTerm(): string {
-    return operands[0] ?? die();
-  }
-
   function sessionRef(): SessionRef {
     const [harness, sid] = operands;
     if (!harness || !Harness.isId(harness) || !sid) die();
     return { harness, sid };
+  }
+
+  async function printSessionMetadata(
+    entries: Promise<SessionMetadata[]>,
+  ): Promise<void> {
+    const [results, sessions] = await Promise.all([entries, Sessions.list()]);
+    const sessionsByRef = SessionRef.index(sessions);
+    for (const entry of results) {
+      Output.printSearchResult(entry, sessionsByRef.get(SessionRef.key(entry)));
+    }
   }
 
   function matchesFilter(row: SessionRow): boolean {
@@ -282,17 +295,7 @@ namespace Cli {
       }
 
       case "search": {
-        const [results, sessions] = await Promise.all([
-          SessionFiles.search(searchTerm()),
-          Sessions.list(),
-        ]);
-        const sessionsByRef = SessionRef.index(sessions);
-        for (const entry of results) {
-          Output.printSearchResult(
-            entry,
-            sessionsByRef.get(SessionRef.key(entry)),
-          );
-        }
+        await printSessionMetadata(SessionFiles.search(operands[0] ?? ""));
         break;
       }
 
