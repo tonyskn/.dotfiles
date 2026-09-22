@@ -20,7 +20,6 @@ type PaneOptions = {
   "@cl_previous_sid": string;
   "@cl_state": AgentState | "";
   "@cl_mode": AgentMode | "";
-  "@cl_active_at": number;
 };
 
 type WindowOptions = {
@@ -66,7 +65,6 @@ const PANE_FORMAT = [
   "#{pane_id}",
   "#{@cl_state}",
   "#{@cl_mode}",
-  "#{@cl_active_at}",
   "#{pane_current_command}",
   "#{pane_current_path}",
 ].join("\t");
@@ -85,7 +83,6 @@ async function panes(): Promise<Pane[]> {
       paneId,
       state,
       mode,
-      activeAt,
       command,
       cwd,
     ] = line.split("\t");
@@ -104,7 +101,6 @@ async function panes(): Promise<Pane[]> {
       previousSid: harnessId && previousSid ? previousSid : undefined,
       state: harnessId && AgentState.is(state) ? state : undefined,
       mode: harnessId && AgentMode.is(mode) ? mode : undefined,
-      lastActive: Number(activeAt) || 0,
       cwd: cwd ?? "",
     });
   }
@@ -124,6 +120,14 @@ export async function find(ref: SessionRef): Promise<LivePane | undefined> {
 }
 
 export async function close(pane: PaneTarget): Promise<void> {
+  const agentPanes = (await livePanes()).filter(
+    (candidate) => candidate.windowId === pane.windowId,
+  );
+  if (agentPanes.length === 1) {
+    await run(["kill-window", "-t", pane.windowId]);
+    return;
+  }
+
   await run(["kill-pane", "-t", pane.paneId]);
   await reconcileWindowIcons([pane.windowId]);
 }

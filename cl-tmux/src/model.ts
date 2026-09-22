@@ -76,8 +76,6 @@ export const SessionRef = {
 export type BookmarkRecord = SessionRef & {
   name: string;
   cwd: string;
-  started: number;
-  lastActive: number;
 };
 
 export type LivePane = SessionRef & {
@@ -86,7 +84,6 @@ export type LivePane = SessionRef & {
   previousSid?: string;
   state?: AgentState;
   mode?: AgentMode;
-  lastActive: number;
   cwd: string;
 };
 
@@ -95,7 +92,8 @@ export type SessionMetadata = SessionRef & {
   name: string;
   cwd: string;
   cwdExists: boolean;
-  modifiedAt: number;
+  startedAt: number;
+  activeAt: number;
   forkedFromSid?: string;
 };
 
@@ -103,7 +101,8 @@ export type SessionRow = SessionRef & {
   name: string;
   title?: string;
   cwd: string;
-  lastActive: number;
+  startedAt?: number;
+  activeAt?: number;
   saved: boolean;
   pane?: LivePane;
 };
@@ -112,19 +111,21 @@ export type SessionRow = SessionRef & {
 export function buildSessionRows(
   bookmarks: ReadonlyArray<BookmarkRecord>,
   panes: ReadonlyArray<LivePane>,
-  fallbackActiveAt = Math.floor(Date.now() / 1000),
+  metadataBySession: ReadonlyMap<string, SessionMetadata>,
 ): SessionRow[] {
   const paneBySession = SessionRef.index(panes);
   const savedSessions = new Set(bookmarks.map(SessionRef.key));
 
   const saved = bookmarks.map((bookmark): SessionRow => {
     const pane = paneBySession.get(SessionRef.key(bookmark));
+    const metadata = metadataBySession.get(SessionRef.key(bookmark));
     return {
       harness: bookmark.harness,
       sid: bookmark.sid,
       name: bookmark.name,
       cwd: bookmark.cwd,
-      lastActive: Math.max(bookmark.lastActive, pane?.lastActive ?? 0),
+      startedAt: metadata?.startedAt,
+      activeAt: metadata?.activeAt,
       saved: true,
       pane,
     };
@@ -132,15 +133,22 @@ export function buildSessionRows(
 
   const live = panes
     .filter((pane) => !savedSessions.has(SessionRef.key(pane)))
-    .map((pane): SessionRow => ({
-      harness: pane.harness,
-      sid: pane.sid,
-      name: "unnamed",
-      cwd: pane.cwd,
-      lastActive: pane.lastActive || fallbackActiveAt,
-      saved: false,
-      pane,
-    }));
+    .map((pane): SessionRow => {
+      const metadata = metadataBySession.get(SessionRef.key(pane));
+      return {
+        harness: pane.harness,
+        sid: pane.sid,
+        name: metadata?.name ?? "unnamed",
+        title: metadata?.title === "untitled" ? undefined : metadata?.title,
+        cwd: pane.cwd,
+        startedAt: metadata?.startedAt,
+        activeAt: metadata?.activeAt,
+        saved: false,
+        pane,
+      };
+    });
 
-  return [...saved, ...live].sort((a, b) => b.lastActive - a.lastActive);
+  return [...saved, ...live].sort(
+    (a, b) => (b.activeAt ?? 0) - (a.activeAt ?? 0),
+  );
 }

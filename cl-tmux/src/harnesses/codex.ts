@@ -84,8 +84,7 @@ export const codex: Harness = {
   async readMetadata(path) {
     const file = Bun.file(path);
     const records = jsonRecords(await file.text());
-    const metadata = records.next().value?.payload as
-      Record<string, unknown> | undefined;
+    const metadata = asRecord(records.next().value?.payload);
     if (metadata?.source !== "cli") return undefined;
 
     const sid =
@@ -94,7 +93,11 @@ export const codex: Harness = {
         : typeof metadata.id === "string"
           ? metadata.id
           : "";
-    if (!sid) return undefined;
+    const timestamp =
+      typeof metadata.timestamp === "string"
+        ? Date.parse(metadata.timestamp)
+        : NaN;
+    if (!sid || !Number.isFinite(timestamp)) return undefined;
 
     const cwd = typeof metadata.cwd === "string" ? metadata.cwd : "";
     const forkedFromSid =
@@ -112,11 +115,12 @@ export const codex: Harness = {
     return {
       harness: this.id,
       sid,
+      startedAt: Math.floor(timestamp / 1000),
+      activeAt: Math.floor(file.lastModified / 1000),
       title: title || "untitled",
       name: name || "unnamed",
       cwd,
       cwdExists: Boolean(cwd) && (await exists(cwd)),
-      modifiedAt: Math.floor(file.lastModified / 1000),
       forkedFromSid,
     };
   },

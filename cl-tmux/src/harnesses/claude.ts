@@ -69,15 +69,30 @@ export const claude: Harness = {
   },
 
   async readMetadata(path) {
+    if (path.includes("/subagents/")) return undefined;
+
     const file = Bun.file(path);
     const filename = path.slice(path.lastIndexOf("/") + 1);
-
     const sid = filename.replace(/\.jsonl$/, "");
+    let startedAt: number | undefined;
     let title = "";
     let name = "";
     let cwd = "";
 
     for (const record of jsonRecords(await file.text())) {
+      // Agent SDK runs also write Claude transcripts, but they are not
+      // interactive sessions that cl-tmux should offer for navigation.
+      if (
+        typeof record.entrypoint === "string" &&
+        record.entrypoint !== "cli"
+      ) {
+        return undefined;
+      }
+      if (startedAt === undefined && typeof record.timestamp === "string") {
+        const timestamp = Date.parse(record.timestamp);
+        if (Number.isFinite(timestamp))
+          startedAt = Math.floor(timestamp / 1000);
+      }
       if (
         record.type === "ai-title" &&
         !title &&
@@ -95,17 +110,19 @@ export const claude: Harness = {
       if (record.type === "user" && !cwd && typeof record.cwd === "string") {
         cwd = record.cwd;
       }
-      if (title && name && cwd) break;
+      if (startedAt !== undefined && title && name && cwd) break;
     }
+    if (startedAt === undefined) return undefined;
 
     return {
       harness: this.id,
       sid,
+      startedAt,
+      activeAt: Math.floor(file.lastModified / 1000),
       title: title || "untitled",
       name: name || "unnamed",
       cwd,
       cwdExists: Boolean(cwd) && (await exists(cwd)),
-      modifiedAt: Math.floor(file.lastModified / 1000),
     };
   },
 };

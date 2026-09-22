@@ -11,7 +11,7 @@ const RECENT_LIMIT = 50;
 type SessionFile = {
   harness: HarnessAdapter;
   path: string;
-  modifiedAt: number;
+  activeAt: number;
 };
 
 async function ripgrep(args: string[]): Promise<string> {
@@ -22,6 +22,20 @@ async function ripgrep(args: string[]): Promise<string> {
   const stdout = process.stdout.text();
   await process.exited;
   return stdout;
+}
+
+async function scanSessionPaths(
+  harness: HarnessAdapter,
+  pattern: string,
+): Promise<string[]> {
+  const glob = new Bun.Glob(pattern);
+  return Array.fromAsync(
+    glob.scan({
+      cwd: join(HOME, harness.sessionsDir),
+      absolute: true,
+      onlyFiles: true,
+    }),
+  );
 }
 
 async function filesMatchingTerm(
@@ -82,16 +96,12 @@ async function searchHarness(
 }
 
 async function sessionFiles(harness: HarnessAdapter): Promise<SessionFile[]> {
-  const directory = join(HOME, harness.sessionsDir);
-  const globs = harness.searchGlobs.flatMap((glob) => ["-g", glob]);
-  const paths = (await ripgrep(["--files", ...globs, directory]))
-    .split("\n")
-    .filter(Boolean);
+  const paths = await scanSessionPaths(harness, "**/*.jsonl");
 
   return paths.map((path) => ({
     harness,
     path,
-    modifiedAt: Bun.file(path).lastModified,
+    activeAt: Math.floor(Bun.file(path).lastModified / 1000),
   }));
 }
 
@@ -106,7 +116,7 @@ function deduplicateForkMatches(
 
   return [...matchesByRootSid.values()].map((matches) =>
     matches.reduce((latest, match) =>
-      match.modifiedAt > latest.modifiedAt ? match : latest,
+      match.activeAt > latest.activeAt ? match : latest,
     ),
   );
 }
@@ -132,13 +142,13 @@ export async function search(query: string): Promise<SessionMetadata[]> {
   const matchesByHarness = await Promise.all(
     Harness.all().map((harness) => searchHarness(harness, terms)),
   );
-  return matchesByHarness.flat().sort((a, b) => b.modifiedAt - a.modifiedAt);
+  return matchesByHarness.flat().sort((a, b) => b.activeAt - a.activeAt);
 }
 
 async function recent(): Promise<SessionMetadata[]> {
   const pendingFiles = (await Promise.all(Harness.all().map(sessionFiles)))
     .flat()
-    .sort((a, b) => b.modifiedAt - a.modifiedAt);
+    .sort((a, b) => b.activeAt - a.activeAt);
   const sessions: SessionMetadata[] = [];
 
   // Codex subagent rollouts have the same filename shape, so keep going until
@@ -158,14 +168,26 @@ async function recent(): Promise<SessionMetadata[]> {
   return sessions;
 }
 
-export async function metadata(
-  ref: SessionRef,
-): Promise<SessionMetadata | undefined> {
-  const harness = Harness.get(ref.harness);
-  const directory = join(HOME, harness.sessionsDir);
-  const args = ["--files", "-g", harness.sessionGlob(ref.sid), directory];
-  const file = (await ripgrep(args)).trim();
-  if (!file) return undefined;
+export async function readMetadataBySession(
+  refs: ReadonlyArray<SessionRef>,
+): Promise<Map<string, SessionMetadata>> {
+  const uniqueRefs = [...SessionRef.index(refs).values()];
+  const refsByHarness = Map.groupBy(uniqueRefs, (ref) => ref.harness);
+  const metadataByHarness = await Promise.all(
+    [...refsByHarness].map(async ([harnessId, harnessRefs]) => {
+      const harness = Harness.get(harnessId);
+      const filenames = harnessRefs.map((ref) => harness.sessionGlob(ref.sid));
+      const paths = await scanSessionPaths(
+        harness,
+        `**/{${filenames.join(",")}}`,
+      );
+      return Promise.all(paths.map((path) => harness.readMetadata(path)));
+    }),
+  );
 
-  return harness.readMetadata(file);
+  return SessionRef.index(
+    metadataByHarness
+      .flat()
+      .filter((entry): entry is SessionMetadata => entry !== undefined),
+  );
 }

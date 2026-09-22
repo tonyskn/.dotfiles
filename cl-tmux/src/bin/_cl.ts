@@ -56,12 +56,17 @@ namespace Output {
     return s.padStart(n).slice(-n);
   }
 
-  function relTime(mins: number): string {
+  function relTime(
+    timestamp: number | undefined,
+    suffix: "ago" | "old",
+  ): string {
+    if (timestamp === undefined) return "-";
+    const mins = minutesSince(timestamp);
     if (mins < 1) return "just now";
-    if (mins < 60) return `${Math.round(mins)}m ago`;
-    if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
-    if (mins < 10080) return `${Math.round(mins / 1440)}d ago`;
-    return `${Math.round(mins / 10080)}w ago`;
+    if (mins < 60) return `${Math.round(mins)}m ${suffix}`;
+    if (mins < 1440) return `${Math.round(mins / 60)}h ${suffix}`;
+    if (mins < 10080) return `${Math.round(mins / 1440)}d ${suffix}`;
+    return `${Math.round(mins / 10080)}w ${suffix}`;
   }
 
   // Escape codes must wrap the joined row: col() pads by raw length, so coloring
@@ -89,10 +94,11 @@ namespace Output {
       ],
       [
         col(icon(row), 1),
-        colRight(relTime(minutesSince(row.lastActive)), 8),
+        colRight(relTime(row.activeAt, "ago"), 8),
         col(displayName(name, row), TITLE_WIDTH),
         formatPath(row.cwd),
         col(row.harness, 6),
+        colRight(relTime(row.startedAt, "old"), 8),
         row.sid,
       ],
       !live,
@@ -109,11 +115,12 @@ namespace Output {
       [entry.harness, entry.sid, name, entry.cwd, entry.title],
       [
         col(icon(row), 1),
-        colRight(relTime(minutesSince(entry.modifiedAt)), 8),
+        colRight(relTime(entry.activeAt, "ago"), 8),
         col(entry.title, TITLE_WIDTH),
         col(displayName(name, row), 30),
         formatPath(entry.cwd, pathMarker),
         col(entry.harness, 6),
+        colRight(relTime(entry.startedAt, "old"), 8),
       ],
       row === undefined,
     );
@@ -123,6 +130,10 @@ namespace Output {
 // --- sessions ---
 
 namespace Sessions {
+  function hasSessionMetadata(session: SessionRow): boolean {
+    return session.startedAt !== undefined && session.activeAt !== undefined;
+  }
+
   export async function list(): Promise<SessionRow[]> {
     const panes = await Tmux.livePanes();
     // Hooks publish identity changes on panes; the picker owns persisted bookmark updates.
@@ -133,20 +144,12 @@ namespace Sessions {
       await Tmux.setPaneOptions(pane.paneId, { "@cl_previous_sid": "" });
     }
 
-    const rows = buildSessionRows(Bookmarks.all(), panes);
-    Bookmarks.updateActivity(rows);
-
-    return Promise.all(
-      rows.map(async (row) => {
-        if (row.saved) return row;
-        const metadata = await SessionFiles.metadata(row);
-        return {
-          ...row,
-          name: metadata?.name ?? row.name,
-          title: metadata?.title === "untitled" ? undefined : metadata?.title,
-        };
-      }),
-    );
+    const bookmarks = Bookmarks.all();
+    const metadataBySession = await SessionFiles.readMetadataBySession([
+      ...bookmarks,
+      ...panes,
+    ]);
+    return buildSessionRows(bookmarks, panes, metadataBySession);
   }
 
   export async function find(ref: SessionRef): Promise<SessionRow | undefined> {
@@ -161,7 +164,7 @@ namespace Sessions {
     if (!(await exists(session.cwd))) {
       fail(`Directory no longer exists: ${session.cwd}`);
     }
-    if (!(await SessionFiles.metadata(session))) {
+    if (!hasSessionMetadata(session)) {
       fail(`No session file for '${session.name}'`);
     }
   }
@@ -218,9 +221,9 @@ namespace Cli {
   function matchesFilter(row: SessionRow): boolean {
     switch (flags.filter) {
       case "today":
-        return minutesSince(row.lastActive) < 1440;
+        return row.activeAt !== undefined && minutesSince(row.activeAt) < 1440;
       case "week":
-        return minutesSince(row.lastActive) < 10080;
+        return row.activeAt !== undefined && minutesSince(row.activeAt) < 10080;
       case "live":
         return row.pane !== undefined;
       default:

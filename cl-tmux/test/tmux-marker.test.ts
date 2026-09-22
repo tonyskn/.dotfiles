@@ -130,28 +130,16 @@ test("keeps explicit modes separate from hook state", () =>
     ).toBe("test-session\tidle\t\t○");
   }));
 
-test("tags a session without inventing activity", () =>
+test("tags a session without inventing state", () =>
   withTmux(async (fixture) => {
-    fixture.tmux([
-      "set-option",
-      "-p",
-      "-t",
-      fixture.paneId,
-      "@cl_active_at",
-      "123",
-    ]);
-
     await fixture.mark(fixture.paneId, [], {
       session_id: "started-session",
       hook_event_name: "SessionStart",
     });
 
     expect(
-      fixture.format(
-        fixture.paneId,
-        "#{@cl_sid}|#{@cl_state}|#{@cl_active_at}",
-      ),
-    ).toBe("started-session||123");
+      fixture.format(fixture.paneId, "#{@cl_sid}|#{@cl_state}|#{@cl_mode}"),
+    ).toBe("started-session||");
   }));
 
 test("preserves the first SID replaced within a pane", () =>
@@ -216,9 +204,13 @@ test("reconciles the window icon after closing a marked pane", () =>
       session_id: "working-session",
       hook_event_name: "UserPromptSubmit",
     });
+    await fixture.mark(secondPaneId, [], {
+      session_id: "idle-session",
+      hook_event_name: "Stop",
+    });
     expect(fixture.format(secondPaneId, "#{@cl_icon}")).toBe("●");
 
     await fixture.close(windowId, fixture.paneId);
 
-    expect(fixture.format(secondPaneId, "#{@cl_icon}")).toBe("");
+    expect(fixture.format(secondPaneId, "#{@cl_icon}")).toBe("○");
   }));

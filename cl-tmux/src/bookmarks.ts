@@ -1,7 +1,7 @@
 import { mkdir, rename } from "fs/promises";
 import { homedir } from "os";
 import { dirname, join } from "path";
-import { SessionRef, type BookmarkRecord, type SessionRow } from "./model";
+import { SessionRef, type BookmarkRecord } from "./model";
 
 const STATE_HOME =
   process.env.XDG_STATE_HOME || join(homedir(), ".local", "state");
@@ -47,13 +47,10 @@ export function addOrSave(ref: SessionRef, name: string, cwd: string): void {
     bookmark.name = name;
     bookmark.cwd = cwd;
   } else {
-    const timestamp = Math.floor(Date.now() / 1000);
     entries.push({
       ...ref,
       name,
       cwd,
-      started: timestamp,
-      lastActive: timestamp,
     });
   }
   dirty = true;
@@ -71,16 +68,4 @@ export function rebind(from: SessionRef, to: SessionRef): void {
   bookmark.harness = to.harness;
   bookmark.sid = to.sid;
   dirty = true;
-}
-
-export function updateActivity(rows: ReadonlyArray<SessionRow>): void {
-  const bookmarkBySession = SessionRef.index(entries);
-
-  for (const row of rows) {
-    const bookmark = bookmarkBySession.get(SessionRef.key(row));
-    if (bookmark && row.lastActive > bookmark.lastActive) {
-      bookmark.lastActive = row.lastActive;
-      dirty = true;
-    }
-  }
 }

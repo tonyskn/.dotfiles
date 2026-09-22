@@ -57,8 +57,6 @@ if (
     "@cl_state": state,
     "@cl_mode": mode,
     "@cl_previous_sid": previousSid,
-    "@cl_active_at":
-      state || requestedMode ? Math.floor(Date.now() / 1000) : undefined,
     "@cl_sid": update.sid,
   }))
 ) {
