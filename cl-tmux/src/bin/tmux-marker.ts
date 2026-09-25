@@ -43,11 +43,6 @@ const update = harness.hookUpdate(payload);
 const requestedMode = AgentMode.is(requested) ? requested : undefined;
 const requestedState = AgentState.is(requested) ? requested : undefined;
 const state = requestedState ?? update.state;
-// Keep the bookmarked identity across repeated replacements until the picker reconciles it.
-const previousSid =
-  update.sid && tagged.sid && update.sid !== tagged.sid
-    ? (tagged.previousSid ?? tagged.sid)
-    : undefined;
 
 // Hook state is transient; only an explicit idle command exits a sticky mode.
 const mode = requestedState === "idle" ? "" : requestedMode;
@@ -56,7 +51,6 @@ if (
     "@cl_harness": harness.id,
     "@cl_state": state,
     "@cl_mode": mode,
-    "@cl_previous_sid": previousSid,
     "@cl_sid": update.sid,
   }))
 ) {

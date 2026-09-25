@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
   AgentStatus,
+  SessionMetadata,
   SessionRef,
   buildSessionRows,
   type BookmarkRecord,
   type LivePane,
-  type SessionMetadata,
 } from "../src/model";
 
 const bookmark: BookmarkRecord = {
@@ -38,6 +38,41 @@ describe("AgentStatus.aggregateIcon", () => {
 
   test("returns an empty presentation for no pane state", () => {
     expect(AgentStatus.aggregateIcon([undefined])).toBe("");
+  });
+});
+
+describe("SessionMetadata.mergePages", () => {
+  test("keeps the session origin and latest page state", () => {
+    const original: SessionMetadata = {
+      harness: "codex",
+      sid: "session",
+      title: "Original prompt",
+      name: "old-worktree",
+      cwd: "/old-worktree",
+      cwdExists: false,
+      startedAt: 100,
+      activeAt: 200,
+      forkedFromSid: "parent",
+    };
+    const continuation: SessionMetadata = {
+      ...original,
+      title: "Rewind point",
+      name: "new-worktree",
+      cwd: "/new-worktree",
+      cwdExists: true,
+      startedAt: 300,
+      activeAt: 400,
+      forkedFromSid: undefined,
+    };
+
+    expect(SessionMetadata.mergePages([continuation, original])).toEqual([
+      {
+        ...continuation,
+        title: original.title,
+        startedAt: original.startedAt,
+        forkedFromSid: original.forkedFromSid,
+      },
+    ]);
   });
 });
 

@@ -3,7 +3,7 @@ import { join } from "path";
 import * as Harness from "./harnesses";
 import type { Harness as HarnessAdapter } from "./harnesses/types";
 import { asRecord, jsonRecords } from "./harnesses/json";
-import { SessionRef, type SessionMetadata } from "./model";
+import { SessionMetadata, SessionRef } from "./model";
 
 const HOME = homedir();
 const RECENT_LIMIT = 50;
@@ -92,7 +92,7 @@ async function searchHarness(
   const matches = metadata.filter(
     (entry): entry is SessionMetadata => entry !== undefined,
   );
-  return deduplicateForkMatches(matches);
+  return deduplicateSearchMatches(matches);
 }
 
 async function sessionFiles(harness: HarnessAdapter): Promise<SessionFile[]> {
@@ -105,12 +105,13 @@ async function sessionFiles(harness: HarnessAdapter): Promise<SessionFile[]> {
   }));
 }
 
-// Group matching forks by their oldest matching ancestor, then keep the most recently modified.
-function deduplicateForkMatches(
+// Merge physical pages, then keep the most recently modified match in each fork tree.
+function deduplicateSearchMatches(
   entries: ReadonlyArray<SessionMetadata>,
 ): SessionMetadata[] {
-  const matchBySid = new Map(entries.map((entry) => [entry.sid, entry]));
-  const matchesByRootSid = Map.groupBy(entries, (entry) =>
+  const sessions = SessionMetadata.mergePages(entries);
+  const matchBySid = new Map(sessions.map((entry) => [entry.sid, entry]));
+  const matchesByRootSid = Map.groupBy(sessions, (entry) =>
     rootSid(entry, matchBySid),
   );
 
@@ -149,7 +150,7 @@ async function recent(): Promise<SessionMetadata[]> {
   const pendingFiles = (await Promise.all(Harness.all().map(sessionFiles)))
     .flat()
     .sort((a, b) => b.activeAt - a.activeAt);
-  const sessions: SessionMetadata[] = [];
+  let sessions: SessionMetadata[] = [];
 
   // Codex subagent rollouts have the same filename shape, so keep going until
   // adapters accept enough user sessions or there are no files left.
@@ -158,11 +159,12 @@ async function recent(): Promise<SessionMetadata[]> {
     const metadata = await Promise.all(
       batch.map(({ harness, path }) => harness.readMetadata(path)),
     );
-    sessions.push(
+    sessions = SessionMetadata.mergePages([
+      ...sessions,
       ...metadata.filter(
         (entry): entry is SessionMetadata => entry !== undefined,
       ),
-    );
+    ]);
   }
 
   return sessions;
@@ -186,8 +188,10 @@ export async function readMetadataBySession(
   );
 
   return SessionRef.index(
-    metadataByHarness
-      .flat()
-      .filter((entry): entry is SessionMetadata => entry !== undefined),
+    SessionMetadata.mergePages(
+      metadataByHarness
+        .flat()
+        .filter((entry): entry is SessionMetadata => entry !== undefined),
+    ),
   );
 }

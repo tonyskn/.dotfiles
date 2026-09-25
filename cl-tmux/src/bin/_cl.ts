@@ -136,14 +136,6 @@ namespace Sessions {
 
   export async function list(): Promise<SessionRow[]> {
     const panes = await Tmux.livePanes();
-    // Hooks publish identity changes on panes; the picker owns persisted bookmark updates.
-    for (const pane of panes) {
-      if (!pane.previousSid) continue;
-
-      Bookmarks.rebind({ harness: pane.harness, sid: pane.previousSid }, pane);
-      await Tmux.setPaneOptions(pane.paneId, { "@cl_previous_sid": "" });
-    }
-
     const bookmarks = Bookmarks.all();
     const metadataBySession = await SessionFiles.readMetadataBySession([
       ...bookmarks,

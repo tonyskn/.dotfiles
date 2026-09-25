@@ -142,7 +142,7 @@ test("tags a session without inventing state", () =>
     ).toBe("started-session||");
   }));
 
-test("preserves the first SID replaced within a pane", () =>
+test("updates the session identity reported by hooks", () =>
   withTmux(async (fixture) => {
     for (const sessionId of ["original", "replacement", "latest"]) {
       await fixture.mark(fixture.paneId, [], {
@@ -151,9 +151,7 @@ test("preserves the first SID replaced within a pane", () =>
       });
     }
 
-    expect(
-      fixture.format(fixture.paneId, "#{@cl_sid}|#{@cl_previous_sid}"),
-    ).toBe("latest|original");
+    expect(fixture.format(fixture.paneId, "#{@cl_sid}")).toBe("latest");
   }));
 
 test("reconciles window icons after moving a marked pane", () =>

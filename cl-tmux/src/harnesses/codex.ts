@@ -78,7 +78,7 @@ export const codex: Harness = {
   },
 
   sessionGlob(sid) {
-    return `*${sid}.jsonl`;
+    return `*${sid}*.jsonl`;
   },
 
   async readMetadata(path) {

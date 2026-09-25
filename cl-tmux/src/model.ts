@@ -81,7 +81,6 @@ export type BookmarkRecord = SessionRef & {
 export type LivePane = SessionRef & {
   windowId: string;
   paneId: string;
-  previousSid?: string;
   state?: AgentState;
   mode?: AgentMode;
   cwd: string;
@@ -95,6 +94,26 @@ export type SessionMetadata = SessionRef & {
   startedAt: number;
   activeAt: number;
   forkedFromSid?: string;
+};
+
+export const SessionMetadata = {
+  mergePages(entries: ReadonlyArray<SessionMetadata>): SessionMetadata[] {
+    return [...Map.groupBy(entries, SessionRef.key).values()].map((pages) => {
+      const earliest = pages.reduce((first, page) =>
+        page.startedAt < first.startedAt ? page : first,
+      );
+      const latest = pages.reduce((last, page) =>
+        page.activeAt > last.activeAt ? page : last,
+      );
+
+      return {
+        ...latest,
+        startedAt: earliest.startedAt,
+        title: earliest.title,
+        forkedFromSid: earliest.forkedFromSid ?? latest.forkedFromSid,
+      };
+    });
+  },
 };
 
 export type SessionRow = SessionRef & {

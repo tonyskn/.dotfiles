@@ -60,12 +60,3 @@ export function remove(ref: SessionRef): void {
   entries = entries.filter((bookmark) => !SessionRef.equals(bookmark, ref));
   dirty = true;
 }
-
-export function rebind(from: SessionRef, to: SessionRef): void {
-  const bookmark = find(from);
-  if (!bookmark || find(to)) return;
-
-  bookmark.harness = to.harness;
-  bookmark.sid = to.sid;
-  dirty = true;
-}

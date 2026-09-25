@@ -17,7 +17,6 @@ type PaneTarget = Pick<Pane, "windowId" | "paneId">;
 type PaneOptions = {
   "@cl_harness": HarnessId;
   "@cl_sid": string;
-  "@cl_previous_sid": string;
   "@cl_state": AgentState | "";
   "@cl_mode": AgentMode | "";
 };
@@ -60,7 +59,6 @@ async function run(args: string[], stdin?: string): Promise<CommandResult> {
 const PANE_FORMAT = [
   "#{@cl_harness}",
   "#{@cl_sid}",
-  "#{@cl_previous_sid}",
   "#{window_id}",
   "#{pane_id}",
   "#{@cl_state}",
@@ -75,17 +73,8 @@ async function panes(): Promise<Pane[]> {
 
   const found: Pane[] = [];
   for (const line of result.stdout.split("\n")) {
-    const [
-      harness,
-      sid,
-      previousSid,
-      windowId,
-      paneId,
-      state,
-      mode,
-      command,
-      cwd,
-    ] = line.split("\t");
+    const [harness, sid, windowId, paneId, state, mode, command, cwd] =
+      line.split("\t");
 
     if (!windowId || !paneId) continue;
 
@@ -98,7 +87,6 @@ async function panes(): Promise<Pane[]> {
       paneId,
       harness: harnessId,
       sid: harnessId && sid ? sid : undefined,
-      previousSid: harnessId && previousSid ? previousSid : undefined,
       state: harnessId && AgentState.is(state) ? state : undefined,
       mode: harnessId && AgentMode.is(mode) ? mode : undefined,
       cwd: cwd ?? "",
@@ -244,21 +232,17 @@ export async function paneIdentity(paneId: string): Promise<
   | {
       harness?: string;
       sid?: string;
-      previousSid?: string;
     }
   | undefined
 > {
-  const format = ["#{@cl_harness}", "#{@cl_sid}", "#{@cl_previous_sid}"].join(
-    "\t",
-  );
+  const format = ["#{@cl_harness}", "#{@cl_sid}"].join("\t");
   const result = await run(["display-message", "-p", "-t", paneId, format]);
   if (!result.ok) return undefined;
 
-  const [harness, sid, previousSid] = result.stdout.split("\t");
+  const [harness, sid] = result.stdout.split("\t");
   return {
     harness: harness || undefined,
     sid: sid || undefined,
-    previousSid: previousSid || undefined,
   };
 }
 
