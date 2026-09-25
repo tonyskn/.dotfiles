@@ -67,14 +67,20 @@ export const codex: Harness = {
   },
 
   resume({ sid, prompt }) {
-    const args = [this.binary, "resume", sid];
+    const args = [this.binary, "resume", "--no-daemon", sid];
     if (prompt) args.push(prompt);
     return args;
   },
 
   fork({ sourceSid }) {
     // The initial turn triggers UserPromptSubmit, which reports the fork's generated SID.
-    return [this.binary, "fork", sourceSid, "Wait for further instructions."];
+    return [
+      this.binary,
+      "fork",
+      "--no-daemon",
+      sourceSid,
+      "Wait for further instructions.",
+    ];
   },
 
   sessionGlob(sid) {
@@ -85,7 +91,8 @@ export const codex: Harness = {
     const file = Bun.file(path);
     const records = jsonRecords(await file.text());
     const metadata = asRecord(records.next().value?.payload);
-    if (metadata?.source !== "cli") return undefined;
+    if (metadata?.source !== "cli" && metadata?.thread_source !== "user")
+      return undefined;
 
     const sid =
       typeof metadata.session_id === "string"

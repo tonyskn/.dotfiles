@@ -64,6 +64,8 @@ export HOMEBREW_NO_ENV_HINTS=1
 export EDITOR=nvim
 alias vim=nvim
 alias vi=nvim
+# Keep Codex hooks in the tmux pane that launched the session.
+alias codex='codex --no-daemon'
 export SHELL=zsh
 export BROWSER=open
 export PATH=~/.bin:~/.local/bin:$PATH

@@ -42,3 +42,8 @@ next Codex launch:
 ```bash
 ln -s ~/.dotfiles/_codex/hooks.json ~/.codex/hooks.json
 ```
+
+Codex's shared daemon can run hooks outside the tmux pane, leaving manually
+started sessions without live markers. Start new Codex sessions with
+`codex --no-daemon` (or configure your shell to do so). cl-tmux already uses
+`--no-daemon` when resuming or forking Codex sessions.

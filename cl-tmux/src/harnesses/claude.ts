@@ -78,6 +78,7 @@ export const claude: Harness = {
     let title = "";
     let name = "";
     let cwd = "";
+    let hasConversation = false;
 
     for (const record of jsonRecords(await file.text())) {
       // Agent SDK runs also write Claude transcripts, but they are not
@@ -88,6 +89,7 @@ export const claude: Harness = {
       ) {
         return undefined;
       }
+      if (this.isConversationRecord(record)) hasConversation = true;
       if (startedAt === undefined && typeof record.timestamp === "string") {
         const timestamp = Date.parse(record.timestamp);
         if (Number.isFinite(timestamp))
@@ -112,7 +114,7 @@ export const claude: Harness = {
       }
       if (startedAt !== undefined && title && name && cwd) break;
     }
-    if (startedAt === undefined) return undefined;
+    if (startedAt === undefined || !hasConversation) return undefined;
 
     return {
       harness: this.id,
