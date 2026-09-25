@@ -1,4 +1,4 @@
-import type { HarnessId } from "../model";
+import type { HarnessId } from "../sessions";
 import { claude } from "./claude";
 import { codex } from "./codex";
 import type { Harness as HarnessAdapter } from "./types";

@@ -1,28 +1,14 @@
 // _cl — data backend for the `cl` agent session manager.
-// Manages bookmark JSONL, discovers live sessions, searches session files, and drives tmux.
+// Lists indexed sessions, searches transcripts, and drives tmux.
 // No interactive UI — stdout is structured for fzf consumption.
 
-import { exists } from "fs/promises";
-import { homedir } from "os";
 import { parseArgs } from "util";
-import * as Bookmarks from "../bookmarks";
 import * as Harness from "../harnesses";
-import {
-  AgentStatus,
-  SessionRef,
-  buildSessionRows,
-  type SessionMetadata,
-  type SessionRow,
-} from "../model";
-import * as SessionFiles from "../session-files";
+import * as IO from "../io";
+import * as Sessions from "../sessions";
+import { SessionRef } from "../sessions";
+import * as Store from "../store";
 import * as Tmux from "../tmux";
-
-const HOME = homedir();
-const TITLE_WIDTH = 60;
-
-function minutesSince(timestamp: number): number {
-  return (Date.now() / 1000 - timestamp) / 60;
-}
 
 // Also posts to the tmux status line so the message outlives popups.
 function fail(message: string): never {
@@ -31,156 +17,17 @@ function fail(message: string): never {
   process.exit(1);
 }
 
-// --- output ---
-
-namespace Output {
-  function icon(row?: SessionRow): string {
-    if (!row?.pane) return "";
-    return AgentStatus.aggregateIcon([row.pane.state, row.pane.mode]) || "-";
-  }
-
-  function displayName(name: string, row?: SessionRow): string {
-    return row && !row.saved ? `* ${name}` : name;
-  }
-
-  function formatPath(path: string, marker = "", width = 40): string {
-    const short = path.startsWith(HOME) ? "~" + path.slice(HOME.length) : path;
-    return col(marker + short, width);
-  }
-
-  function col(s: string, n: number): string {
-    return s.padEnd(n).slice(0, n);
-  }
-
-  function colRight(s: string, n: number): string {
-    return s.padStart(n).slice(-n);
-  }
-
-  function relTime(
-    timestamp: number | undefined,
-    suffix: "ago" | "old",
-  ): string {
-    if (timestamp === undefined) return "-";
-    const mins = minutesSince(timestamp);
-    if (mins < 1) return "just now";
-    if (mins < 60) return `${Math.round(mins)}m ${suffix}`;
-    if (mins < 1440) return `${Math.round(mins / 60)}h ${suffix}`;
-    if (mins < 10080) return `${Math.round(mins / 1440)}d ${suffix}`;
-    return `${Math.round(mins / 10080)}w ${suffix}`;
-  }
-
-  // Escape codes must wrap the joined row: col() pads by raw length, so coloring
-  // individual columns before padding would break alignment.
-  function fzfRow(hidden: string[], display: string[], muted = false): void {
-    const hiddenFields = hidden.join("\t");
-    const displayFields = display.join("  ");
-    const rendered = muted
-      ? `\x1b[38;5;245m${displayFields}\x1b[0m`
-      : displayFields;
-    process.stdout.write(`${hiddenFields}\t${rendered}\n`);
-  }
-
-  export function printSession(row: SessionRow): void {
-    const live = row.pane !== undefined;
-    const name = !row.saved && row.title ? row.title : row.name;
-
-    fzfRow(
-      [
-        row.harness,
-        row.sid,
-        row.saved ? row.name : "",
-        row.pane?.paneId ?? "",
-        name,
-      ],
-      [
-        col(icon(row), 1),
-        colRight(relTime(row.activeAt, "ago"), 8),
-        col(displayName(name, row), TITLE_WIDTH),
-        formatPath(row.cwd),
-        col(row.harness, 6),
-        colRight(relTime(row.startedAt, "old"), 8),
-        row.sid,
-      ],
-      !live,
-    );
-  }
-
-  export function printSearchResult(
-    entry: SessionMetadata,
-    row?: SessionRow,
-  ): void {
-    const name = row?.name ?? entry.name;
-    const pathMarker = entry.cwdExists ? "" : "✗ ";
-    fzfRow(
-      [entry.harness, entry.sid, name, entry.cwd, entry.title],
-      [
-        col(icon(row), 1),
-        colRight(relTime(entry.activeAt, "ago"), 8),
-        col(entry.title, TITLE_WIDTH),
-        col(displayName(name, row), 30),
-        formatPath(entry.cwd, pathMarker),
-        col(entry.harness, 6),
-        colRight(relTime(entry.startedAt, "old"), 8),
-      ],
-      row === undefined,
-    );
-  }
-}
-
-// --- sessions ---
-
-namespace Sessions {
-  function hasSessionMetadata(session: SessionRow): boolean {
-    return session.startedAt !== undefined && session.activeAt !== undefined;
-  }
-
-  export async function list(): Promise<SessionRow[]> {
-    const panes = await Tmux.livePanes();
-    // Hooks publish identity changes on panes; the picker owns persisted bookmark updates.
-    for (const pane of panes) {
-      if (!pane.previousSid) continue;
-
-      Bookmarks.rebind({ harness: pane.harness, sid: pane.previousSid }, pane);
-      await Tmux.setPaneOptions(pane.paneId, { "@cl_previous_sid": "" });
-    }
-
-    const bookmarks = Bookmarks.all();
-    const metadataBySession = await SessionFiles.readMetadataBySession([
-      ...bookmarks,
-      ...panes,
-    ]);
-    return buildSessionRows(bookmarks, panes, metadataBySession);
-  }
-
-  export async function find(ref: SessionRef): Promise<SessionRow | undefined> {
-    return (await list()).find((row) => SessionRef.equals(row, ref));
-  }
-
-  export async function require(ref: SessionRef): Promise<SessionRow> {
-    return (await find(ref)) ?? fail("Session not found");
-  }
-
-  export async function ensureLaunchable(session: SessionRow): Promise<void> {
-    if (!(await exists(session.cwd))) {
-      fail(`Directory no longer exists: ${session.cwd}`);
-    }
-    if (!hasSessionMetadata(session)) {
-      fail(`No session file for '${session.name}'`);
-    }
-  }
-}
-
 // --- commands ---
 
 namespace Cli {
   const USAGE: Record<string, string> = {
-    list: "_cl list [--filter all|live|today|week]",
-    save: "_cl save <harness> <sid> [--name <name>] [--cwd <dir>]",
+    list: "_cl list [<pane-id> <window-id>] [--filter all|live|today|week]",
+    save: "_cl save <harness> <sid> [--name <name>]",
     open: "_cl open <harness> <sid> [--prompt <text>]",
     fork: "_cl fork <harness> <sid>",
     close: "_cl close <harness> <sid>",
     remove: "_cl remove <harness> <sid>",
-    search: "_cl search [term]",
+    search: "_cl search <term>",
   };
 
   const { positionals, values: flags } = parseArgs({
@@ -188,8 +35,8 @@ namespace Cli {
     options: {
       prompt: { type: "string" },
       name: { type: "string" },
-      cwd: { type: "string" },
       filter: { type: "string" },
+      bookmarked: { type: "boolean" },
     },
   });
   const [cmd, ...operands] = positionals;
@@ -208,97 +55,81 @@ namespace Cli {
     return { harness, sid };
   }
 
-  async function printSessionMetadata(
-    entries: Promise<SessionMetadata[]>,
-  ): Promise<void> {
-    const [results, sessions] = await Promise.all([entries, Sessions.list()]);
-    const sessionsByRef = SessionRef.index(sessions);
-    for (const entry of results) {
-      Output.printSearchResult(entry, sessionsByRef.get(SessionRef.key(entry)));
-    }
-  }
-
-  function matchesFilter(row: SessionRow): boolean {
-    switch (flags.filter) {
-      case "today":
-        return row.activeAt !== undefined && minutesSince(row.activeAt) < 1440;
-      case "week":
-        return row.activeAt !== undefined && minutesSince(row.activeAt) < 10080;
-      case "live":
-        return row.pane !== undefined;
-      default:
-        return true;
-    }
-  }
-
   export async function main(): Promise<void> {
     switch (cmd) {
       case "list": {
-        const sessions = (await Sessions.list()).filter(matchesFilter);
-        for (const row of sessions) Output.printSession(row);
+        if (operands.length !== 0 && operands.length !== 2) die();
+        const [paneId, windowId] = operands;
+        const { rows, selectedPaneId } = await Sessions.list(
+          { bookmarkedView: flags.bookmarked, period: flags.filter },
+          paneId,
+          windowId,
+        );
+        if (operands.length === 2) console.log(selectedPaneId ?? "-");
+        for (const row of rows) IO.printSession(row);
         break;
       }
 
       case "save": {
         const target = sessionRef();
-        const bookmark = Bookmarks.find(target);
-        const livePane = await Tmux.find(target);
-        const name = flags.name ?? bookmark?.name;
-        const cwd = flags.cwd ?? livePane?.cwd ?? bookmark?.cwd;
+        const stored = Store.find(target) ?? fail("Session not indexed");
+        const name = flags.name ?? stored.bookmarkName;
         const renamed =
-          flags.name !== undefined && bookmark?.name !== flags.name;
+          flags.name !== undefined && stored.bookmarkName !== name;
 
         if (!name) fail("New bookmark requires --name");
-        if (!cwd)
-          fail("New bookmark requires --cwd (no live pane to infer from)");
 
-        Bookmarks.addOrSave(target, name, cwd);
+        Store.save(target, name);
         if (renamed) await Tmux.rename(target, name);
         break;
       }
 
       case "open": {
         const target = sessionRef();
-        const existing = await Sessions.find(target);
-        if (existing?.saved && !existing.pane)
-          await Sessions.ensureLaunchable(existing);
-
-        const name = existing?.name ?? flags.name ?? "unnamed";
-        const cwd = existing?.cwd ?? flags.cwd;
-        if (!cwd) fail("Need --cwd for unbookmarked session");
+        const existing =
+          (await Sessions.find(target)) ?? fail("Session not indexed");
+        if (!existing.pane) {
+          const error = await Sessions.launchError(existing);
+          if (error) fail(error);
+        }
 
         await Tmux.open(target, {
-          name,
-          cwd,
-          pane: existing?.pane,
+          name: existing.name,
+          cwd: existing.cwd,
+          pane: existing.pane,
           prompt: flags.prompt,
         });
         break;
       }
 
       case "fork": {
-        const source = await Sessions.require(sessionRef());
-        await Sessions.ensureLaunchable(source);
+        const source =
+          (await Sessions.find(sessionRef())) ?? fail("Session not found");
+        const error = await Sessions.launchError(source);
+        if (error) fail(error);
         await Tmux.fork(source, source.name + "-fork", source.cwd);
         break;
       }
 
       case "close": {
-        const selected = await Sessions.require(sessionRef());
+        const selected =
+          (await Sessions.find(sessionRef())) ?? fail("Session not found");
         if (selected.pane) await Tmux.close(selected.pane);
         break;
       }
 
       case "remove": {
-        const selected = await Sessions.require(sessionRef());
-        // Remove first so a tmux failure cannot strand the bookmark.
-        Bookmarks.remove(selected);
+        const selected =
+          (await Sessions.find(sessionRef())) ?? fail("Session not found");
         if (selected.pane) await Tmux.close(selected.pane);
+        Store.remove(selected);
         break;
       }
 
       case "search": {
-        await printSessionMetadata(SessionFiles.search(operands[0] ?? ""));
+        if (!operands[0]?.trim()) die();
+        for (const row of await Sessions.search(operands[0], flags.bookmarked))
+          IO.printSession(row);
         break;
       }
 
@@ -308,9 +139,4 @@ namespace Cli {
   }
 }
 
-await Bookmarks.load();
-try {
-  await Cli.main();
-} finally {
-  await Bookmarks.flush();
-}
+await Cli.main();

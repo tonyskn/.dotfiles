@@ -2,6 +2,7 @@
   "name": "cl-tmux",
   "private": true,
   "scripts": {
+    "build": "mkdir -p dist && cd dist && bun build --compile --outfile=_cl ../src/bin/_cl.ts && bun build --compile --outfile=tmux-marker ../src/bin/tmux-marker.ts && rm -f .*.bun-build",
     "format": "prettier --write .",
     "test": "bun test",
     "typecheck": "tsc -p tsconfig.json"

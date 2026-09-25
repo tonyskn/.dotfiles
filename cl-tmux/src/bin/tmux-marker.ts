@@ -1,14 +1,9 @@
-// Publishes agent session state to pane options and derives window status options.
-//
-//   tmux-marker [--harness <id>] [state | mode]
+// Publishes hook state to pane options and derives window status options.
 
 import { parseArgs } from "util";
 import * as Harness from "../harnesses";
-import { AgentMode, AgentState } from "../model";
+import * as Sessions from "../sessions";
 import * as Tmux from "../tmux";
-
-const paneId = process.env.TMUX_PANE;
-if (!paneId) process.exit(0);
 
 async function hookPayload(): Promise<unknown> {
   if (process.stdin.isTTY) return undefined;
@@ -19,49 +14,34 @@ async function hookPayload(): Promise<unknown> {
   }
 }
 
-const { positionals, values } = parseArgs({
+const { values } = parseArgs({
   args: process.argv.slice(2),
-  allowPositionals: true,
   options: { harness: { type: "string" } },
 });
-if (values.harness !== undefined && !Harness.isId(values.harness))
-  process.exit(0);
+if (!values.harness || !Harness.isId(values.harness)) process.exit(0);
 
 const payload = await hookPayload();
-const tagged = await Tmux.paneIdentity(paneId);
-if (!tagged) {
-  console.error(`tmux-marker: cannot access pane ${paneId}`);
-  process.exit(1);
-}
+const harness = Harness.get(values.harness);
+if (harness.hookResponse) console.log(harness.hookResponse);
+const { sid, state, cwd, prompt } = harness.hookUpdate(payload);
+const paneId = await Tmux.resolveHookPaneId(
+  harness,
+  sid,
+  process.env.TMUX_PANE,
+);
+if (!paneId) process.exit(0);
 
-const harnessId = values.harness ?? tagged.harness;
-if (!harnessId || !Harness.isId(harnessId)) process.exit(0);
+await Tmux.setPaneOptions(paneId, {
+  "@cl_harness": harness.id,
+  "@cl_state": state,
+  "@cl_sid": sid,
+});
 
-const harness = Harness.get(harnessId);
-const requested = positionals[0] ?? "";
-const update = harness.hookUpdate(payload);
-const requestedMode = AgentMode.is(requested) ? requested : undefined;
-const requestedState = AgentState.is(requested) ? requested : undefined;
-const state = requestedState ?? update.state;
-// Keep the bookmarked identity across repeated replacements until the picker reconciles it.
-const previousSid =
-  update.sid && tagged.sid && update.sid !== tagged.sid
-    ? (tagged.previousSid ?? tagged.sid)
-    : undefined;
-
-// Hook state is transient; only an explicit idle command exits a sticky mode.
-const mode = requestedState === "idle" ? "" : requestedMode;
-if (
-  !(await Tmux.setPaneOptions(paneId, {
-    "@cl_harness": harness.id,
-    "@cl_state": state,
-    "@cl_mode": mode,
-    "@cl_previous_sid": previousSid,
-    "@cl_sid": update.sid,
-  }))
-) {
-  console.error(`tmux-marker: cannot update pane ${paneId}`);
-  process.exit(1);
+if (sid && cwd) {
+  Sessions.recordHook({ harness: harness.id, sid }, cwd, {
+    active: state === "working" || state === "idle",
+    prompt,
+  });
 }
 
 await Tmux.reconcileWindowIcons();

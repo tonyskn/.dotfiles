@@ -2,7 +2,7 @@
 # vim:ft=bash
 #
 # cl — agent session manager.
-# Picker for bookmarked and live sessions. Search across harness session files.
+# Picker for indexed agent sessions. Search across tracked transcripts.
 #
 # Usage:
 #   cl                  fzf session picker
@@ -17,60 +17,45 @@ gum_ui() {
   return 1
 }
 
-# --- search ---
-search_sessions() {
-  local term="${1:-}"
-  local harness sid name cwd
-
-  IFS=$'\t' read -r harness sid name cwd < <(
-    _cl search -- "$term" |
-      fzf \
-        --no-sort \
-        --disabled \
-        --ansi \
-        --query="$term" \
-        --delimiter=$'\t' \
-        --with-nth=6 \
-        --accept-nth=1,2,3,4 \
-        --bind="change:reload('$dir/_cl' search -- {q})" \
-        --bind='ctrl-u:half-page-up,ctrl-f:half-page-down' \
-        --bind="focus:transform-footer:printf '%s' {5} | fold -s -w 80" \
-        --footer=' ' \
-        --header='type: search | enter: open'
-  ) || true
-
-  [[ -z "$sid" ]] && return 1
-
-  if [[ ! -d "$cwd" ]]; then
-    cwd=$(zoxide query -l | fzf --header="Original directory gone — pick a new one") || true
-    [[ -z "$cwd" ]] && return 1
-  fi
-
-  _cl open "$harness" "$sid" --name "$name" --cwd "$cwd"
-}
-
 # --- session picker ---
-current_pane="$(tmux display-message -p '#{pane_id}' 2>/dev/null)"
-filter=$(tmux show-option -sv @cl_filter 2>/dev/null || echo "all")
+read -r current_pane current_window <<< "$(tmux display-message -p '#{pane_id} #{window_id}' 2>/dev/null)"
+selected_pane=""
+filter=$(tmux show-option -sv @cl_filter 2>/dev/null || printf all)
+bookmarked_view=$(tmux show-option -sv @cl_bookmarked 2>/dev/null || printf 0)
+search_query=""
 
 header() {
-  printf "[%s]  enter:open  ctrl-t:send  ctrl-g:filter  ctrl-r:search\n" "$filter"
+  local mode="$filter"
+  [[ -n "$search_query" ]] && mode="search: $search_query"
+  [[ "$bookmarked_view" == 1 ]] && mode="$mode, bookmarked"
+  printf "[%s]  enter:open  ctrl-t:send  ctrl-g:filter  ctrl-l:bookmarks  ctrl-r:search\n" "$mode"
   printf "ctrl-s:save  ctrl-o:fork  ctrl-y:preview  ctrl-x:close  ctrl-d:remove"
 }
 
 session_rows() {
-  local rows
-  rows=$(_cl list --filter "$filter")
-  if [[ -n "$rows" ]]; then
-    printf '%s\n' "$rows"
+  local output
+  local -a args
+  if [[ -n "$search_query" ]]; then
+    args=(search)
   else
-    printf '\t\t\t\t\tNo sessions found\n'
+    args=(list "$current_pane" "$current_window" --filter "$filter")
   fi
+  [[ "$bookmarked_view" == 1 ]] && args+=(--bookmarked)
+  [[ -n "$search_query" ]] && args+=(-- "$search_query")
+  output=$(_cl "${args[@]}")
+  if [[ -n "$search_query" ]]; then
+    rows="$output"
+  else
+    selected_pane=${output%%$'\n'*}
+    rows=${output#*$'\n'}
+    [[ "$rows" == "$output" ]] && rows=""
+  fi
+  [[ -n "$rows" ]] || rows=$'\t\t\t\t\tNo sessions found'
 }
 
 while true; do
-  rows=$(session_rows)
-  position=$(awk -F $'\t' -v pane="$current_pane" '$4 == pane { print NR; exit }' <<< "$rows")
+  session_rows
+  position=$(awk -F $'\t' -v pane="$selected_pane" 'pane != "" && $4 == pane { print NR; exit }' <<< "$rows")
   position=${position:-1}
 
   selection=$(
@@ -79,7 +64,7 @@ while true; do
         --no-sort \
         --sync \
         --ansi \
-        --expect=ctrl-d,ctrl-g,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x \
+        --expect=ctrl-d,ctrl-g,ctrl-l,ctrl-o,ctrl-r,ctrl-s,ctrl-t,ctrl-x \
         --delimiter=$'\t' \
         --with-nth=6 \
         --accept-nth=1,2,3 \
@@ -91,30 +76,40 @@ while true; do
         --preview='[[ -n {4} ]] && tmux capture-pane -ept {4} 2>/dev/null' \
         --preview-window='right,80%,follow,hidden' \
         --bind='ctrl-y:toggle-preview'
-  ) || exit 0
+  ) || {
+    if [[ -n "$search_query" ]]; then
+      search_query=""
+      continue
+    fi
+    exit 0
+  }
 
   key=$(head -n 1 <<< "$selection")
   IFS=$'\t' read -r harness sid name <<< "$(tail -n 1 <<< "$selection")"
 
-  if [[ -z "$sid" && "$key" != ctrl-r && "$key" != ctrl-g ]]; then
+  if [[ -z "$sid" && "$key" != ctrl-r && "$key" != ctrl-g && "$key" != ctrl-l ]]; then
     continue
   fi
 
   case "$key" in
+    ctrl-l)
+      if [[ "$bookmarked_view" == 1 ]]; then bookmarked_view=0; else bookmarked_view=1; fi
+      tmux set-option -s @cl_bookmarked "$bookmarked_view"
+      continue
+      ;;
     ctrl-g)
+      search_query=""
       case "$filter" in
         all) filter=live ;;
         live) filter=today ;;
         today) filter=week ;;
         *) filter=all ;;
       esac
-      tmux set-option -s @cl_filter "$filter" 2>/dev/null
+      tmux set-option -s @cl_filter "$filter"
       continue
       ;;
     ctrl-r)
-      if search_sessions; then
-        exit 0
-      fi
+      search_query=$(gum_ui input --placeholder "Search conversations" --value "$search_query") || continue
       ;;
     ctrl-s)
       new_name=$(gum_ui input --placeholder "Name" --value "$name") || continue

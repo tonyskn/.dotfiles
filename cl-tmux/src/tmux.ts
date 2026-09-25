@@ -1,25 +1,27 @@
 import * as Harness from "./harnesses";
 import type { Harness as HarnessAdapter } from "./harnesses/types";
 import {
-  AgentMode,
   AgentState,
-  AgentStatus,
   SessionRef,
   type HarnessId,
   type LivePane,
-} from "./model";
+} from "./sessions";
 
-// Tmux lists every pane, but only panes owned by a recognized harness have session identity.
-type Pane = Omit<LivePane, keyof SessionRef> & Partial<SessionRef>;
+type PaneTarget = { windowId: string; paneId: string };
 
-type PaneTarget = Pick<Pane, "windowId" | "paneId">;
+// Includes untagged panes, which Codex hooks can locate by title.
+type Pane = PaneTarget & {
+  harness?: HarnessId;
+  sid?: string;
+  state?: AgentState;
+  command: string;
+  codexSessionIdPrefix?: string;
+};
 
 type PaneOptions = {
   "@cl_harness": HarnessId;
   "@cl_sid": string;
-  "@cl_previous_sid": string;
   "@cl_state": AgentState | "";
-  "@cl_mode": AgentMode | "";
 };
 
 type WindowOptions = {
@@ -60,13 +62,11 @@ async function run(args: string[], stdin?: string): Promise<CommandResult> {
 const PANE_FORMAT = [
   "#{@cl_harness}",
   "#{@cl_sid}",
-  "#{@cl_previous_sid}",
   "#{window_id}",
   "#{pane_id}",
   "#{@cl_state}",
-  "#{@cl_mode}",
   "#{pane_current_command}",
-  "#{pane_current_path}",
+  "#{pane_title}",
 ].join("\t");
 
 async function panes(): Promise<Pane[]> {
@@ -75,33 +75,29 @@ async function panes(): Promise<Pane[]> {
 
   const found: Pane[] = [];
   for (const line of result.stdout.split("\n")) {
-    const [
-      harness,
-      sid,
-      previousSid,
-      windowId,
-      paneId,
-      state,
-      mode,
-      command,
-      cwd,
-    ] = line.split("\t");
+    const [harness, sid, windowId, paneId, state, command, title] =
+      line.split("\t");
 
     if (!windowId || !paneId) continue;
 
-    const harnessId =
-      Harness.isId(harness) && Harness.get(harness).isProcess(command ?? "")
-        ? harness
-        : undefined;
+    const harnessId = Harness.isId(harness) ? harness : undefined;
+    const codexSessionIdPrefix = title?.startsWith("codex | ")
+      ? title.slice("codex | ".length).replace(/\.\.\.$/, "")
+      : "";
     found.push({
       windowId,
       paneId,
       harness: harnessId,
       sid: harnessId && sid ? sid : undefined,
-      previousSid: harnessId && previousSid ? previousSid : undefined,
-      state: harnessId && AgentState.is(state) ? state : undefined,
-      mode: harnessId && AgentMode.is(mode) ? mode : undefined,
-      cwd: cwd ?? "",
+      state:
+        harnessId &&
+        Harness.get(harnessId).isProcess(command ?? "") &&
+        AgentState.is(state)
+          ? state
+          : undefined,
+      command: command ?? "",
+      codexSessionIdPrefix:
+        codexSessionIdPrefix.length >= 8 ? codexSessionIdPrefix : undefined,
     });
   }
 
@@ -111,8 +107,52 @@ async function panes(): Promise<Pane[]> {
 export async function livePanes(): Promise<LivePane[]> {
   return (await panes()).filter(
     (pane): pane is Pane & LivePane =>
-      pane.harness !== undefined && pane.sid !== undefined,
+      pane.harness !== undefined &&
+      pane.sid !== undefined &&
+      Harness.get(pane.harness).isProcess(pane.command),
   );
+}
+
+export function selectedPane(
+  live: ReadonlyArray<LivePane>,
+  paneId: string,
+  windowId: string,
+): LivePane | undefined {
+  if (!paneId || !windowId) return undefined;
+  const current = live.find((pane) => pane.paneId === paneId);
+  if (current) return current;
+
+  const inWindow = live.filter((pane) => pane.windowId === windowId);
+  return inWindow.length === 1 ? inWindow[0] : undefined;
+}
+
+export async function resolveHookPaneId(
+  harness: HarnessAdapter,
+  sessionId?: string,
+  envPaneId?: string,
+): Promise<string | undefined> {
+  if (harness.id !== "codex") return envPaneId;
+  if (!sessionId) return undefined;
+
+  const allPanes = await panes();
+  const titleMatches = allPanes.filter(
+    (pane) =>
+      (pane.harness === harness.id || harness.isProcess(pane.command)) &&
+      pane.codexSessionIdPrefix !== undefined &&
+      sessionId.startsWith(pane.codexSessionIdPrefix),
+  );
+
+  // Other panes can inherit the same title; prefer one already bound to this session ID.
+  const boundTitleMatches = titleMatches.filter(
+    (pane) => pane.sid === sessionId,
+  );
+  if (boundTitleMatches.length === 1) return boundTitleMatches[0].paneId;
+  if (titleMatches.length === 1) return titleMatches[0].paneId;
+
+  const envPane = allPanes.find((pane) => pane.paneId === envPaneId);
+  return envPane?.harness === harness.id && envPane.sid === sessionId
+    ? envPaneId
+    : undefined;
 }
 
 export async function find(ref: SessionRef): Promise<LivePane | undefined> {
@@ -240,28 +280,6 @@ export async function open(
   else await focus(pane);
 }
 
-export async function paneIdentity(paneId: string): Promise<
-  | {
-      harness?: string;
-      sid?: string;
-      previousSid?: string;
-    }
-  | undefined
-> {
-  const format = ["#{@cl_harness}", "#{@cl_sid}", "#{@cl_previous_sid}"].join(
-    "\t",
-  );
-  const result = await run(["display-message", "-p", "-t", paneId, format]);
-  if (!result.ok) return undefined;
-
-  const [harness, sid, previousSid] = result.stdout.split("\t");
-  return {
-    harness: harness || undefined,
-    sid: sid || undefined,
-    previousSid: previousSid || undefined,
-  };
-}
-
 async function setWindowOptions(
   windowId: string,
   options: Partial<WindowOptions>,
@@ -276,13 +294,11 @@ export async function reconcileWindowIcons(
   const targets = windowIds ? new Set(windowIds) : panesByWindow.keys();
 
   for (const windowId of targets) {
-    const statuses: AgentStatus[] = [];
-    for (const { state, mode } of panesByWindow.get(windowId) ?? []) {
-      if (state) statuses.push(state);
-      if (mode) statuses.push(mode);
-    }
+    const states = (panesByWindow.get(windowId) ?? []).map(
+      (pane) => pane.state,
+    );
     await setWindowOptions(windowId, {
-      "@cl_icon": AgentStatus.aggregateIcon(statuses),
+      "@cl_icon": AgentState.aggregateIcon(states),
     });
   }
 }

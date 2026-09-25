@@ -1,3 +1,4 @@
 .DS_Store
 node_modules/
+cl-tmux/dist/
 cl-tmux/.idea/
