@@ -1,28 +1,27 @@
 import type { AgentState } from "../sessions";
-import { asRecord } from "./json";
+import { asRecord, conversationFiles } from "./util";
 import type { Harness } from "./types";
+
+function conversationText(record: Record<string, unknown>): string | undefined {
+  if (
+    (record.type !== "user" && record.type !== "assistant") ||
+    record.isMeta === true
+  )
+    return undefined;
+  const content = asRecord(record.message)?.content;
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return undefined;
+  return content
+    .map((block) => asRecord(block))
+    .filter((block) => block?.type === "text")
+    .map((block) => block?.text)
+    .filter((text): text is string => typeof text === "string")
+    .join("\n");
+}
 
 export const claude: Harness = {
   id: "claude",
   binary: "claude",
-  sessionsDir: ".claude/projects",
-
-  conversationText(record) {
-    if (
-      (record.type !== "user" && record.type !== "assistant") ||
-      record.isMeta === true
-    )
-      return undefined;
-    const content = asRecord(record.message)?.content;
-    if (typeof content === "string") return content;
-    if (!Array.isArray(content)) return undefined;
-    return content
-      .map((block) => asRecord(block))
-      .filter((block) => block?.type === "text")
-      .map((block) => block?.text)
-      .filter((text): text is string => typeof text === "string")
-      .join("\n");
-  },
 
   isProcess(command) {
     return (
@@ -71,7 +70,11 @@ export const claude: Harness = {
     return [this.binary, "--resume", sourceSid, "--fork-session", "-n", name];
   },
 
-  sessionGlob(sid) {
-    return `${sid}.jsonl`;
+  conversation(sid) {
+    return conversationFiles(
+      ".claude/projects",
+      `${sid}.jsonl`,
+      conversationText,
+    );
   },
 };

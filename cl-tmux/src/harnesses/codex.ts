@@ -1,42 +1,52 @@
 import type { AgentState } from "../sessions";
-import { asRecord } from "./json";
+import { asRecord, conversationFiles } from "./util";
 import type { Harness } from "./types";
 
 const FORK_BOOTSTRAP_PROMPT = "Wait for further instructions.";
 
+function conversationText(record: Record<string, unknown>): string | undefined {
+  const payload = asRecord(record.payload);
+  if (
+    record.type === "event_msg" &&
+    (payload?.type === "user_message" || payload?.type === "agent_message")
+  )
+    return typeof payload.message === "string" ? payload.message : undefined;
+  if (
+    record.type !== "response_item" ||
+    payload?.type !== "message" ||
+    !Array.isArray(payload.content)
+  )
+    return undefined;
+  const textType =
+    payload.role === "user"
+      ? "input_text"
+      : payload.role === "assistant"
+        ? "output_text"
+        : undefined;
+  if (!textType) return undefined;
+  const contentKinds = asRecord(
+    payload.internal_chat_message_metadata_passthrough,
+  )?.content_item_kinds;
+  return payload.content
+    .map((block, index) => ({ block: asRecord(block), index }))
+    .filter(
+      ({ block, index }) =>
+        block?.type === textType &&
+        (!Array.isArray(contentKinds) ||
+          ![
+            "agents_md.instructions",
+            "environments.environment_context",
+          ].includes(contentKinds[index])),
+    )
+    .map(({ block }) => block?.text)
+    .filter((text): text is string => typeof text === "string")
+    .join("\n");
+}
+
 export const codex: Harness = {
   id: "codex",
   binary: "codex",
-  sessionsDir: ".codex/sessions",
   hookResponse: "{}", // Stop hooks require JSON, even when no pane can be resolved.
-
-  conversationText(record) {
-    const payload = asRecord(record.payload);
-    if (
-      record.type === "event_msg" &&
-      (payload?.type === "user_message" || payload?.type === "agent_message")
-    )
-      return typeof payload.message === "string" ? payload.message : undefined;
-    if (
-      record.type !== "response_item" ||
-      payload?.type !== "message" ||
-      !Array.isArray(payload.content)
-    )
-      return undefined;
-    const textType =
-      payload.role === "user"
-        ? "input_text"
-        : payload.role === "assistant"
-          ? "output_text"
-          : undefined;
-    if (!textType) return undefined;
-    return payload.content
-      .map((block) => asRecord(block))
-      .filter((block) => block?.type === textType)
-      .map((block) => block?.text)
-      .filter((text): text is string => typeof text === "string")
-      .join("\n");
-  },
 
   isProcess(command) {
     return command === this.binary;
@@ -79,7 +89,11 @@ export const codex: Harness = {
     return [this.binary, "fork", sourceSid, FORK_BOOTSTRAP_PROMPT];
   },
 
-  sessionGlob(sid) {
-    return `*${sid}*.jsonl`;
+  conversation(sid) {
+    return conversationFiles(
+      ".codex/sessions",
+      `*${sid}*.jsonl`,
+      conversationText,
+    );
   },
 };

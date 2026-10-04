@@ -26,8 +26,11 @@ search_query=""
 
 header() {
   local mode="$filter"
-  [[ -n "$search_query" ]] && mode="search: $search_query"
-  [[ "$bookmarked_view" == 1 ]] && mode="$mode, bookmarked"
+  if [[ -n "$search_query" ]]; then
+    mode="search: $search_query"
+  elif [[ "$bookmarked_view" == 1 ]]; then
+    mode="$mode, bookmarked"
+  fi
   printf "[%s]  enter:open  ctrl-t:send  ctrl-g:filter  ctrl-l:bookmarks  ctrl-r:search\n" "$mode"
   printf "ctrl-s:save  ctrl-o:fork  ctrl-y:preview  ctrl-x:close  ctrl-d:remove"
 }
@@ -39,8 +42,8 @@ session_rows() {
     args=(search)
   else
     args=(list "$current_pane" "$current_window" --filter "$filter")
+    [[ "$bookmarked_view" == 1 ]] && args+=(--bookmarked)
   fi
-  [[ "$bookmarked_view" == 1 ]] && args+=(--bookmarked)
   [[ -n "$search_query" ]] && args+=(-- "$search_query")
   output=$(_cl "${args[@]}")
   if [[ -n "$search_query" ]]; then
@@ -70,7 +73,7 @@ while true; do
         --accept-nth=1,2,3 \
         --bind="start:pos($position)" \
         --bind='ctrl-u:half-page-up,ctrl-f:half-page-down' \
-        --bind="focus:transform-footer:printf '%s' {5} | fold -s -w 80" \
+        --bind="focus:transform-footer:printf '%s' {5} | cut -c1-1024 | fold -s -w 80" \
         --footer=' ' \
         --header="$(header)" \
         --preview='[[ -n {4} ]] && tmux capture-pane -ept {4} 2>/dev/null' \
@@ -95,6 +98,7 @@ while true; do
     ctrl-l)
       if [[ "$bookmarked_view" == 1 ]]; then bookmarked_view=0; else bookmarked_view=1; fi
       tmux set-option -s @cl_bookmarked "$bookmarked_view"
+      search_query=""
       continue
       ;;
     ctrl-g)

@@ -2,7 +2,7 @@ import { Database } from "bun:sqlite";
 import { mkdirSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
-import type { SessionRef, StoredSession } from "./sessions";
+import { SessionRef, type StoredSession } from "./sessions";
 
 const stateDir = join(
   process.env.XDG_STATE_HOME || join(homedir(), ".local", "state"),
@@ -20,7 +20,16 @@ type DbRow = {
   bookmark_name: string | null;
 };
 
+type CachedConversation = {
+  harness: StoredSession["harness"];
+  sid: string;
+  fingerprint: string;
+  index_version: number;
+};
+
 let database: Database | undefined;
+
+export const SEARCH_INDEX_VERSION = 2;
 
 function db(): Database {
   if (database) return database;
@@ -40,8 +49,101 @@ function db(): Database {
       PRIMARY KEY (harness, sid)
     )
   `);
+  opened.run(`
+    CREATE TABLE IF NOT EXISTS indexed_conversations (
+      harness TEXT NOT NULL,
+      sid TEXT NOT NULL,
+      fingerprint TEXT NOT NULL,
+      index_version INTEGER NOT NULL,
+      PRIMARY KEY (harness, sid)
+    )
+  `);
+  opened.run(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS conversation_search USING fts5(
+      text,
+      harness UNINDEXED,
+      sid UNINDEXED,
+      tokenize='unicode61'
+    )
+  `);
   database = opened;
   return opened;
+}
+
+export function cachedConversations(): Map<string, CachedConversation> {
+  const rows = db().query("SELECT * FROM indexed_conversations").all();
+  return new Map(
+    (rows as CachedConversation[]).map((row) => [SessionRef.key(row), row]),
+  );
+}
+
+function deleteConversationMessages(opened: Database, ref: SessionRef): void {
+  opened
+    .query("DELETE FROM conversation_search WHERE harness = ? AND sid = ?")
+    .run(ref.harness, ref.sid);
+}
+
+export function replaceConversation(
+  ref: SessionRef,
+  fingerprint: string,
+  messages: ReadonlyArray<string>,
+): void {
+  const opened = db();
+  const insert = opened.query(
+    "INSERT INTO conversation_search (text, harness, sid) VALUES (?, ?, ?)",
+  );
+  const track = opened.query(`
+    INSERT INTO indexed_conversations (harness, sid, fingerprint, index_version)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT (harness, sid) DO UPDATE SET
+      fingerprint = excluded.fingerprint,
+      index_version = excluded.index_version
+  `);
+
+  opened.transaction(() => {
+    deleteConversationMessages(opened, ref);
+    for (const message of messages) insert.run(message, ref.harness, ref.sid);
+    track.run(ref.harness, ref.sid, fingerprint, SEARCH_INDEX_VERSION);
+  })();
+}
+
+export function removeConversation(ref: SessionRef): void {
+  const opened = db();
+  opened.transaction(() => {
+    deleteConversationMessages(opened, ref);
+    opened
+      .query("DELETE FROM indexed_conversations WHERE harness = ? AND sid = ?")
+      .run(ref.harness, ref.sid);
+  })();
+}
+
+export function searchConversations(
+  query: string,
+): Array<SessionRef & { score: number }> {
+  const opened = db();
+  const search = query.trim();
+  // FTS tokenizes URL punctuation, so also require the literal URL in the message.
+  const url = /^https?:\/\/\S+$/i.test(search) ? search : undefined;
+  const terms = url ? [url] : [...new Set(search.split(/\s+/).filter(Boolean))];
+  if (!terms.length) return [];
+
+  const expression = terms
+    .map((term) => `"${term.replaceAll('"', '""')}"`)
+    .join(" AND ");
+  return opened
+    .query(
+      `
+      SELECT conversation_search.harness, conversation_search.sid, MIN(rank) AS score
+      FROM conversation_search
+      JOIN sessions USING (harness, sid)
+      WHERE conversation_search MATCH ? ${url ? "AND instr(text, ?) > 0" : ""}
+      GROUP BY conversation_search.harness, conversation_search.sid
+      ORDER BY score, MAX(sessions.active_at) DESC
+    `,
+    )
+    .all(...(url ? [expression, url] : [expression])) as Array<
+    SessionRef & { score: number }
+  >;
 }
 
 function fromDbRow(row: DbRow): StoredSession {

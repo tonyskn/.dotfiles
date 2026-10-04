@@ -128,7 +128,7 @@ namespace Cli {
 
       case "search": {
         if (!operands[0]?.trim()) die();
-        for (const row of await Sessions.search(operands[0], flags.bookmarked))
+        for (const row of await Sessions.search(operands[0]))
           IO.printSession(row);
         break;
       }

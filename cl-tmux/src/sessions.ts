@@ -134,7 +134,7 @@ export function recordHook(
   update: { active: boolean; prompt?: string },
 ): void {
   const now = Math.floor(Date.now() / 1000);
-  const title = update.prompt?.replace(/\s+/g, " ").trim().slice(0, 240);
+  const title = update.prompt?.replace(/\s+/g, " ").trim().slice(0, 2048);
   Store.upsertActivity(ref, cwd, now, update.active, title);
 }
 
@@ -142,17 +142,13 @@ export async function find(ref: SessionRef): Promise<SessionRow | undefined> {
   return (await list()).rows.find((row) => SessionRef.equals(row, ref));
 }
 
-export async function search(
-  query: string,
-  bookmarkedView = false,
-): Promise<SessionRow[]> {
+export async function search(query: string): Promise<SessionRow[]> {
   const { rows } = await list();
   const matches = await Transcripts.search(query, rows);
-  const matchingRefs = new Set(matches.map(SessionRef.key));
-  return SessionRow.filter(
-    rows.filter((row) => matchingRefs.has(SessionRef.key(row))),
-    { bookmarkedView },
-  );
+  const rowsByRef = SessionRef.index(rows);
+  return matches
+    .map((match) => rowsByRef.get(SessionRef.key(match)))
+    .filter((row): row is SessionRow => row !== undefined);
 }
 
 export async function launchError(
