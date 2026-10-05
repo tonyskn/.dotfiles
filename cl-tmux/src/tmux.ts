@@ -270,7 +270,7 @@ export async function open(
   const { name, cwd, pane, prompt } = options;
   if (!pane) {
     const harness = Harness.get(ref.harness);
-    const command = harness.resume({ sid: ref.sid, name, prompt });
+    const command = harness.resume({ sid: ref.sid, name, cwd, prompt });
     const launchedPane = await launch(harness, name, cwd, command, ref.sid);
     if (!prompt) await focus(launchedPane);
     return;

@@ -54,6 +54,8 @@ export const codex: Harness = {
 
   hookUpdate(payload) {
     const record = asRecord(payload);
+    // Side chats have no persisted transcript and cannot be resumed.
+    if (record?.transcript_path === null) return undefined;
     const event =
       typeof record?.hook_event_name === "string" ? record.hook_event_name : "";
     let state: AgentState | undefined;
@@ -78,8 +80,8 @@ export const codex: Harness = {
     };
   },
 
-  resume({ sid, prompt }) {
-    const args = [this.binary, "resume", sid];
+  resume({ sid, cwd, prompt }) {
+    const args = [this.binary, "resume", "-C", cwd, sid];
     if (prompt) args.push(prompt);
     return args;
   },

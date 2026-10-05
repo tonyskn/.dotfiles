@@ -23,7 +23,9 @@ if (!values.harness || !Harness.isId(values.harness)) process.exit(0);
 const payload = await hookPayload();
 const harness = Harness.get(values.harness);
 if (harness.hookResponse) console.log(harness.hookResponse);
-const { sid, state, cwd, prompt } = harness.hookUpdate(payload);
+const update = harness.hookUpdate(payload);
+if (!update) process.exit(0);
+const { sid, state, cwd, prompt } = update;
 const paneId = await Tmux.resolveHookPaneId(
   harness,
   sid,

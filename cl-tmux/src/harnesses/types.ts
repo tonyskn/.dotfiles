@@ -21,9 +21,14 @@ export type Harness = {
   /** Response required by hooks when there is no pane to update. */
   hookResponse?: string;
   /** Normalizes the harness hook payload into session activity. */
-  hookUpdate(payload: unknown): HookUpdate;
+  hookUpdate(payload: unknown): HookUpdate | undefined;
   /** Builds the command for reopening a session. */
-  resume(args: { sid: string; name: string; prompt?: string }): string[];
+  resume(args: {
+    sid: string;
+    name: string;
+    cwd: string;
+    prompt?: string;
+  }): string[];
   /** Builds the command for forking a session. */
   fork(args: { sourceSid: string; name: string }): string[];
   /** Locates a session and lazily exposes its searchable messages. */
