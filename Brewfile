@@ -18,6 +18,7 @@ brew "git-delta"
 brew "git-lfs"
 brew "gh"
 brew "tig"
+brew "crit"
 
 # CLI utilities
 brew "ripgrep"

@@ -97,6 +97,7 @@ alias gwip='git commit -am "--wip--"'
 gwt() { local o; o="$(command gwt)" && [[ -d "$o" ]] && cd "$o"; }
 gpr() { local o; o="$(git pr "$@")" && [[ -d "$o" ]] && cd "$o"; }
 alias gprme='gpr --author=@me'
+alias gprv='gh pr view --web'
 
 # }}}
 

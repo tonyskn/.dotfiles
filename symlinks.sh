@@ -27,6 +27,7 @@ link _tmux.conf    .tmux.conf
 link _vimrc        .vimrc
 link _tigrc        .tigrc
 link _jq           .jq
+link _crit.config.json  .crit.config.json
 link _bin          .bin
 
 # XDG config
