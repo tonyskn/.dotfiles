@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # fzf directory picker powered by zoxide
-# Outputs: "cd <path>" or "tmux <path>" or nothing
+# Prints the selected directory (or worktree) for the zsh widget to enter.
 set -euo pipefail
 
 out="$(zoxide query -l | fzf \
   --reverse --scheme=path +m \
-  --expect=ctrl-g \
-  --header='enter: cd | ctrl-g: tmux window')"
+  --expect=ctrl-g,ctrl-t \
+  --header='enter: cd | ctrl-g: tmux window | ctrl-t: worktrees')"
 
 key="${out%%$'\n'*}"
 dir="${out#*$'\n'}"
@@ -15,8 +15,14 @@ dir="${out#*$'\n'}"
 
 dir="$(cd "$dir" && pwd -P)"
 
-if [[ "$key" == "ctrl-g" && -n "${TMUX:-}" ]]; then
-  tmux new-window -c "$dir"
-else
-  echo "$dir"
-fi
+case "$key" in
+  ctrl-g)
+    if [[ -n "${TMUX:-}" ]]; then
+      tmux new-window -c "$dir"
+    else
+      printf '%s\n' "$dir"
+    fi
+    ;;
+  ctrl-t) (caller="$PWD"; cd "$dir" && GWT_RETURN_DIR="$caller" command gwt) ;;
+  *) printf '%s\n' "$dir" ;;
+esac

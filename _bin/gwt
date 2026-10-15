@@ -3,43 +3,45 @@ set -euo pipefail
 
 root="$(git rev-parse --show-toplevel)"
 main="$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -n 1)"
-position="$(git worktree list | grep -Fnm 1 "$root" | cut -d: -f1)"
-rows="$(
-  git worktree list |
-    sed "s|^$HOME/|~/|" |
-    column -t
-)"
+return_dir="${GWT_RETURN_DIR:-$PWD}"
 
-selection="$(
-  printf '%s\n' "$rows" |
-    fzf \
-      --no-sort \
-      --sync \
-      --expect=ctrl-d,ctrl-o \
-      --bind="start:pos($position)" \
-      --header='enter: go to | ctrl-o: open PR | ctrl-d: remove'
-)" || exit 0
+while true; do
+  worktrees="$(git -C "$main" worktree list)"
+  position="$(grep -Fnm 1 "$root" <<< "$worktrees" | cut -d: -f1)"
+  rows="$(sed "s|^$HOME/|~/|" <<< "$worktrees" | column -t)"
 
-key="$(head -n 1 <<< "$selection")"
-row="$(tail -n 1 <<< "$selection")"
-read -r path _ <<< "$row"
-path="${path/#\~/$HOME}"
-[[ -n "$path" ]] || exit 0
+  selection="$(
+    printf '%s\n' "$rows" |
+      fzf \
+        --no-sort \
+        --sync \
+        --expect=ctrl-d,ctrl-o,ctrl-r \
+        --bind="start:pos($position)" \
+        --header='enter: go to | ctrl-r: root | ctrl-o: open PR | ctrl-d: remove'
+  )" || break
 
-case "$key" in
-  ctrl-d)
-    git -C "$path" wt rm >/dev/null
-    if [[ "$path" == "$root" ]]; then
-      echo "$main"
-    else
-      echo "$root"
-    fi
-    ;;
-  ctrl-o)
-    (
-      cd "$path"
-      gh pr view --web
-    ) >&2
-    ;;
-  *) echo "$path" ;;
-esac
+  key="$(head -n 1 <<< "$selection")"
+  row="$(tail -n 1 <<< "$selection")"
+  read -r path _ <<< "$row"
+  path="${path/#\~/$HOME}"
+  [[ -n "$path" ]] || break
+
+  case "$key" in
+    ctrl-r) printf '%s\n' "$main"; exit 0 ;;
+    ctrl-d)
+      gum spin --title "Removing $(basename "$path")..." --show-error -- \
+        git -C "$path" wt rm --force >&2
+      printf 'Removed %s\n' "$path" >&2
+      if [[ "$path" == "$root" ]]; then
+        root="$main"
+      fi
+      ;;
+    ctrl-o)
+      (cd "$path" && gh pr view --web) >&2
+      exit 0
+      ;;
+    *) printf '%s\n' "$path"; exit 0 ;;
+  esac
+done
+
+[[ -d "$return_dir" ]] || printf '%s\n' "$main"
