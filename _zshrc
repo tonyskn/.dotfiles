@@ -2,7 +2,11 @@
 
 # Completion system {{{
 
-eval $(/opt/homebrew/bin/brew shellenv)
+if [[ -z "$HOMEBREW_PREFIX" || -z "$HOMEBREW_CELLAR" || -z "$HOMEBREW_REPOSITORY" ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+# macOS path_helper can put system binaries ahead of inherited Homebrew paths.
+path=("$HOMEBREW_PREFIX/bin" "$HOMEBREW_PREFIX/sbin" $path)
 fpath=($HOMEBREW_PREFIX/share/zsh-completions $fpath)
 autoload -Uz compinit
 if [[ -f ~/.zcompdump && $(date +'%j') == $(stat -f '%Sm' -t '%j' ~/.zcompdump) ]]; then
@@ -26,11 +30,12 @@ bindkey -e
 WORDCHARS=''
 # Do not persist commands starting with *space* in zsh history
 setopt inc_append_history extended_history hist_expire_dups_first hist_ignore_space
+setopt hist_save_no_dups hist_ignore_all_dups
 setopt extendedglob
 HISTFILE=${XDG_DATA_HOME:-$HOME/.local/share}/zsh/zsh_history
 [[ -d $HISTFILE:h ]] || mkdir -p $HISTFILE:h
 SAVEHIST=100000  # History file size
-HISTSIZE=20000   # Session history size
+HISTSIZE=120000 # Keep more than SAVEHIST in memory to avoid pruning during startup
 alias history='fc -l 1'
 
 ulimit -n 2048
@@ -171,9 +176,18 @@ fi
 export _ZO_EXCLUDE_DIRS="$HOME/spotify/worktrees/*"
 eval "$(zoxide init zsh)"
 
-# sdkman (must be near end)
+# SDKs are available immediately; load SDKMAN only when explicitly requested.
 export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+export JAVA_HOME="$SDKMAN_DIR/candidates/java/current"
+export MAVEN_HOME="$SDKMAN_DIR/candidates/maven/current"
+path=("$JAVA_HOME/bin" "$MAVEN_HOME/bin" $path)
+
+if [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]]; then
+  sdk() {
+    unfunction sdk
+    source "$SDKMAN_DIR/bin/sdkman-init.sh" && sdk "$@"
+  }
+fi
 
 # fzf keybindings: Ctrl+R (history), Ctrl+T (file picker)
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
@@ -194,3 +208,5 @@ bindkey -M emacs '^F' fzf-cd-widget
 eval "$(starship init zsh)"
 
 # }}}
+
+[[ -r ~/.zshrc.local ]] && source ~/.zshrc.local
