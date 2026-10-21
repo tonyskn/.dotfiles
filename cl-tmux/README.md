@@ -8,8 +8,7 @@ cl-tmux runs no background process or daemon. Removing a session drops its
 index entry without deleting its transcript.
 
 Harnesses are opt-in: configure their hooks to track new sessions. Use `ctrl-l`
-for the bookmarked view (live sessions remain visible), and `ctrl-r` to search
-tracked transcripts.
+for the bookmarked view, and `ctrl-r` to search tracked transcripts.
 
 ## Install
 

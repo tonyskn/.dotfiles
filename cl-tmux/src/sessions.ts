@@ -99,14 +99,15 @@ export const SessionRow = {
     now = Date.now() / 1000,
   ): SessionRow[] {
     return rows.filter((row) => {
-      if (options.bookmarkedView && !row.bookmarked && !row.pane) return false;
+      if (options.bookmarkedView && !row.bookmarked) return false;
+      if (row.pane) return true;
       switch (options.period) {
         case "today":
           return row.activeAt !== undefined && now - row.activeAt < 86400;
         case "week":
           return row.activeAt !== undefined && now - row.activeAt < 604800;
         case "live":
-          return row.pane !== undefined;
+          return false;
         default:
           return true;
       }
