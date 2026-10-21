@@ -60,6 +60,12 @@ zle -N down-line-or-beginning-search
 bindkey "^[[A" up-line-or-beginning-search
 bindkey "^[[B" down-line-or-beginning-search
 
+# ctrl+H kills entire argument on current line
+autoload -Uz backward-kill-word-match
+zle -N backward-kill-argument backward-kill-word-match
+zstyle ':zle:backward-kill-argument' word-style whitespace
+bindkey '^H' backward-kill-argument
+
 # }}}
 
 # Environment {{{
