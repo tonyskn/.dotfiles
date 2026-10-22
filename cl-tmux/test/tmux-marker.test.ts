@@ -120,7 +120,7 @@ async function withTmux(
         try {
           return db
             .query(
-              "SELECT sid, cwd, started_at AS startedAt, title FROM sessions",
+              "SELECT sid, cwd, started_at AS startedAt, active_at AS activeAt, title FROM sessions",
             )
             .all() as Array<Record<string, unknown>>;
         } finally {
@@ -140,7 +140,7 @@ async function withTmux(
   }
 }
 
-test("indexes resolved sessions and captures the first prompt", () =>
+test("indexes on the first prompt and preserves activity on resume", () =>
   withTmux(async (fixture) => {
     await fixture.mark(fixture.paneId, {
       session_id: "tracked-session",
@@ -148,6 +148,15 @@ test("indexes resolved sessions and captures the first prompt", () =>
       source: "startup",
       cwd: "/repo",
     });
+    expect(await fixture.indexEntries()).toEqual([]);
+    for (const event of ["Stop", "Notification"]) {
+      await fixture.mark(fixture.paneId, {
+        session_id: "tracked-session",
+        hook_event_name: event,
+        cwd: "/repo",
+      });
+    }
+    expect(await fixture.indexEntries()).toEqual([]);
     await fixture.mark(fixture.paneId, {
       session_id: "tracked-session",
       hook_event_name: "UserPromptSubmit",
@@ -160,7 +169,16 @@ test("indexes resolved sessions and captures the first prompt", () =>
       title: "Investigate the build",
       cwd: "/repo",
       startedAt: expect.any(Number),
+      activeAt: expect.any(Number),
     });
+    await fixture.mark(fixture.paneId, {
+      session_id: "tracked-session",
+      hook_event_name: "SessionStart",
+      cwd: "/repo/worktree",
+    });
+    expect(await fixture.indexEntries()).toEqual([
+      { ...entries[0], cwd: "/repo/worktree" },
+    ]);
   }));
 
 test("publishes hook state and window icon", () =>

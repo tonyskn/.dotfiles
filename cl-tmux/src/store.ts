@@ -169,7 +169,11 @@ export function upsertActivity(
     .prepare(
       `
       INSERT INTO sessions (harness, sid, cwd, started_at, active_at, title)
-      VALUES (?, ?, ?, ?, ?, ?)
+      SELECT $harness, $sid, $cwd, $timestamp, $activeAt, $title
+      -- Only a prompt creates an entry; other hooks may update existing sessions.
+      WHERE $title IS NOT NULL OR EXISTS (
+        SELECT 1 FROM sessions WHERE harness = $harness AND sid = $sid
+      )
       ON CONFLICT (harness, sid) DO UPDATE SET
         cwd = excluded.cwd,
         started_at = COALESCE(MIN(sessions.started_at, excluded.started_at), sessions.started_at, excluded.started_at),
@@ -177,14 +181,14 @@ export function upsertActivity(
         title = COALESCE(sessions.title, excluded.title)
     `,
     )
-    .run(
-      ref.harness,
-      ref.sid,
-      cwd,
-      timestamp,
-      active ? timestamp : null,
-      title ?? null,
-    );
+    .run({
+      $harness: ref.harness,
+      $sid: ref.sid,
+      $cwd: cwd,
+      $timestamp: timestamp,
+      $activeAt: active ? timestamp : null,
+      $title: title ?? null,
+    });
 }
 
 export function all(): StoredSession[] {

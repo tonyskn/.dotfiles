@@ -27,7 +27,7 @@ export const AgentState = {
   },
 };
 
-export type HarnessId = "claude" | "codex";
+export type HarnessId = "claude" | "codex" | "xirp";
 
 export type SessionRef = {
   harness: HarnessId;
@@ -85,6 +85,7 @@ export const SessionRow = {
         const pane = paneBySession.get(SessionRef.key(entry));
         return {
           ...entry,
+          activeAt: entry.activeAt ?? entry.startedAt,
           name: entry.bookmarkName ?? (basename(entry.cwd) || "unnamed"),
           bookmarked: entry.bookmarkName !== undefined,
           pane,

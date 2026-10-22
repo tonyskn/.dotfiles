@@ -3,7 +3,8 @@
 A tmux picker for tracked Claude Code and Codex sessions. It can resume, fork,
 bookmark, search, and send prompts to sessions.
 
-Hooks store live state on tmux panes and register sessions in a local index.
+Hooks store live state on tmux panes. The first prompt registers a session in
+a local index.
 cl-tmux runs no background process or daemon. Removing a session drops its
 index entry without deleting its transcript.
 

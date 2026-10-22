@@ -1,9 +1,10 @@
 import type { HarnessId } from "../sessions";
 import { claude } from "./claude";
 import { codex } from "./codex";
+import { xirp } from "./xirp";
 import type { Harness as HarnessAdapter } from "./types";
 
-const HARNESSES: Record<HarnessId, HarnessAdapter> = { claude, codex };
+const HARNESSES: Record<HarnessId, HarnessAdapter> = { claude, codex, xirp };
 
 export function isId(value: string): value is HarnessId {
   return Object.hasOwn(HARNESSES, value);
