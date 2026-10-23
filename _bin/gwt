@@ -15,9 +15,9 @@ while true; do
       fzf \
         --no-sort \
         --sync \
-        --expect=ctrl-d,ctrl-o,ctrl-r \
+        --expect=ctrl-d,ctrl-o,ctrl-r,ctrl-s \
         --bind="start:pos($position)" \
-        --header='enter: go to | ctrl-r: root | ctrl-o: open PR | ctrl-d: remove'
+        --header=$'enter: go to | ctrl-r: root | ctrl-o: open PR | ctrl-d: remove\nctrl-s: move branch to main (main row: move to worktree)'
   )" || break
 
   key="$(head -n 1 <<< "$selection")"
@@ -28,6 +28,11 @@ while true; do
 
   case "$key" in
     ctrl-r) printf '%s\n' "$main"; exit 0 ;;
+    ctrl-s)
+      destination="$(git -C "$path" wt switch)"
+      printf '%s\n' "$destination"
+      exit 0
+      ;;
     ctrl-d)
       gum spin --title "Removing $(basename "$path")..." --show-error -- \
         git -C "$path" wt rm --force >&2

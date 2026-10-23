@@ -3,11 +3,58 @@ set -euo pipefail
 
 # git wt <branch>  — create or jump to worktree for branch
 # git wt rm        — remove current worktree, delete branch, go back to main
-# git wt list      — list all worktrees (default)
+# git wt switch    — move this branch and local changes between main and a worktree
+# git wt [list]    — list all worktrees (default)
 
 cmd="${1:-list}"
+root="$(git rev-parse --show-toplevel)"
+main="$(git worktree list --porcelain | sed -n 's/^worktree //p' | head -n 1)"
+
+fail() {
+  printf '%s\n' "$*" >&2
+  exit 1
+}
+
+worktree_path() {
+  local branch="$1"
+  printf '%s/spotify/worktrees/%s--%s\n' "$HOME" "$(basename "$main")" "${branch//\//-}"
+}
 
 case "$cmd" in
+  switch)
+    branch="$(git branch --show-current)"
+    [[ -n "$branch" ]] || fail "Checkout has no branch"
+    if [[ "$root" == "$main" ]]; then
+      [[ "$branch" != master ]] || fail "Main is already on master"
+      destination="$(worktree_path "$branch")"
+      [[ ! -e "$destination" ]] || fail "Worktree destination already exists: $destination"
+    else
+      [[ -z "$(git -C "$main" status --porcelain --untracked-files=no)" ]] || fail "Main checkout has uncommitted changes: $main"
+      destination="$main"
+    fi
+
+    stashed=0
+    if [[ -n "$(git -C "$root" status --porcelain)" ]]; then
+      git -C "$root" stash push -q --include-untracked -m "git wt switch: $branch" >&2
+      stashed=1
+    fi
+
+    if [[ "$root" == "$main" ]]; then
+      git -C "$main" switch master >&2
+      git -C "$main" worktree add "$destination" "$branch" >&2
+    else
+      git -C "$root" switch --detach >&2
+      git -C "$main" switch "$branch" >&2
+    fi
+
+    if [[ "$stashed" == 1 ]]; then
+      git -C "$destination" stash pop -q --index >&2 ||
+        printf 'Could not fully restore changes in %s; stash retained. Resolve conflicts or collisions there.\n' "$destination" >&2
+    fi
+    # Only the linked source is deleted; ignored files there are discarded.
+    [[ "$root" == "$main" ]] || git -C "$main" worktree remove "$root" >&2
+    printf '%s\n' "$destination"
+    ;;
   list)
     git worktree list >&2
     ;;
@@ -26,9 +73,7 @@ case "$cmd" in
     ;;
   *)
     branch="$cmd"
-    repo="$(basename "$(git rev-parse --show-toplevel)")"
-    slug="${branch//\//-}"
-    wtdir="$HOME/spotify/worktrees/${repo}--${slug}"
+    wtdir="$(worktree_path "$branch")"
 
     existing="$(git worktree list | awk -v b="[$branch]" '$NF == b { print $1 }')"
     if [[ -n "$existing" ]]; then
