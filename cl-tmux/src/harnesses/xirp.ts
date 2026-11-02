@@ -1,5 +1,5 @@
 import type { AgentState } from "../sessions";
-import { asRecord, conversationFiles } from "./util";
+import { asRecord, conversationFiles, readMessages } from "./util";
 import type { Harness } from "./types";
 
 function conversationText(record: Record<string, unknown>): string | undefined {
@@ -76,11 +76,12 @@ export const xirp: Harness = {
     return [this.binary, "--fork", sourceSid];
   },
 
-  conversation(sid) {
-    return conversationFiles(
-      ".snipe/sessions",
-      `${sid}.jsonl`,
-      conversationText,
-    );
+  async conversation(sid) {
+    const files = await conversationFiles(".snipe/sessions", `${sid}.jsonl`);
+    if (!files) return undefined;
+    return {
+      fingerprint: files.fingerprint,
+      messages: readMessages(files.records, conversationText),
+    };
   },
 };

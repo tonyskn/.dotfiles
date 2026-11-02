@@ -29,7 +29,7 @@ type CachedConversation = {
 
 let database: Database | undefined;
 
-export const SEARCH_INDEX_VERSION = 3;
+export const SEARCH_INDEX_VERSION = 4;
 
 function db(): Database {
   if (database) return database;

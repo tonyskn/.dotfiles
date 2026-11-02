@@ -1,5 +1,5 @@
 import type { AgentState } from "../sessions";
-import { asRecord, conversationFiles } from "./util";
+import { asRecord, conversationFiles, readMessages } from "./util";
 import type { Harness } from "./types";
 
 function conversationText(record: Record<string, unknown>): string | undefined {
@@ -70,11 +70,12 @@ export const claude: Harness = {
     return [this.binary, "--resume", sourceSid, "--fork-session", "-n", name];
   },
 
-  conversation(sid) {
-    return conversationFiles(
-      ".claude/projects",
-      `${sid}.jsonl`,
-      conversationText,
-    );
+  async conversation(sid) {
+    const files = await conversationFiles(".claude/projects", `${sid}.jsonl`);
+    if (!files) return undefined;
+    return {
+      fingerprint: files.fingerprint,
+      messages: readMessages(files.records, conversationText),
+    };
   },
 };

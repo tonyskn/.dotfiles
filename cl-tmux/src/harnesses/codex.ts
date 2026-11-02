@@ -56,6 +56,29 @@ function conversationText(record: Record<string, unknown>): string | undefined {
     .join("\n");
 }
 
+async function* conversationMessages(
+  records: AsyncIterable<Record<string, unknown>>,
+): AsyncGenerator<string> {
+  // Later Codex pages can replace earlier history, so collect messages before yielding them.
+  let messages: Array<{ ordinal: number; text: string }> = [];
+  for await (const record of records) {
+    if (record.type === "session_meta") {
+      const cutoff = asRecord(
+        asRecord(record.payload)?.history_base,
+      )?.end_ordinal_exclusive;
+      if (typeof cutoff === "number")
+        messages = messages.filter((message) => message.ordinal < cutoff);
+    }
+    const text = conversationText(record);
+    if (text)
+      messages.push({
+        ordinal: typeof record.ordinal === "number" ? record.ordinal : -1,
+        text,
+      });
+  }
+  yield* messages.map((message) => message.text);
+}
+
 export const codex: Harness = {
   id: "codex",
   binary: "codex",
@@ -104,11 +127,12 @@ export const codex: Harness = {
     return [this.binary, "fork", sourceSid, FORK_BOOTSTRAP_PROMPT];
   },
 
-  conversation(sid) {
-    return conversationFiles(
-      ".codex/sessions",
-      `*${sid}*.jsonl`,
-      conversationText,
-    );
+  async conversation(sid) {
+    const files = await conversationFiles(".codex/sessions", `*${sid}*.jsonl`);
+    if (!files) return undefined;
+    return {
+      fingerprint: files.fingerprint,
+      messages: conversationMessages(files.records),
+    };
   },
 };

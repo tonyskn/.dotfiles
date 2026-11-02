@@ -4,7 +4,6 @@ import { stat } from "fs/promises";
 import { homedir } from "os";
 import { join } from "path";
 import { createInterface } from "readline";
-import type { Conversation } from "./types";
 
 export function asRecord(
   payload: unknown,
@@ -22,11 +21,7 @@ function parseRecord(line: string): Record<string, unknown> | undefined {
   }
 }
 
-export async function conversationFiles(
-  directory: string,
-  filename: string,
-  textForRecord: (record: Record<string, unknown>) => string | undefined,
-): Promise<Conversation | undefined> {
+export async function conversationFiles(directory: string, filename: string) {
   const cwd = join(process.env.HOME || homedir(), directory);
   const found = await Array.fromAsync(
     new Bun.Glob(`**/${filename}`).scan({
@@ -48,20 +43,27 @@ export async function conversationFiles(
   const fingerprint = createHash("sha256")
     .update(JSON.stringify(files))
     .digest("hex");
-  return { fingerprint, messages: readMessages(paths, textForRecord) };
+  return { fingerprint, records: readRecords(paths) };
 }
 
-async function* readMessages(
+async function* readRecords(
   paths: ReadonlyArray<string>,
-  textForRecord: (record: Record<string, unknown>) => string | undefined,
-): AsyncGenerator<string> {
+): AsyncGenerator<Record<string, unknown>> {
   for (const path of paths) {
     const lines = createInterface({ input: createReadStream(path) });
     for await (const line of lines) {
       const record = parseRecord(line);
-      if (!record) continue;
-      const text = textForRecord(record);
-      if (text) yield text;
+      if (record) yield record;
     }
+  }
+}
+
+export async function* readMessages(
+  records: AsyncIterable<Record<string, unknown>>,
+  textForRecord: (record: Record<string, unknown>) => string | undefined,
+): AsyncGenerator<string> {
+  for await (const record of records) {
+    const text = textForRecord(record);
+    if (text) yield text;
   }
 }
