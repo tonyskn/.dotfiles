@@ -4,13 +4,25 @@ import type { Harness } from "./types";
 
 const FORK_BOOTSTRAP_PROMPT = "Wait for further instructions.";
 
+function isInstructions(text: string): boolean {
+  // Older Codex transcripts lack the content-kind tag for injected instructions.
+  return (
+    text.trimStart().startsWith("# AGENTS.md instructions") &&
+    text.includes("<INSTRUCTIONS>")
+  );
+}
+
 function conversationText(record: Record<string, unknown>): string | undefined {
   const payload = asRecord(record.payload);
   if (
     record.type === "event_msg" &&
     (payload?.type === "user_message" || payload?.type === "agent_message")
-  )
-    return typeof payload.message === "string" ? payload.message : undefined;
+  ) {
+    if (typeof payload.message !== "string") return undefined;
+    return payload.type === "user_message" && isInstructions(payload.message)
+      ? undefined
+      : payload.message;
+  }
   if (
     record.type !== "response_item" ||
     payload?.type !== "message" ||
@@ -40,6 +52,7 @@ function conversationText(record: Record<string, unknown>): string | undefined {
     )
     .map(({ block }) => block?.text)
     .filter((text): text is string => typeof text === "string")
+    .filter((text) => payload.role !== "user" || !isInstructions(text))
     .join("\n");
 }
 
