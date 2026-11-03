@@ -74,15 +74,16 @@ while true; do
   [[ -z "$num" ]] && exit 0
 
   case "$key" in
-    ctrl-o)
+    ctrl-o|ctrl-t)
       ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
-      git config --add remote.origin.fetch "+refs/heads/$ref:refs/remotes/origin/$ref" \
-        && git fetch origin \
-        && git checkout -B "$ref" "origin/$ref"
-      ;;
-    ctrl-t)
-      ref=$(gh pr view "$num" --json headRefName --jq .headRefName)
-      echo "$(git wt "$ref")"
+      git fetch origin "+refs/heads/$ref:refs/remotes/origin/$ref" >&2
+      if [[ "$key" == ctrl-o ]]; then
+        git checkout -B "$ref" "origin/$ref"
+      else
+        git show-ref --verify --quiet "refs/heads/$ref" ||
+          git branch --track "$ref" "origin/$ref" >&2
+        git wt "$ref"
+      fi
       ;;
     *) gh pr view "$num" --web ;;
   esac
